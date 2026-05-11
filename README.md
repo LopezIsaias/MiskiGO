@@ -1,10 +1,12 @@
-# MiskiGO — Conectando el campo con la ciudad
+# MiskiGO — Connecting the Countryside with the City
 
-Plataforma integral de marketplace y gestión logística (ERP) diseñada para eliminar intermediarios en la cadena de suministro agrícola de San Martín, Perú.
+A comprehensive marketplace and logistics management platform (ERP) designed to eliminate intermediaries in the agricultural supply chain of San Martín, Peru.
 
-- **Modelo de Negocio**: Distribución programada (2 despachos/semana) con redistribución de márgenes hacia el productor.
-- **Funcionalidades Clave**: Billetera virtual, sistema de reputación de proveedores, control de calidad con evidencia fotográfica y gestión de roles (RBAC).
-- **Stack**: Next.js 15 (App Router), TypeScript, Tailwind CSS, Supabase.
+- **Business Model**: Scheduled distribution (2 shipments/week) with margin redistribution to the producer.
 
-## Visión Operativa
-El sistema implementa un modelo **hub-and-spoke** optimizado para la logística regional, garantizando precios justos a través de una estructura de costos transparente y trazabilidad total.
+- **Key Features**: Digital wallet, supplier reputation system, quality control with photographic evidence, and role management (RBAC).
+
+- **Building Stack**: Next.js 15 (App Router), TypeScript, Tailwind CSS, Supabase.
+
+## Operational Vision
+The system implements an optimized **hub-and-spoke** model for regional logistics, guaranteeing fair prices through a transparent cost structure and full traceability.
