@@ -27,5 +27,5 @@ export async function updateSession(request: NextRequest) {
   // Refresca el token de sesión. No usar getSession() aquí — puede ser no confiable en middleware.
   const { data: { user } } = await supabase.auth.getUser()
 
-  return { supabaseResponse, user }
+  return { supabaseResponse, user, supabase }
 }

@@ -1,5 +1,23 @@
 # CHANGELOG — Miski GO
 
+## [2026-05-11] — Semilla de datos y middleware de rutas (pasos 3.5 y 4)
+
+### Añadido
+- `supabase/migrations/20260511000015_seed_data.sql` — inserta región San Martín (Tarapoto) y primer superadmin (`admin@miskigo.com`, contraseña temporal `MiskiAdmin2026!` — cambiar en Dashboard)
+
+### Modificado
+- `src/lib/supabase/middleware.ts` — `updateSession` ahora devuelve también `supabase` client para reutilizar en el middleware principal sin crear un segundo cliente
+- `src/middleware.ts` — protección completa por rol: redirige usuarios no autenticados a `/login`; redirige usuarios autenticados en `/login` o `/register` a su dashboard; redirige a usuarios en rutas de otro rol a su propio dashboard; rutas `/api/**` quedan fuera de la protección (cada route la maneja internamente)
+- `src/app/page.tsx` — reemplazado placeholder de Next.js por Server Component que redirige según sesión y rol (respaldo del middleware)
+
+### Archivos afectados
+- `supabase/migrations/20260511000015_seed_data.sql`
+- `src/lib/supabase/middleware.ts`
+- `src/middleware.ts`
+- `src/app/page.tsx`
+
+---
+
 ## [2026-05-11] — Autenticación con Supabase Auth (paso 3)
 
 ### Añadido
