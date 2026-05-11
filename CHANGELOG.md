@@ -1,5 +1,37 @@
 # CHANGELOG — Miski GO
 
+## [2026-05-10] — Migraciones SQL con RLS completo (paso 2)
+
+### Añadido
+- 14 migraciones SQL en `supabase/migrations/` con todas las tablas del esquema
+- Funciones helper de RLS con SECURITY DEFINER: `get_user_role()`, `get_user_region_id()`
+- Trigger compartido `update_updated_at()` para todas las tablas con ese campo
+- Trigger `raise_immutable_error()` que bloquea UPDATE/DELETE incluso al service role
+- Triggers de negocio en `orders`: `lock_order_on_payment()` y `set_claim_window()`
+- RLS activado en las 19 tablas con políticas por rol (SELECT/INSERT/UPDATE)
+- `audit_log` y `wallet_transactions`: inmutabilidad a nivel de BD (triggers + ausencia de política UPDATE/DELETE)
+- Migración 009 recrea las políticas SELECT de `orders` y `order_items` para filtrar delivery por ruta asignada
+- Índices en todas las claves foráneas y columnas de búsqueda frecuente
+- Índice compuesto para el algoritmo de asignación de proveedores (min_price ASC, published_at ASC)
+
+### Archivos afectados
+- `supabase/migrations/20260510000001_regions_users.sql`
+- `supabase/migrations/20260510000002_audit_log.sql`
+- `supabase/migrations/20260510000003_product_categories_products.sql`
+- `supabase/migrations/20260510000004_supplier_publications.sql`
+- `supabase/migrations/20260510000005_dispatch_cycles.sql`
+- `supabase/migrations/20260510000006_orders_order_items.sql`
+- `supabase/migrations/20260510000007_order_item_assignments.sql`
+- `supabase/migrations/20260510000008_wallet_transactions_payment_verifications.sql`
+- `supabase/migrations/20260510000009_delivery_routes_stops.sql`
+- `supabase/migrations/20260510000010_reception_records.sql`
+- `supabase/migrations/20260510000011_claims.sql`
+- `supabase/migrations/20260510000012_reputation_events.sql`
+- `supabase/migrations/20260510000013_notifications.sql`
+- `supabase/migrations/20260510000014_product_suggestions.sql`
+
+---
+
 ## [2026-05-10] — Estructura de carpetas y cliente Supabase
 
 ### Añadido
