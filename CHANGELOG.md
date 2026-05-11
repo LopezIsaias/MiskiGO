@@ -1,5 +1,38 @@
 # CHANGELOG — Miski GO
 
+## [2026-05-11] — Autenticación con Supabase Auth (paso 3)
+
+### Añadido
+- `src/lib/validations/auth.ts` — schemas Zod para login y registro (con refine cross-field para confirmación de contraseña)
+- `src/app/(auth)/layout.tsx` — layout centrado con branding Miski GO para rutas de autenticación
+- `src/app/(auth)/login/page.tsx` — página de login (Server Component)
+- `src/app/(auth)/register/page.tsx` — página de registro (Server Component; carga regiones activas del servidor)
+- `src/components/auth/login-form.tsx` — formulario de login con React Hook Form + Zod; redirige al dashboard del rol tras autenticación
+- `src/components/auth/register-form.tsx` — formulario de registro con selector visual de rol (cliente/proveedor); campos condicionales (RUC solo para proveedor); manejo de conflicto de DNI
+- `src/app/api/auth/register/route.ts` — API route POST: valida con Zod, verifica duplicidad de DNI, crea usuario en auth.users con `email_confirm: true`, inserta perfil en public.users; hace rollback del auth user si falla el insert
+- `src/app/api/auth/check-dni/route.ts` — API route GET: retorna si el DNI existe y qué rol tiene (usado en paso 6 para conversión de rol desde panel superadmin)
+
+### Modificado
+- `src/types/database.types.ts` — reemplazado por tipos generados con `supabase gen types typescript` (incluye `__InternalSupabase`, `PostgrestVersion`, y `Relationships` por tabla requeridos por `@supabase/supabase-js` v2.105); tipos de enum y aliases de Row/Insert añadidos al final
+
+### Corregido
+- Error de tipos `never` en queries Supabase: causado porque el archivo de tipos manual carecía de `Relationships` y `__InternalSupabase` que requiere la versión 2.105 del cliente
+- Error de tipos con `z.preprocess` en `@hookform/resolvers` v5: el input type queda `unknown`; solucionado usando `.optional().refine()` en su lugar
+- Warning de React Compiler en `register-form.tsx`: reemplazado `watch('role')` por `useWatch({ control, name: 'role' })`
+
+### Archivos afectados
+- `src/lib/validations/auth.ts`
+- `src/types/database.types.ts`
+- `src/app/(auth)/layout.tsx`
+- `src/app/(auth)/login/page.tsx`
+- `src/app/(auth)/register/page.tsx`
+- `src/components/auth/login-form.tsx`
+- `src/components/auth/register-form.tsx`
+- `src/app/api/auth/register/route.ts`
+- `src/app/api/auth/check-dni/route.ts`
+
+---
+
 ## [2026-05-10] — Migraciones SQL con RLS completo (paso 2)
 
 ### Añadido
