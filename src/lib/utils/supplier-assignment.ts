@@ -28,6 +28,16 @@ type PublicationWithRep = {
   supplier: { reputation_score: number } | null
 }
 
+// Plan built during gap-fill loop — DB is NOT touched until fullyResolved is confirmed.
+type ExtraAssignmentPlan = {
+  publication_id: string
+  supplier_id: string
+  assigned_quantity: number
+  supplier_price_frozen: number
+  platform_margin_frozen: number
+  origAvailableQty: number  // used to compute newQty at apply time
+}
+
 export interface AssignmentResult {
   allAssigned: boolean
   assignedItems: number
@@ -80,12 +90,9 @@ export async function runSupplierAssignment(params: AssignmentParams): Promise<A
     )
     let remaining = Math.round((item.quantity - coveredByProvisional) * 1000) / 1000
 
-    // Supplementary greedy fill for any coverage gap (edge case: stock changed since checkout)
-    const extraAssignments: {
-      order_item_id: string; publication_id: string; supplier_id: string
-      assigned_quantity: number; supplier_price_frozen: number; platform_margin_frozen: number
-      status: string; confirmed_at: string
-    }[] = []
+    // PLAN phase: build supplementary assignments WITHOUT touching the DB.
+    // Stock decrements are applied only if the item ends up fully resolved.
+    const extraPlans: ExtraAssignmentPlan[] = []
 
     if (remaining > 0.001) {
       const { data: rawPubs } = await adminClient
@@ -112,33 +119,23 @@ export async function runSupplierAssignment(params: AssignmentParams): Promise<A
       for (const pub of activePubs) {
         if (remaining <= 0.001) break
         if (alreadyUsed.has(pub.id)) continue
-
         const deduct = Math.min(pub.available_quantity, remaining)
         remaining = Math.round((remaining - deduct) * 1000) / 1000
-        const newQty = Math.round((pub.available_quantity - deduct) * 1000) / 1000
-
-        extraAssignments.push({
-          order_item_id: item.id,
+        extraPlans.push({
           publication_id: pub.id,
           supplier_id: pub.supplier_id,
           assigned_quantity: deduct,
           supplier_price_frozen: pub.minimum_price,
           platform_margin_frozen: Math.round((item.unit_price_frozen - pub.minimum_price) * 100) / 100,
-          status: 'confirmed',
-          confirmed_at: now,
+          origAvailableQty: pub.available_quantity,
         })
-
-        if (newQty <= 0) {
-          await adminClient.from('supplier_publications').update({ status: 'fulfilled' }).eq('id', pub.id)
-        } else {
-          await adminClient.from('supplier_publications').update({ available_quantity: newQty }).eq('id', pub.id)
-        }
       }
     }
 
     const fullyResolved = remaining <= 0.001
 
     if (!fullyResolved) {
+      // Item fails — gap-fill plans are discarded, no stock changes made.
       allAssigned = false
       failedItemIds.push(item.id)
 
@@ -151,15 +148,38 @@ export async function runSupplierAssignment(params: AssignmentParams): Promise<A
           .in('id', pendingAsgs.map(a => a.id))
       }
     } else {
+      // APPLY phase: item fully covered — decrement stock and persist assignments.
+      for (const plan of extraPlans) {
+        const newQty = Math.round((plan.origAvailableQty - plan.assigned_quantity) * 1000) / 1000
+        if (newQty <= 0) {
+          await adminClient.from('supplier_publications').update({ status: 'fulfilled' }).eq('id', plan.publication_id)
+        } else {
+          await adminClient.from('supplier_publications').update({ available_quantity: newQty }).eq('id', plan.publication_id)
+        }
+      }
+
       if (pendingAsgs.length > 0) {
         await adminClient
           .from('order_item_assignments')
           .update({ status: 'confirmed', confirmed_at: now })
           .in('id', pendingAsgs.map(a => a.id))
       }
-      if (extraAssignments.length > 0) {
-        await adminClient.from('order_item_assignments').insert(extraAssignments)
+
+      if (extraPlans.length > 0) {
+        await adminClient.from('order_item_assignments').insert(
+          extraPlans.map(p => ({
+            order_item_id: item.id,
+            publication_id: p.publication_id,
+            supplier_id: p.supplier_id,
+            assigned_quantity: p.assigned_quantity,
+            supplier_price_frozen: p.supplier_price_frozen,
+            platform_margin_frozen: p.platform_margin_frozen,
+            status: 'confirmed',
+            confirmed_at: now,
+          }))
+        )
       }
+
       await adminClient.from('order_items').update({ status: 'assigned' }).eq('id', item.id)
     }
   }

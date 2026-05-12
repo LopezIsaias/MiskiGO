@@ -69,3 +69,19 @@ export function formatTime(date: Date | string): string {
 export function formatDateTime(date: Date | string): string {
   return `${formatDate(date)} ${formatTime(date)}`
 }
+
+export function timeAgo(iso: string): string {
+  const secs = Math.floor((Date.now() - new Date(iso).getTime()) / 1000)
+  if (secs < 60) return 'hace un momento'
+  if (secs < 3600) return `hace ${Math.floor(secs / 60)} min`
+  if (secs < 86400) return `hace ${Math.floor(secs / 3600)} h`
+  return `hace ${Math.floor(secs / 86400)} días`
+}
+
+export function toWANumber(phone: string | null): string | null {
+  if (!phone) return null
+  const digits = phone.replace(/\D/g, '')
+  if (digits.startsWith('51') && digits.length === 11) return digits
+  if (digits.length === 9) return `51${digits}`
+  return null
+}

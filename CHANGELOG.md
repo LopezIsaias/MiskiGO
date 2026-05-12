@@ -1,5 +1,38 @@
 # CHANGELOG — Miski GO
 
+## [2026-05-12] — Panel operador — gestión completa de pedidos (paso 12)
+
+### Añadido
+- `src/app/(operator)/operator/orders/page.tsx` — Server Component; obtiene ciclos activos (open/closed/in_progress), consulta todos los pedidos de esos ciclos con join completo (cliente, ciclo de despacho, items → producto, asignaciones → proveedor), transforma a tipos tipados y pasa a `OrdersBoard`
+- `src/components/operator/orders-board.tsx` — agrupa pedidos por 6 estados (payment_submitted, confirmed, assigned, in_transit, delivered, failed) con badges de conteo y alerta "con problema" cuando algún pedido tiene items fallidos; re-exporta tipos `Order`, `OrderItem`, `SupplierAssignment`
+- `src/components/operator/order-card.tsx` — tarjeta por pedido expandible; tabla de items con proveedor(es) confirmados; `ManualAssignPanel` para items con status `failed` (busca proveedores alternativos y asigna con un clic); sección de 3 mensajes WhatsApp prellenados (confirmación, despacho, problema) con botón copiar y enlace directo a `wa.me`; expandido por defecto para `payment_submitted` o pedidos con items fallidos
+- `src/app/api/operator/orders/[id]/items/[itemId]/publications/route.ts` — GET: devuelve publicaciones activas del producto del ítem ordenadas por precio ASC + reputación DESC (tiebreaker en TypeScript)
+- `src/app/api/operator/orders/[id]/items/[itemId]/assign/route.ts` — POST: asigna manualmente una publicación a un ítem; calcula `deduct = min(available_qty, remaining_qty)`, decrementa stock (o marca `fulfilled`), crea asignación `confirmed`, avanza `order_items.status → assigned` si el ítem queda cubierto, avanza `orders.status → assigned` si todos los ítems están asignados, registra en `audit_log` con `SUPPLIER_MANUALLY_ASSIGNED`
+
+### Modificado
+- `src/lib/utils/index.ts` — añadidas `timeAgo(iso)` (tiempo relativo en español: "hace X min/h/días") y `toWANumber(phone)` (normaliza teléfono peruano a formato `51XXXXXXXXX` para links wa.me)
+- `src/lib/constants/index.ts` — añadido `SUPPLIER_MANUALLY_ASSIGNED: 'supplier_manually_assigned'` a `AUDIT_ACTIONS`
+- `src/components/operator/sidebar.tsx` — añadido enlace "Gestión de pedidos" → `/operator/orders`
+
+### Estado tras estos cambios
+- `/operator/orders` → vista completa con todos los pedidos del ciclo activo agrupados por estado
+- Items sin proveedor (status `failed`): alerta destacada + panel para asignación manual con un clic
+- Mensajes WhatsApp prellenados con datos reales del pedido; botón copiar número de teléfono
+- Mensaje destacado (borde verde) según el estado actual del pedido
+- TypeScript: 0 errores. ESLint: 0 warnings.
+
+### Archivos afectados
+- `src/app/(operator)/operator/orders/page.tsx` (nuevo)
+- `src/components/operator/orders-board.tsx` (nuevo)
+- `src/components/operator/order-card.tsx` (nuevo)
+- `src/app/api/operator/orders/[id]/items/[itemId]/publications/route.ts` (nuevo)
+- `src/app/api/operator/orders/[id]/items/[itemId]/assign/route.ts` (nuevo)
+- `src/lib/utils/index.ts`
+- `src/lib/constants/index.ts`
+- `src/components/operator/sidebar.tsx`
+
+---
+
 ## [2026-05-12] — Fix: asignación de proveedores en pedidos de billetera pura
 
 ### Corregido

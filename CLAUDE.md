@@ -665,8 +665,8 @@ Construir estrictamente en este orden. No avanzar al siguiente paso sin que el a
 
 **Último agente:** Claude Code
 **Fecha:** 2026-05-12
-**Pasos completados:** 1 al 11
-**Último commit:** f4f482b73413871119b8f36f83a444f220476375
-**Próximo paso:** Paso 12 — panel operador: gestión de pedidos (vista completa con estados y mensajes WhatsApp prellenados)
+**Pasos completados:** 1 al 12
+**Último commit:** d418d2ccb0344e9d47a05c7434ca76d203d4c76d
+**Próximo paso:** Paso 13 — vista repartidor: recepción de productos (checklist por proveedor con foto obligatoria)
 **Bugs pendientes:** Ninguno
 **Decisiones pendientes:** Ninguna
