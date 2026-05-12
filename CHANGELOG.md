@@ -1,5 +1,58 @@
 # CHANGELOG — Miski GO
 
+## [2026-05-12] — Panel superadmin — gestión de usuarios (paso 6)
+
+### Añadido
+- `supabase/migrations/20260512000018_must_change_password.sql` — añade columna `must_change_password boolean NOT NULL DEFAULT false` a `public.users`; aplicada con `npx supabase db push`
+- `src/app/api/admin/users/route.ts` — GET (lista operadores/repartidores) + POST (crear usuario); detecta conflicto de DNI con cliente y devuelve 409 con `conflict: 'dni_customer'` para que el front ofrezca conversión de rol
+- `src/app/api/admin/users/[id]/route.ts` — PUT (editar nombre/teléfono) + PATCH con acción discriminada: `toggle_status` (active↔suspended), `reset_password` (resetea contraseña + activa `must_change_password`), `convert_role` (customer → operator/delivery)
+- `src/app/api/auth/change-password/route.ts` — POST: cambia contraseña del usuario autenticado y limpia `must_change_password = false`
+- `src/components/admin/user-form.tsx` — formulario de creación (todos los campos + manejo de conflicto DNI con banner y botón "Convertir cuenta") y edición (nombre/teléfono + toggle de estado activo/suspendido)
+- `src/components/admin/reset-password-form.tsx` — sección de reset de contraseña con confirmación; llama a PATCH reset_password; activa flag `must_change_password`
+- `src/components/auth/change-password-form.tsx` — formulario de cambio obligatorio de contraseña (nueva + confirmación); llama a `/api/auth/change-password`; al éxito redirige a `/` para que el middleware resuelva el dashboard correcto
+- `src/app/(admin)/admin/users/page.tsx` — lista de operadores/repartidores con badges de rol, estado y `must_change_password`
+- `src/app/(admin)/admin/users/new/page.tsx` — página de creación de usuario
+- `src/app/(admin)/admin/users/[id]/edit/page.tsx` — página de edición con UserForm + ResetPasswordForm
+- `src/app/change-password/page.tsx` — página de cambio obligatorio de contraseña; accesible a cualquier rol autenticado con `must_change_password = true`
+
+### Modificado
+- `src/types/database.types.ts` — añadido `must_change_password: boolean` a Row, Insert y Update del tipo `users`
+- `src/lib/validations/admin.ts` — añadidos `createUserSchema`, `updateUserSchema`, `resetPasswordSchema` y sus tipos exportados
+- `src/lib/constants/index.ts` — añadidas constantes `USER_CREATED` y `PASSWORD_RESET` a `AUDIT_ACTIONS`
+- `src/middleware.ts` — añadida lógica de `must_change_password`: si el flag está activo, cualquier ruta protegida redirige a `/change-password`; la ruta `/change-password` redirige al dashboard si el flag ya está limpio
+- `src/components/admin/sidebar.tsx` — añadido enlace "Usuarios" al array NAV
+
+### Corregido
+- `src/components/admin/user-form.tsx` — reemplazado `watch('role')` por `useWatch({ control, name: 'role' })` para compatibilidad con React Compiler (mismo patrón aplicado en `register-form.tsx`)
+
+### Estado tras estos cambios
+- `/admin/users` → CRUD completo de operadores y repartidores
+- Creación de usuario: genera contraseña temporal vía Admin API, activa `must_change_password`, registra en audit_log
+- Conflicto de DNI (cliente existente): formulario detecta el 409, muestra banner y ofrece convertir la cuenta al nuevo rol
+- Reset de contraseña desde el panel superadmin: activa `must_change_password`, registra en audit_log
+- Primer login (y post-reset): middleware detecta `must_change_password = true` y fuerza `/change-password` antes de cualquier otra ruta
+- TypeScript: 0 errores. ESLint: 0 warnings.
+
+### Archivos afectados
+- `supabase/migrations/20260512000018_must_change_password.sql`
+- `src/types/database.types.ts`
+- `src/lib/validations/admin.ts`
+- `src/lib/constants/index.ts`
+- `src/app/api/admin/users/route.ts`
+- `src/app/api/admin/users/[id]/route.ts`
+- `src/app/api/auth/change-password/route.ts`
+- `src/components/admin/user-form.tsx`
+- `src/components/admin/reset-password-form.tsx`
+- `src/components/auth/change-password-form.tsx`
+- `src/app/(admin)/admin/users/page.tsx`
+- `src/app/(admin)/admin/users/new/page.tsx`
+- `src/app/(admin)/admin/users/[id]/edit/page.tsx`
+- `src/app/change-password/page.tsx`
+- `src/middleware.ts`
+- `src/components/admin/sidebar.tsx`
+
+---
+
 ## [2026-05-11] — Panel superadmin — gestión de catálogo (paso 5)
 
 ### Añadido

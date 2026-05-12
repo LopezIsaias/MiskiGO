@@ -1004,6 +1004,7 @@ export type Database = {
           email: string
           full_name: string
           id: string
+          must_change_password: boolean
           phone: string | null
           region_id: string | null
           reputation_score: number
@@ -1020,6 +1021,7 @@ export type Database = {
           email: string
           full_name: string
           id: string
+          must_change_password?: boolean
           phone?: string | null
           region_id?: string | null
           reputation_score?: number
@@ -1036,6 +1038,7 @@ export type Database = {
           email?: string
           full_name?: string
           id?: string
+          must_change_password?: boolean
           phone?: string | null
           region_id?: string | null
           reputation_score?: number

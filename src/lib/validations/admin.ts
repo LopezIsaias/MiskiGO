@@ -32,3 +32,31 @@ export const productSchema = z.object({
 })
 
 export type ProductInput = z.infer<typeof productSchema>
+
+export const createUserSchema = z.object({
+  full_name: z.string().min(2, 'Mínimo 2 caracteres').max(120, 'Máximo 120 caracteres'),
+  dni: z.string().regex(/^\d{8}$/, 'El DNI debe tener exactamente 8 dígitos numéricos'),
+  email: z.string().email('Email inválido'),
+  phone: z.string().min(9, 'Mínimo 9 caracteres').optional().or(z.literal('')),
+  role: z.enum(['operator', 'delivery'], { message: 'Selecciona un rol válido' }),
+  password: z.string().min(8, 'Mínimo 8 caracteres'),
+})
+
+export type CreateUserInput = z.infer<typeof createUserSchema>
+
+export const updateUserSchema = z.object({
+  full_name: z.string().min(2, 'Mínimo 2 caracteres').max(120, 'Máximo 120 caracteres'),
+  phone: z.string().min(9, 'Mínimo 9 caracteres').optional().or(z.literal('')),
+})
+
+export type UpdateUserInput = z.infer<typeof updateUserSchema>
+
+export const resetPasswordSchema = z.object({
+  password: z.string().min(8, 'Mínimo 8 caracteres'),
+  confirm_password: z.string(),
+}).refine(d => d.password === d.confirm_password, {
+  message: 'Las contraseñas no coinciden',
+  path: ['confirm_password'],
+})
+
+export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>
