@@ -1,5 +1,39 @@
 # CHANGELOG — Miski GO
 
+## [2026-05-12] — Vista cliente — catálogo (paso 8)
+
+### Añadido
+- `src/stores/cart.ts` — Zustand store (`useCartStore`) con persistencia en localStorage; expone `addItem` (suma cantidad al existente o añade nuevo, clampea a `maxQuantity`), `updateQuantity`, `removeItem`, `clearCart`; cada `CartItem` guarda `productId`, `name`, `unit`, `imageUrl`, `quantity`, `maxQuantity`, `nearestCutoff`, `deliveryLabel`, `estimatedPrice`
+- `src/components/customer/sidebar.tsx` — sidebar del panel cliente con nav a Catálogo, Mis pedidos y Carrito (con badge de conteo desde el store)
+- `src/components/customer/catalog-grid.tsx` — `CatalogGrid` (Client Component) que agrupa los productos por categoría; `ProductCard` interno con input de cantidad (step=0.1 para kg/liter/bunch, step=1 para unit), botón "Agregar" que escribe al store y muestra estado "Agregado al carrito" por 2 s; exporta también el tipo `CatalogProduct`
+- `src/app/(customer)/layout.tsx` — layout del panel cliente con `CustomerSidebar`
+- `src/app/(customer)/customer/page.tsx` — redirige a `/customer/catalog`
+- `src/app/(customer)/customer/catalog/page.tsx` — Server Component que carga publicaciones activas con vencimiento futuro (`status='active'`, `expires_at > now()`), agrega por `product_id` (suma `available_quantity`, toma máximo `minimum_price`, toma `expires_at` más próximo), filtra productos inactivos o eliminados, calcula precio estimado con `calculateSalePrice`, genera etiqueta de entrega ("Entrega el martes, 19 de mayo") sumando 24h al corte, y pasa los datos a `CatalogGrid`; banner superior muestra el próximo cierre de pedidos
+
+### Reglas de negocio aplicadas
+- Solo aparecen productos con al menos una publicación `active` y `expires_at` en el futuro
+- Cantidad visible = suma de `available_quantity` de todas las publicaciones activas del producto
+- Precio estimado = `calculateSalePrice(maxMinPrice, opCostPct, marginPct)` usando el proveedor más caro
+- Stock mostrado como disponibilidad general (ej. "Disponible: 45 kg") sin revelar proveedores ni precios individuales
+- Fecha de entrega = `expires_at + 24h` convertida a zona horaria Lima
+- `maxQuantity` en el carrito previene agregar más de lo disponible en el momento de la carga
+
+### Estado tras estos cambios
+- Login cliente → `/customer` → redirige a `/customer/catalog`
+- `/customer/catalog` → grilla de productos agrupados por categoría con disponibilidad, precio estimado y fecha de entrega
+- Agregar al carrito → valida stock, acumula en store, badge en sidebar se actualiza
+- TypeScript: 0 errores. ESLint: 0 warnings.
+
+### Archivos afectados
+- `src/stores/cart.ts`
+- `src/components/customer/sidebar.tsx`
+- `src/components/customer/catalog-grid.tsx`
+- `src/app/(customer)/layout.tsx`
+- `src/app/(customer)/customer/page.tsx`
+- `src/app/(customer)/customer/catalog/page.tsx`
+
+---
+
 ## [2026-05-12] — Vista proveedor — publicaciones (paso 7)
 
 ### Añadido

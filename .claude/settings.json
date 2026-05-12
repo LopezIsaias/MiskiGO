@@ -5,7 +5,8 @@
       "Bash(npm run *)",
       "Bash(node --env-file=.env.local scripts/create-superadmin.mjs)",
       "Bash(mkdir -p \"c:\\\\Users\\\\ilbsa\\\\OneDrive\\\\Documentos\\\\MISKI-GO\\\\src\\\\app\\\\\\(supplier\\)\\\\supplier\\\\publications\\\\[id]\\\\edit\" 2>/dev/null && echo \"ok\")",
-      "Read(//c/Users/ilbsa/.claude/projects/c--Users-ilbsa-OneDrive-Documentos-MISKI-GO/memory/**)"
+      "Read(//c/Users/ilbsa/.claude/projects/c--Users-ilbsa-OneDrive-Documentos-MISKI-GO/memory/**)",
+      "Bash(node -e \"const pkg = require\\('./package.json'\\); console.log\\('zustand:', pkg.dependencies.zustand || 'NOT FOUND'\\); console.log\\('next:', pkg.dependencies.next\\)\")"
     ],
     "additionalDirectories": [
       "c:\\Users\\ilbsa\\OneDrive\\Documentos\\MISKI-GO\\src\\app\\(supplier)\\supplier\\publications\\[id]",
