@@ -4,6 +4,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { checkoutSchema } from '@/lib/validations/customer'
 import { calculateSalePrice } from '@/lib/utils'
 import { AUDIT_ACTIONS, AUDIT_MODULES } from '@/lib/constants'
+import { runSupplierAssignment } from '@/lib/utils/supplier-assignment'
 
 type PubRow = {
   product_id: string
@@ -291,6 +292,18 @@ export async function POST(request: Request) {
       if (assignments.length > 0) {
         await adminClient.from('order_item_assignments').insert(assignments)
       }
+    }
+
+    // For wallet-only orders the status is already 'confirmed' and no operator approval will
+    // happen, so we run supplier assignment immediately after the provisional assignments exist.
+    if (orderStatus === 'confirmed') {
+      await runSupplierAssignment({
+        orderId: order.id,
+        userId: user.id,
+        userRole: 'customer',
+        cutoffAt: minCutoff,
+        // No operatorId — notification skipped; operator will see the order in the panel
+      })
     }
 
     // Wallet debit (admin client bypasses RLS on wallet_transactions)

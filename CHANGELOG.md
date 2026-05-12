@@ -1,5 +1,30 @@
 # CHANGELOG — Miski GO
 
+## [2026-05-12] — Fix: asignación de proveedores en pedidos de billetera pura
+
+### Corregido
+- Pedidos pagados 100% con billetera quedaban con `order_item_assignments` en status `pending` permanentemente porque el flujo de aprobación del operador nunca se ejecutaba para ellos
+
+### Añadido
+- `src/lib/utils/supplier-assignment.ts` — función `runSupplierAssignment` extraída del approve route: confirma asignaciones provisionales, rellena gaps greedy, actualiza statuses de items y orden, envía notificación in-app al operador (opcional), registra en audit_log. Parámetro `operatorId` opcional: si se omite, la notificación se suprime (caso checkout)
+
+### Modificado
+- `src/app/api/operator/orders/[id]/approve/route.ts` — simplificado; delega toda la lógica de asignación a `runSupplierAssignment`
+- `src/app/api/customer/orders/route.ts` — cuando `orderStatus === 'confirmed'` (billetera pura), llama a `runSupplierAssignment` inmediatamente después de crear las asignaciones provisionales, con `userRole: 'customer'` y sin `operatorId`
+
+### Comportamiento resultante
+- Billetera pura: checkout → asignaciones provisionales → `runSupplierAssignment` → `assigned` (mismo ciclo, sin aprobación manual)
+- Yape/transferencia: checkout → asignaciones provisionales → operador aprueba → `runSupplierAssignment` → `assigned`
+- Ambos flujos usan exactamente la misma lógica sin duplicación
+- TypeScript: 0 errores. ESLint: 0 warnings.
+
+### Archivos afectados
+- `src/lib/utils/supplier-assignment.ts` (nuevo)
+- `src/app/api/operator/orders/[id]/approve/route.ts`
+- `src/app/api/customer/orders/route.ts`
+
+---
+
 ## [2026-05-12] — Asignación automática de proveedores (paso 11)
 
 ### Añadido
