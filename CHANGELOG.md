@@ -1,5 +1,63 @@
 # CHANGELOG — Miski GO
 
+## [2026-05-11] — Panel superadmin — gestión de catálogo (paso 5)
+
+### Añadido
+- `src/lib/validations/admin.ts` — schemas Zod para categoría y producto; campos numéricos usan `z.number()` (no coerce) con `valueAsNumber: true` en el formulario para compatibilidad con `@hookform/resolvers` v5 + Zod v4
+- `src/components/admin/sidebar.tsx` — sidebar de navegación (Client Component) con `usePathname` para link activo y botón de cierre de sesión
+- `src/components/admin/toggle-button.tsx` — botón de estado activo/inactivo; llama a `PATCH /api/admin/{endpoint}/{id}` y refresca la ruta via `useTransition`
+- `src/components/admin/category-form.tsx` — formulario React Hook Form + Zod para crear y editar categorías; convierte porcentajes (form 0-100 ↔ DB 0.0-1.0)
+- `src/components/admin/product-form.tsx` — formulario para crear y editar productos; selector de categorías activas y unidades de medida
+- `src/app/(admin)/layout.tsx` — layout del panel admin con sidebar fijo y área de contenido principal
+- `src/app/(admin)/admin/page.tsx` — dashboard con contadores de categorías y productos activos
+- `src/app/(admin)/admin/categories/page.tsx` — lista de categorías con porcentajes calculados desde decimal
+- `src/app/(admin)/admin/categories/new/page.tsx` — página de creación de categoría
+- `src/app/(admin)/admin/categories/[id]/edit/page.tsx` — página de edición de categoría (carga datos del servidor)
+- `src/app/(admin)/admin/products/page.tsx` — lista de productos con join a categorías (`product_categories!category_id`)
+- `src/app/(admin)/admin/products/new/page.tsx` — página de creación de producto
+- `src/app/(admin)/admin/products/[id]/edit/page.tsx` — página de edición de producto
+- `src/app/api/admin/categories/route.ts` — GET (lista) + POST (crear); genera slug automático con `toSlug()`
+- `src/app/api/admin/categories/[id]/route.ts` — PUT (actualizar) + PATCH (toggle activo)
+- `src/app/api/admin/products/route.ts` — GET + POST; registra `created_by` con el UUID del superadmin autenticado
+- `src/app/api/admin/products/[id]/route.ts` — PUT + PATCH (toggle) + DELETE (soft delete vía `deleted_at`)
+
+### Modificado
+- `src/lib/utils/index.ts` — añadida función `toSlug(str)` que normaliza NFD y elimina diacríticos con `\p{M}/gu`
+- `src/lib/validations/admin.ts` — Zod v4: usa `message` en vez de `errorMap` en `z.enum()`; sin `invalid_type_error`
+
+### Corregido
+- Porcentajes en DB: la migración 003 almacena `operational_cost_pct`, `suggested_margin_pct`, `estimated_waste_pct` como decimales (0.0–1.0), no como enteros. El form muestra 0–100 y el API route divide entre 100 al insertar/actualizar
+- TypeScript: tipos resueltos con `z.number()` + `valueAsNumber: true`; elimina conflicto entre input type `unknown` (coerce) y el resolver de hookform v5
+
+### Estado tras estos cambios
+- Login superadmin → `/admin` muestra el dashboard con contadores reales
+- `/admin/categories` → CRUD completo (crear, editar, toggle activo)
+- `/admin/products` → CRUD completo (crear, editar, toggle activo, soft delete)
+- TypeScript: 0 errores. ESLint: 0 warnings.
+
+### Archivos afectados
+- `src/lib/utils/index.ts`
+- `src/lib/validations/admin.ts`
+- `src/components/admin/sidebar.tsx`
+- `src/components/admin/toggle-button.tsx`
+- `src/components/admin/category-form.tsx`
+- `src/components/admin/product-form.tsx`
+- `src/app/(admin)/layout.tsx`
+- `src/app/(admin)/admin/page.tsx`
+- `src/app/(admin)/admin/categories/page.tsx`
+- `src/app/(admin)/admin/categories/new/page.tsx`
+- `src/app/(admin)/admin/categories/[id]/edit/page.tsx`
+- `src/app/(admin)/admin/products/page.tsx`
+- `src/app/(admin)/admin/products/new/page.tsx`
+- `src/app/(admin)/admin/products/[id]/edit/page.tsx`
+- `src/app/api/admin/categories/route.ts`
+- `src/app/api/admin/categories/[id]/route.ts`
+- `src/app/api/admin/products/route.ts`
+- `src/app/api/admin/products/[id]/route.ts`
+
+---
+
+
 ## [2026-05-11] — Fix crítico: GRANTs de PostgREST, superadmin y trigger
 
 ### Problema raíz

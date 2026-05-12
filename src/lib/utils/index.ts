@@ -1,5 +1,14 @@
 const LIMA_TZ = 'America/Lima'
 
+export function toSlug(str: string): string {
+  return str
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/\p{M}/gu, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
+}
+
 export function formatCurrency(amount: number): string {
   return `S/ ${amount.toFixed(2)}`
 }
