@@ -1,5 +1,49 @@
 # CHANGELOG — Miski GO
 
+## [2026-05-11] — Fix crítico: GRANTs de PostgREST, superadmin y trigger
+
+### Problema raíz
+"Automatically expose new tables" estaba desactivado → ninguna tabla tenía GRANT a `anon`, `authenticated` ni `service_role` → todas las queries de la app retornaban "permission denied". El superadmin insertado manualmente en `auth.users` vía SQL tampoco era gestionable por el Auth Admin API.
+
+### Añadido
+- `supabase/migrations/20260511000017_grants_and_policies.sql` — GRANTs completos para todos los roles PostgREST; ajuste de política `regions_select` para permitir lectura a `anon` (necesario para el formulario de registro sin sesión); eliminación del auth user del superadmin insertado manualmente
+- `supabase/migrations/20260511000016_auth_trigger.sql` — añadido `DROP TRIGGER IF EXISTS` para hacer la migración idempotente (re-ejecutable en Dashboard)
+- `scripts/create-superadmin.mjs` — crea o repara el superadmin vía Auth Admin API; garantiza que el hash de contraseña sea generado por Supabase Auth (no pgcrypto manual)
+- Script `seed:admin` en `package.json` → `node --env-file=.env.local scripts/create-superadmin.mjs`
+
+### Modificado
+- `src/components/auth/login-form.tsx` — fallback de rol desde `user_metadata` si la query a `public.users` falla; redirect fallback a `/login`
+
+### Estado tras estos cambios
+- `anon` puede SELECT en `regions` (registro funciona sin sesión)
+- `authenticated` puede hacer CRUD completo en todas las tablas (RLS restringe por fila)
+- `service_role` tiene acceso completo (cliente admin del servidor funciona)
+- Superadmin: `admin@miskigo.com` / `MiskiAdmin2026!`, UUID `99ec87c5-08e8-4111-81c5-86420acdbe2c`, creado vía Admin API, trigger creó perfil en `public.users`
+
+### Archivos afectados
+- `supabase/migrations/20260511000016_auth_trigger.sql`
+- `supabase/migrations/20260511000017_grants_and_policies.sql`
+- `scripts/create-superadmin.mjs`
+- `package.json`
+- `src/components/auth/login-form.tsx`
+
+---
+
+## [2026-05-11] — Trigger Supabase Auth y correcciones de registro/login
+
+### Añadido
+- `supabase/migrations/20260511000016_auth_trigger.sql` — función `handle_new_auth_user()` (SECURITY DEFINER) + trigger `on_auth_user_created` en `auth.users`; cuando Supabase Auth crea un usuario, el trigger lee `raw_user_meta_data` y crea automáticamente la fila en `public.users` (atómico, sin rollback manual)
+
+### Modificado
+- `src/app/api/auth/register/route.ts` — simplificado: ya no inserta manualmente en `public.users` ni necesita rollback; pasa los datos de perfil en `user_metadata` de `admin.auth.admin.createUser` para que el trigger los procese
+- `src/components/auth/login-form.tsx` — `single()` → `maybeSingle()` (evita error si el perfil no existe); fallback de redirect a `/login` en lugar de `/`
+
+### Verificado
+- Dependencias Supabase: `@supabase/supabase-js@2.105.4` y `@supabase/ssr@0.10.3` son las versiones latest; el formato nuevo de keys (`sb_publishable_*`, `sb_secret_*`) es compatible
+- TypeScript: 0 errores. ESLint: 0 warnings.
+
+---
+
 ## [2026-05-11] — Semilla de datos y middleware de rutas (pasos 3.5 y 4)
 
 ### Añadido

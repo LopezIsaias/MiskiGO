@@ -21,6 +21,7 @@ export async function POST(request: NextRequest) {
   const { role, full_name, email, phone, dni, ruc, region_id, password } = parsed.data
   const admin = createAdminClient()
 
+  // Pre-chequear DNI antes de crear el auth user (evita auth user huérfano)
   const { data: existing } = await admin
     .from('users')
     .select('role')
@@ -34,10 +35,14 @@ export async function POST(request: NextRequest) {
     )
   }
 
+  // Crear auth user con los datos de perfil en user_metadata.
+  // El trigger handle_new_auth_user() los leerá de raw_user_meta_data
+  // y creará automáticamente la fila en public.users (atómico).
   const { data: authData, error: authError } = await admin.auth.admin.createUser({
     email,
     password,
     email_confirm: true,
+    user_metadata: { full_name, phone: phone ?? '', dni, ruc: ruc ?? '', region_id, role },
   })
 
   if (authError || !authData.user) {
@@ -46,22 +51,6 @@ export async function POST(request: NextRequest) {
       { error: alreadyExists ? 'Email ya registrado' : 'Error al crear cuenta' },
       { status: alreadyExists ? 409 : 500 },
     )
-  }
-
-  const { error: profileError } = await admin.from('users').insert({
-    id: authData.user.id,
-    email,
-    full_name,
-    phone: phone ?? null,
-    dni,
-    ruc: ruc ?? null,
-    region_id,
-    role,
-  })
-
-  if (profileError) {
-    await admin.auth.admin.deleteUser(authData.user.id)
-    return NextResponse.json({ error: 'Error al crear perfil' }, { status: 500 })
   }
 
   return NextResponse.json({ success: true }, { status: 201 })

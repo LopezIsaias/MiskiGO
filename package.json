@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "seed:admin": "node --env-file=.env.local scripts/create-superadmin.mjs"
   },
   "dependencies": {
     "@googlemaps/js-api-loader": "^2.0.2",

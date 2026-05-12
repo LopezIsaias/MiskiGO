@@ -22,23 +22,27 @@ export function LoginForm() {
     setServerError(null)
     const supabase = createClient()
 
-    const {
-      data: { user },
-      error,
-    } = await supabase.auth.signInWithPassword({ email: data.email, password: data.password })
+    const { data: authData, error } = await supabase.auth.signInWithPassword({
+      email: data.email,
+      password: data.password,
+    })
 
-    if (error || !user) {
+    if (error || !authData.user) {
       setServerError('Email o contraseña incorrectos')
       return
     }
 
+    // Primero intenta el rol desde public.users (fuente de verdad).
+    // Si falla (perfil aún no creado, RLS, etc.) usa user_metadata como fallback.
     const { data: profile } = await supabase
       .from('users')
       .select('role')
-      .eq('id', user.id)
-      .single()
+      .eq('id', authData.user.id)
+      .maybeSingle()
 
-    router.push(ROLE_DASHBOARD[profile?.role ?? ''] ?? '/')
+    const role = profile?.role ?? (authData.user.user_metadata?.role as string | undefined)
+
+    router.push(ROLE_DASHBOARD[role ?? ''] ?? '/login')
     router.refresh()
   }
 
