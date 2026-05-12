@@ -1,5 +1,45 @@
 # CHANGELOG — Miski GO
 
+## [2026-05-12] — Vista proveedor — publicaciones (paso 7)
+
+### Añadido
+- `src/lib/validations/supplier.ts` — `publicationSchema` con Zod: product_id, region_id, available_quantity, minimum_price, expires_at
+- `src/lib/utils/dispatch.ts` — función `getNextCutoffs(n)`: calcula los próximos N cortes de ciclo (lunes y jueves 12:00 PM Lima = 17:00 UTC); devuelve etiqueta legible + ISO string
+- `src/app/api/supplier/publications/route.ts` — GET (lista publicaciones propias con join a producto y región) + POST (crea publicación; valida que producto y región estén activos)
+- `src/app/api/supplier/publications/[id]/route.ts` — PUT (edita cantidad y precio, solo si status=active y es del proveedor) + DELETE (cancela → status=expired, solo si active y propietario)
+- `src/components/supplier/sidebar.tsx` — sidebar del panel proveedor con navegación a Dashboard y Mis publicaciones
+- `src/components/supplier/publication-form.tsx` — formulario de creación y edición de publicaciones; en edición los campos producto/región/ciclo son readonly; usa `valueAsNumber: true` para cantidad y precio
+- `src/components/supplier/cancel-publication-button.tsx` — botón client component que llama DELETE con confirmación y refresca con `useTransition`
+- `src/app/(supplier)/layout.tsx` — layout del panel proveedor con SupplierSidebar
+- `src/app/(supplier)/supplier/page.tsx` — dashboard del proveedor: contadores de publicaciones por estado + accesos rápidos
+- `src/app/(supplier)/supplier/publications/page.tsx` — tabla de publicaciones propias con estado, cantidad, precio mínimo y fecha de vencimiento; acciones Editar y Cancelar (solo si active)
+- `src/app/(supplier)/supplier/publications/new/page.tsx` — carga productos activos, regiones activas y próximos 4 cortes; renderiza PublicationForm
+- `src/app/(supplier)/supplier/publications/[id]/edit/page.tsx` — carga la publicación verificando ownership; redirige a lista si no está active; renderiza PublicationForm en modo edición
+
+### Estado tras estos cambios
+- Login proveedor → `/supplier` muestra dashboard con contadores reales
+- `/supplier/publications` → lista todas las publicaciones propias con estados y acciones
+- `/supplier/publications/new` → formulario de publicación con selector de producto, región y ciclo de despacho calculado dinámicamente
+- `/supplier/publications/[id]/edit` → editar cantidad y precio (solo publicaciones activas)
+- Cancelar publicación → marca como `expired` vía DELETE API
+- TypeScript: 0 errores. ESLint: 0 warnings.
+
+### Archivos afectados
+- `src/lib/validations/supplier.ts`
+- `src/lib/utils/dispatch.ts`
+- `src/app/api/supplier/publications/route.ts`
+- `src/app/api/supplier/publications/[id]/route.ts`
+- `src/components/supplier/sidebar.tsx`
+- `src/components/supplier/publication-form.tsx`
+- `src/components/supplier/cancel-publication-button.tsx`
+- `src/app/(supplier)/layout.tsx`
+- `src/app/(supplier)/supplier/page.tsx`
+- `src/app/(supplier)/supplier/publications/page.tsx`
+- `src/app/(supplier)/supplier/publications/new/page.tsx`
+- `src/app/(supplier)/supplier/publications/[id]/edit/page.tsx`
+
+---
+
 ## [2026-05-12] — Panel superadmin — gestión de usuarios (paso 6)
 
 ### Añadido

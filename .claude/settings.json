@@ -3,7 +3,13 @@
     "allow": [
       "Bash(npx tsc *)",
       "Bash(npm run *)",
-      "Bash(node --env-file=.env.local scripts/create-superadmin.mjs)"
+      "Bash(node --env-file=.env.local scripts/create-superadmin.mjs)",
+      "Bash(mkdir -p \"c:\\\\Users\\\\ilbsa\\\\OneDrive\\\\Documentos\\\\MISKI-GO\\\\src\\\\app\\\\\\(supplier\\)\\\\supplier\\\\publications\\\\[id]\\\\edit\" 2>/dev/null && echo \"ok\")",
+      "Read(//c/Users/ilbsa/.claude/projects/c--Users-ilbsa-OneDrive-Documentos-MISKI-GO/memory/**)"
+    ],
+    "additionalDirectories": [
+      "c:\\Users\\ilbsa\\OneDrive\\Documentos\\MISKI-GO\\src\\app\\(supplier)\\supplier\\publications\\[id]",
+      "c:\\Users\\ilbsa\\.claude\\projects\\c--Users-ilbsa-OneDrive-Documentos-MISKI-GO\\memory"
     ]
   }
 }
