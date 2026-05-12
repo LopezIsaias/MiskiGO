@@ -76,7 +76,7 @@ export function CategoryForm({ category }: CategoryFormProps) {
           <input
             type="number"
             step="0.1"
-            min="0.01"
+            min="0"
             max="99.99"
             {...register('operational_cost_pct', { valueAsNumber: true })}
             className={inputCls}
@@ -91,7 +91,7 @@ export function CategoryForm({ category }: CategoryFormProps) {
           <input
             type="number"
             step="0.1"
-            min="0.01"
+            min="0"
             max="99.99"
             {...register('suggested_margin_pct', { valueAsNumber: true })}
             className={inputCls}
