@@ -1,5 +1,48 @@
 # CHANGELOG — Miski GO
 
+## [2026-05-12] — Vista cliente — carrito y checkout (paso 9)
+
+### Añadido
+- `supabase/migrations/20260512000020_storage_payment_proofs.sql` — bucket público `payment-proofs` (5 MB, JPEG/PNG/WEBP/PDF); política de upload restringida a carpeta del usuario (`{user_id}/...`); lectura pública por URL
+- `src/lib/validations/customer.ts` — `checkoutSchema` con Zod: items (productId + quantity int ≥ 1), delivery_address, payment_method (yape/transfer/wallet), use_wallet, proof_url opcional
+- `src/app/api/customer/orders/route.ts` — POST: autentica customer, re-valida stock en BD, recalcula precios con `calculateSalePrice` (inmutabilidad financiera), upsert de `dispatch_cycles` por región + dispatch_date, lógica de pago completa (billetera total/parcial/comprobante), crea `orders` + `order_items` con precios congelados, debita billetera vía admin client (bypass RLS), registra `wallet_transactions` + `audit_log`, crea `payment_verifications` si hay comprobante
+- `src/components/customer/cart-page.tsx` — tabla de items con cantidad editable, precios y subtotales, botón "Quitar", total estimado, enlace a checkout; estado vacío con enlace al catálogo
+- `src/components/customer/checkout-form.tsx` — resumen de pedido, dirección de entrega, selector de método de pago (Yape/Transferencia/Billetera), toggle de billetera para pago mixto, upload de comprobante a Supabase Storage, nota al vendedor, estado de éxito post-pedido con mensaje diferenciado (confirmado vs. en validación), manejo de errores inline
+- `src/app/(customer)/customer/cart/page.tsx` — wrapper del carrito
+- `src/app/(customer)/customer/checkout/page.tsx` — Server Component que carga wallet_balance y pasa al CheckoutForm
+
+### Reglas de negocio aplicadas
+- Precios recalculados en servidor al hacer checkout (no se confía en el precio del cliente)
+- `unit_price_frozen` y `subtotal_frozen` se congelan en `order_items` al crear el pedido
+- Billetera cubre 100%: status='confirmed', sin intervención del operador
+- Pago mixto: wallet debita automáticamente, comprobante solo por la diferencia
+- `dispatch_cycle` se crea automáticamente si no existe para esa región + fecha de despacho
+- `wallet_transactions` INSERT vía admin client (RLS solo permite superadmin; service_role bypassa)
+- `wallet_balance` UPDATE vía admin client con registro en `audit_log`
+
+### Para aplicar
+```
+npx supabase db push
+```
+
+### Estado tras estos cambios
+- `/customer/cart` → tabla editable de items con totales y enlace al checkout
+- `/customer/checkout` → formulario completo de pago con todos los métodos
+- Billetera: descuento automático, confirmación inmediata si cubre el total
+- Comprobante: upload a Storage, validación pendiente por operador (paso 10)
+- TypeScript: 0 errores. ESLint: 0 warnings.
+
+### Archivos afectados
+- `supabase/migrations/20260512000020_storage_payment_proofs.sql`
+- `src/lib/validations/customer.ts`
+- `src/app/api/customer/orders/route.ts`
+- `src/components/customer/cart-page.tsx`
+- `src/components/customer/checkout-form.tsx`
+- `src/app/(customer)/customer/cart/page.tsx`
+- `src/app/(customer)/customer/checkout/page.tsx`
+
+---
+
 ## [2026-05-12] — Vista cliente — catálogo (paso 8)
 
 ### Añadido
