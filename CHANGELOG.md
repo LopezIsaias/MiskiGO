@@ -1,5 +1,39 @@
 # CHANGELOG — Miski GO
 
+## [2026-05-12] — Asignación automática de proveedores (paso 11)
+
+### Añadido
+- `AUDIT_ACTIONS.SUPPLIER_ASSIGNED` y `AUDIT_ACTIONS.ASSIGNMENT_FAILED` en `src/lib/constants/index.ts`
+
+### Modificado
+- `src/app/api/operator/orders/[id]/approve/route.ts` — añadida lógica completa de asignación de proveedores que se ejecuta inmediatamente después de aprobar el pago:
+  1. Lee todos los `order_items` del pedido con sus asignaciones provisionales (status `pending`, creadas en el checkout)
+  2. Para cada item, comprueba si las asignaciones provisionales cubren la cantidad total
+  3. Si hay gap (stock cambió entre checkout y aprobación), busca publicaciones activas del mismo producto en el mismo ciclo de despacho, ordenadas por `minimum_price ASC`, `published_at ASC` (FIFO), `reputation_score DESC` en empate; asignación greedy hasta cubrir el remanente
+  4. Si el item queda completamente cubierto: confirma asignaciones provisionales (status `pending` → `confirmed`, agrega `confirmed_at`), inserta asignaciones suplementarias si las hubo, actualiza `order_items.status` → `assigned`
+  5. Si el item no puede cubrirse: `order_items.status` → `failed`, asignaciones → `failed`
+  6. Si todos los items se asignaron: `orders.status` → `assigned`
+  7. Si algún item falló: crea notificación `in_app` al operador e inserta `audit_log` con `ASSIGNMENT_FAILED`
+  8. Siempre inserta registro en `audit_log` (`SUPPLIER_ASSIGNED` o `ASSIGNMENT_FAILED`)
+
+### Reglas de negocio aplicadas
+- Las asignaciones provisionales del checkout sirven como reserva de stock; en el approval se confirman formalmente
+- El relleno greedy respeta el orden: precio mínimo proveedor ASC → fecha de publicación ASC (FIFO) → reputation_score DESC en empate triple
+- `fulfilled` se usa cuando `available_quantity` quedaría en 0 (no se viola la constraint `> 0`)
+- La lógica de rechazo (`reject/route.ts`) permanece intacta: usa las asignaciones `pending` que existen hasta que el pago sea aprobado
+- Para pedidos pagados completamente con billetera, el approve route devuelve 400 (correctamente no son `payment_submitted`)
+
+### Estado tras estos cambios
+- Aprobar pago → `confirmed` (lock) → asignación automática → `assigned` (si todo OK)
+- Si falta stock: pedido queda `confirmed` con items `failed` y notificación al operador
+- TypeScript: 0 errores. ESLint: 0 warnings.
+
+### Archivos afectados
+- `src/lib/constants/index.ts`
+- `src/app/api/operator/orders/[id]/approve/route.ts`
+
+---
+
 ## [2026-05-12] — Panel operador — aprobación de pagos (paso 10)
 
 ### Añadido

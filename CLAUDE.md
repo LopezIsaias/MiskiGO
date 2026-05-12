@@ -665,8 +665,8 @@ Construir estrictamente en este orden. No avanzar al siguiente paso sin que el a
 
 **Último agente:** Claude Code
 **Fecha:** 2026-05-12
-**Pasos completados:** 1 al 10
-**Último commit:** 7c401df2b1dc9e797c3e252b778a88261adf8e21
-**Próximo paso:** Paso 11 — lógica de asignación automática de proveedores al aprobar pago
-**Bugs pendientes:** Ninguno
+**Pasos completados:** 1 al 11
+**Último commit:** b5094bbb603618b071efc6aabbce9cba9d1d33e8
+**Próximo paso:** Paso 12 — panel operador: gestión de pedidos (vista completa con estados y mensajes WhatsApp prellenados)
+**Bugs pendientes:** Pedidos pagados con billetera pura (status `confirmed` directo desde checkout) no pasan por el approve route, por lo que sus asignaciones provisionales quedan en status `pending` permanentemente. Requiere confirmar asignaciones en el checkout para esos casos.
 **Decisiones pendientes:** Ninguna

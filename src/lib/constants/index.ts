@@ -76,6 +76,8 @@ export const AUDIT_ACTIONS = {
   ORDER_CANCELLED_POST_PAYMENT: 'order_cancelled_post_payment',
   USER_CREATED:               'user_created',
   PASSWORD_RESET:             'password_reset',
+  SUPPLIER_ASSIGNED:          'supplier_assigned',
+  ASSIGNMENT_FAILED:          'assignment_failed',
 } as const
 
 export const AUDIT_MODULES = {
