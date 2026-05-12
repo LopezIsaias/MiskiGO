@@ -21,7 +21,6 @@ export async function GET() {
   const { data, error } = await supabase
     .from('users')
     .select('id, full_name, email, phone, dni, role, status, must_change_password, created_at')
-    .in('role', ['operator', 'delivery'])
     .is('deleted_at', null)
     .order('created_at', { ascending: false })
 

@@ -3,8 +3,21 @@ import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 
 const ROLE_LABELS: Record<string, string> = {
-  operator: 'Operador',
-  delivery: 'Repartidor',
+  superadmin:      'Superadmin',
+  region_operator: 'Op. región',
+  operator:        'Operador',
+  delivery:        'Repartidor',
+  supplier:        'Proveedor',
+  customer:        'Cliente',
+}
+
+const ROLE_BADGE: Record<string, string> = {
+  superadmin:      'bg-red-100 text-red-700',
+  region_operator: 'bg-indigo-100 text-indigo-700',
+  operator:        'bg-blue-100 text-blue-700',
+  delivery:        'bg-purple-100 text-purple-700',
+  supplier:        'bg-green-100 text-green-700',
+  customer:        'bg-amber-100 text-amber-700',
 }
 
 export default async function UsersPage() {
@@ -13,7 +26,6 @@ export default async function UsersPage() {
   const { data: users, error } = await supabase
     .from('users')
     .select('id, full_name, email, phone, dni, role, status, must_change_password, created_at')
-    .in('role', ['operator', 'delivery'])
     .is('deleted_at', null)
     .order('created_at', { ascending: false })
 
@@ -24,7 +36,7 @@ export default async function UsersPage() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-xl font-bold text-gray-900">Usuarios</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Operadores y repartidores del sistema</p>
+          <p className="text-sm text-gray-500 mt-0.5">Todos los usuarios del sistema</p>
         </div>
         <Link
           href="/admin/users/new"
@@ -61,9 +73,7 @@ export default async function UsersPage() {
                   <td className="px-4 py-3">
                     <span
                       className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-                        u.role === 'operator'
-                          ? 'bg-blue-100 text-blue-700'
-                          : 'bg-purple-100 text-purple-700'
+                        ROLE_BADGE[u.role] ?? 'bg-gray-100 text-gray-600'
                       }`}
                     >
                       {ROLE_LABELS[u.role] ?? u.role}

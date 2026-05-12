@@ -28,10 +28,10 @@ export const useCartStore = create<CartState>()(
 
       addItem(itemData, quantity) {
         const { items } = get()
-        const clamped = Math.min(quantity, itemData.maxQuantity)
+        const clamped = Math.min(Math.max(Math.round(quantity), 1), Math.floor(itemData.maxQuantity))
         const existing = items.find(i => i.productId === itemData.productId)
         if (existing) {
-          const newQty = Math.min(existing.quantity + clamped, itemData.maxQuantity)
+          const newQty = Math.min(existing.quantity + clamped, Math.floor(itemData.maxQuantity))
           set({ items: items.map(i => i.productId === itemData.productId ? { ...i, quantity: newQty } : i) })
         } else {
           set({ items: [...items, { ...itemData, quantity: clamped }] })
@@ -40,13 +40,14 @@ export const useCartStore = create<CartState>()(
 
       updateQuantity(productId, quantity) {
         const { items } = get()
-        if (quantity <= 0) {
+        const rounded = Math.round(quantity)
+        if (rounded < 1) {
           set({ items: items.filter(i => i.productId !== productId) })
         } else {
           set({
             items: items.map(i =>
               i.productId === productId
-                ? { ...i, quantity: Math.min(quantity, i.maxQuantity) }
+                ? { ...i, quantity: Math.min(rounded, Math.floor(i.maxQuantity)) }
                 : i
             ),
           })

@@ -25,18 +25,12 @@ const UNIT_LABEL: Record<string, string> = {
   bunch: 'atado',
 }
 
-function isDecimalUnit(unit: string) {
-  return unit === 'kg' || unit === 'liter' || unit === 'bunch'
-}
-
 interface ProductCardProps {
   product: CatalogProduct
 }
 
 function ProductCard({ product }: ProductCardProps) {
-  const step = isDecimalUnit(product.unit) ? 0.1 : 1
-  const minQty = step
-  const [qty, setQty] = useState(minQty)
+  const [qty, setQty] = useState(1)
   const [added, setAdded] = useState(false)
   const addItem = useCartStore(s => s.addItem)
 
@@ -59,16 +53,13 @@ function ProductCard({ product }: ProductCardProps) {
   }
 
   function handleQtyChange(value: string) {
-    const parsed = parseFloat(value)
+    const parsed = parseInt(value, 10)
     if (isNaN(parsed)) return
-    const clamped = Math.min(Math.max(parsed, minQty), product.totalAvailable)
-    setQty(isDecimalUnit(product.unit) ? Math.round(clamped * 10) / 10 : Math.round(clamped))
+    setQty(Math.min(Math.max(parsed, 1), Math.floor(product.totalAvailable)))
   }
 
   const unitLabel = UNIT_LABEL[product.unit] ?? product.unit
-  const availableDisplay = isDecimalUnit(product.unit)
-    ? product.totalAvailable.toLocaleString('es-PE', { maximumFractionDigits: 1 })
-    : product.totalAvailable.toLocaleString('es-PE', { maximumFractionDigits: 0 })
+  const availableDisplay = Math.floor(product.totalAvailable).toLocaleString('es-PE')
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-5 flex flex-col gap-3">
@@ -114,9 +105,9 @@ function ProductCard({ product }: ProductCardProps) {
       <div className="flex items-center gap-2 mt-auto pt-1">
         <input
           type="number"
-          min={minQty}
-          max={product.totalAvailable}
-          step={step}
+          min={1}
+          max={Math.floor(product.totalAvailable)}
+          step={1}
           value={qty}
           onChange={e => handleQtyChange(e.target.value)}
           className="w-20 text-sm border border-gray-300 rounded-lg px-2 py-1.5 text-center focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
