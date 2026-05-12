@@ -1,5 +1,48 @@
 # CHANGELOG — Miski GO
 
+## [2026-05-12] — Panel operador — aprobación de pagos (paso 10)
+
+### Añadido
+- `src/app/(operator)/layout.tsx` — layout con sidebar y área principal
+- `src/components/operator/sidebar.tsx` — sidebar con navegación a `/operator/payments` y botón de cerrar sesión
+- `src/app/(operator)/operator/page.tsx` — redirige a `/operator/payments`
+- `src/app/(operator)/operator/payments/page.tsx` — Server Component; lista pedidos `payment_submitted` y pedidos confirmados del ciclo activo usando `adminClient`
+- `src/components/operator/payments-table.tsx` — tabla de pendientes con badge rojo, tabla de confirmados con badges de estado; enlace "Revisar" hacia el detalle
+- `src/app/(operator)/operator/payments/[id]/page.tsx` — Server Component de detalle: info del cliente, tabla de items con precios congelados, imagen del comprobante (con fallback PDF), resumen de pago (total / billetera aplicada / monto comprobante), dirección y fecha de entrega
+- `src/components/operator/payment-actions.tsx` — máquina de estados (idle → approving/rejecting → approved/rejected/error); formulario de rechazo con motivo obligatorio; botón de aprobación; banners de resultado; sección WhatsApp con mensajes prellenados, botón copiar y enlace `wa.me`
+- `src/app/api/operator/orders/[id]/approve/route.ts` — POST: valida rol, verifica `payment_submitted`, actualiza orders + payment_verifications, inserta audit_log; el trigger `lock_order_on_payment` activa `is_locked` automáticamente
+- `src/app/api/operator/orders/[id]/reject/route.ts` — POST: valida rol + motivo (Zod), revierte stock en `supplier_publications` via `order_item_assignments`, reembolsa billetera si hubo pago mixto (INSERT wallet_transaction type=refund), cancela orden, actualiza payment_verifications, inserta audit_log
+
+### Modificado
+- `src/app/api/customer/orders/route.ts` — usa `adminClient` para INSERT de `order_items` (retorna IDs); crea `order_item_assignments` durante el checkout (necesarios para reversión de stock al rechazar); stock decrementa en `supplier_publications` con lógica greedy precio-ascendente; publicación pasa a `fulfilled` cuando `available_quantity` llegaría a 0 (sin violar el constraint `> 0`)
+
+### Reglas de negocio aplicadas
+- `totalAmount` eliminado de props de `PaymentActions` (no usado); comprobante muestra `proofAmount` (monto del comprobante, no el total)
+- Stock: `fulfilled` → restaurar a `active` (qty no se toca); `active` → sumar `assigned_quantity` de vuelta
+- Billetera: reembolso es INSERT nuevo `type=refund`, nunca UPDATE a la transacción original
+- `is_locked` lo activa el trigger DB `lock_order_on_payment` cuando se setea `payment_approved_at`; la API solo escribe el timestamp
+
+### Estado tras estos cambios
+- `/operator/payments` → lista de pendientes y confirmados del ciclo actual
+- `/operator/payments/{id}` → detalle completo con comprobante + acciones
+- Aprobar: `confirmed` + lock automático + audit_log
+- Rechazar: `cancelled` + stock revertido + billetera reembolsada + audit_log
+- TypeScript: 0 errores. ESLint: 0 warnings.
+
+### Archivos afectados
+- `src/app/(operator)/layout.tsx`
+- `src/components/operator/sidebar.tsx`
+- `src/app/(operator)/operator/page.tsx`
+- `src/app/(operator)/operator/payments/page.tsx`
+- `src/app/(operator)\operator\payments\[id]\page.tsx`
+- `src/components/operator/payments-table.tsx`
+- `src/components/operator/payment-actions.tsx`
+- `src/app/api/operator/orders/[id]/approve/route.ts`
+- `src/app/api/operator/orders/[id]/reject/route.ts`
+- `src/app/api/customer/orders/route.ts`
+
+---
+
 ## [2026-05-12] — Vista cliente — carrito y checkout (paso 9)
 
 ### Añadido

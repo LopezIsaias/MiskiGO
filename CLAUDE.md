@@ -580,7 +580,7 @@ Toda la siguiente lista DEBE generar un registro en `audit_log` dentro de la mis
 4. Revisar los archivos relevantes antes de proponer cambios
 
 ### Al FINALIZAR cada sesión
-Actualizar `CHANGELOG.md` con el siguiente formato:
+Actualizar `CHANGELOG.md` con el siguiente formato y actualizar la sección **## Estado actual del proyecto** al final de este archivo con: agente usado, fecha, pasos completados, hash del último commit (`git log -1 --format="%H"`), próximo paso, y bugs o decisiones pendientes.
 
 ```markdown
 ## [YYYY-MM-DD] — Descripción breve de la sesión
@@ -655,3 +655,18 @@ Construir estrictamente en este orden. No avanzar al siguiente paso sin que el a
 
 *Última actualización: inicio del proyecto*
 *Versión del modelo de negocio: final*
+
+---
+
+## 12. Estado actual del proyecto
+
+> Esta sección debe actualizarse al final de cada sesión por cualquier agente (Claude Code, Gemini, etc.).
+> Todo agente que trabaje en este proyecto debe leer este archivo completo y respetar todas las decisiones documentadas aquí antes de proponer o aplicar cambios.
+
+**Último agente:** Claude Code
+**Fecha:** 2026-05-12
+**Pasos completados:** 1 al 10
+**Último commit:** 7c401df2b1dc9e797c3e252b778a88261adf8e21
+**Próximo paso:** Paso 11 — lógica de asignación automática de proveedores al aprobar pago
+**Bugs pendientes:** Ninguno
+**Decisiones pendientes:** Ninguna

@@ -215,8 +215,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Error al crear el pedido' }, { status: 500 })
     }
 
-    // Create order_items
-    const { error: itemsErr } = await supabase
+    // Create order_items via adminClient to retrieve IDs for assignment tracking
+    const { data: createdItems, error: itemsErr } = await adminClient
       .from('order_items')
       .insert(
         orderItems.map(i => ({
@@ -227,32 +227,55 @@ export async function POST(request: Request) {
           subtotal_frozen: i.subtotalFrozen,
         }))
       )
+      .select('id, product_id')
 
-    if (itemsErr) {
-      console.error('[orders POST] order_items insert failed:', itemsErr.message, itemsErr.code)
+    if (itemsErr || !createdItems) {
+      console.error('[orders POST] order_items insert failed:', itemsErr?.message, itemsErr?.code)
       await adminClient.from('orders').delete().eq('id', order.id)
       return NextResponse.json({ error: 'Error al registrar ítems del pedido' }, { status: 500 })
     }
 
-    // Decrement available stock in supplier_publications (greedy, cheapest first)
+    // Map product_id → order_item_id for assignment creation
+    const itemIdByProduct = new Map<string, string>()
+    for (const ci of createdItems) itemIdByProduct.set(ci.product_id, ci.id)
+
+    // Decrement stock and create provisional order_item_assignments (greedy, cheapest first)
+    type StockPub = { id: string; available_quantity: number; supplier_id: string; minimum_price: number }
     for (const item of orderItems) {
+      const orderItemId = itemIdByProduct.get(item.productId)
+      if (!orderItemId) continue
+
       const { data: stockPubs } = await adminClient
         .from('supplier_publications')
-        .select('id, available_quantity')
+        .select('id, available_quantity, supplier_id, minimum_price')
         .eq('product_id', item.productId)
         .eq('status', 'active')
         .gt('available_quantity', 0)
         .order('minimum_price', { ascending: true })
         .order('published_at', { ascending: true })
 
+      const assignments: {
+        order_item_id: string; publication_id: string; supplier_id: string
+        assigned_quantity: number; supplier_price_frozen: number; platform_margin_frozen: number
+      }[] = []
+
       let remaining = item.quantity
-      for (const pub of stockPubs ?? []) {
+      for (const pub of (stockPubs ?? []) as StockPub[]) {
         if (remaining <= 0) break
         const deduct = Math.min(pub.available_quantity, remaining)
         remaining = Math.round((remaining - deduct) * 1000) / 1000
         const newQty = Math.round((pub.available_quantity - deduct) * 1000) / 1000
+
+        assignments.push({
+          order_item_id: orderItemId,
+          publication_id: pub.id,
+          supplier_id: pub.supplier_id,
+          assigned_quantity: deduct,
+          supplier_price_frozen: pub.minimum_price,
+          platform_margin_frozen: Math.round((item.unitPriceFrozen - pub.minimum_price) * 100) / 100,
+        })
+
         if (newQty <= 0) {
-          // Fully consumed: mark as fulfilled (constraint requires available_quantity > 0, so don't update it)
           await adminClient
             .from('supplier_publications')
             .update({ status: 'fulfilled' })
@@ -263,6 +286,10 @@ export async function POST(request: Request) {
             .update({ available_quantity: newQty })
             .eq('id', pub.id)
         }
+      }
+
+      if (assignments.length > 0) {
+        await adminClient.from('order_item_assignments').insert(assignments)
       }
     }
 
