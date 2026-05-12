@@ -30,19 +30,26 @@ const readonlyCls =
 
 // ——— Create form ———
 
+interface ConflictUser {
+  id: string
+  full_name: string
+  email: string
+  phone: string | null
+}
+
 function CreateUserForm() {
   const router = useRouter()
   const [serverError, setServerError] = useState<string | null>(null)
-  const [conflict, setConflict] = useState<{
-    userId: string
-    email: string
-    name: string
-  } | null>(null)
-  const [converting, setConverting] = useState(false)
+  const [conflictUser, setConflictUser] = useState<ConflictUser | null>(null)
+  const [dniChecking, setDniChecking] = useState(false)
+  const [isConverting, setIsConverting] = useState(false)
 
   const {
     register,
     handleSubmit,
+    setValue,
+    trigger,
+    getValues,
     control,
     formState: { errors, isSubmitting },
   } = useForm<CreateUserInput>({
@@ -50,59 +57,74 @@ function CreateUserForm() {
   })
 
   const selectedRole = useWatch({ control, name: 'role' })
+  const isConflict = !!conflictUser
 
+  async function checkDni(dni: string) {
+    // Clear any previous conflict and error on each check
+    setConflictUser(null)
+    setServerError(null)
+
+    if (!/^\d{8}$/.test(dni)) return
+
+    setDniChecking(true)
+    try {
+      const res = await fetch(`/api/admin/check-dni?dni=${encodeURIComponent(dni)}`)
+      if (!res.ok) return
+      const data = await res.json()
+
+      if (data.exists && data.role === 'customer') {
+        setConflictUser({ id: data.id, full_name: data.full_name, email: data.email, phone: data.phone })
+        setValue('full_name', data.full_name, { shouldDirty: true })
+        setValue('email', data.email, { shouldDirty: true })
+        setValue('phone', data.phone ?? '', { shouldDirty: true })
+      }
+      // If exists as non-customer: handled at submit time with a clear error
+    } finally {
+      setDniChecking(false)
+    }
+  }
+
+  // Normal creation submit (no conflict)
   async function onSubmit(data: CreateUserInput) {
     setServerError(null)
-    setConflict(null)
-
     const res = await fetch('/api/admin/users', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     })
-
-    if (res.status === 409) {
-      const err = await res.json()
-      if (err.conflict === 'dni_customer') {
-        setConflict({
-          userId: err.existing_user_id,
-          email: err.existing_email,
-          name: err.existing_name,
-        })
-        return
-      }
-      setServerError(typeof err.error === 'string' ? err.error : 'Conflicto al guardar')
-      return
-    }
-
     if (!res.ok) {
       const err = await res.json()
       setServerError(typeof err.error === 'string' ? err.error : 'Error al guardar')
       return
     }
-
     router.push('/admin/users')
     router.refresh()
   }
 
-  async function handleConvert() {
-    if (!conflict || !selectedRole) return
-    setConverting(true)
-    setServerError(null)
+  // Conversion submit (conflict mode) — uses current form values
+  async function handleConvertSubmit(e: React.MouseEvent<HTMLButtonElement>) {
+    e.preventDefault()
+    if (!conflictUser) return
 
-    const res = await fetch(`/api/admin/users/${conflict.userId}`, {
+    const fieldsOk = await trigger(['full_name', 'email', 'phone', 'role'])
+    if (!fieldsOk) return
+
+    setIsConverting(true)
+    setServerError(null)
+    const { full_name, email, phone, role } = getValues()
+
+    const res = await fetch(`/api/admin/users/${conflictUser.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'convert_role', role: selectedRole }),
+      body: JSON.stringify({ action: 'convert_role', role, full_name, email, phone }),
     })
 
-    setConverting(false)
+    setIsConverting(false)
     if (!res.ok) {
       const err = await res.json()
       setServerError(typeof err.error === 'string' ? err.error : 'Error al convertir cuenta')
       return
     }
-
     router.push('/admin/users')
     router.refresh()
   }
@@ -113,30 +135,14 @@ function CreateUserForm() {
         <div className="bg-red-50 text-red-600 text-sm px-4 py-3 rounded-lg">{serverError}</div>
       )}
 
-      {conflict && (
-        <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 text-sm px-4 py-3 rounded-lg space-y-2">
-          <p>
-            El DNI ya pertenece a <strong>{conflict.name}</strong> ({conflict.email}), registrado
-            como cliente. ¿Desea convertir esta cuenta a{' '}
-            <strong>{ROLE_LABELS[selectedRole] ?? selectedRole}</strong>?
+      {isConflict && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg px-4 py-3">
+          <p className="text-sm font-medium text-yellow-800">
+            Este DNI ya está registrado como cliente
           </p>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={handleConvert}
-              disabled={converting}
-              className="bg-yellow-600 text-white px-4 py-1.5 rounded text-xs font-medium hover:bg-yellow-700 disabled:opacity-50"
-            >
-              {converting ? 'Convirtiendo...' : 'Convertir cuenta'}
-            </button>
-            <button
-              type="button"
-              onClick={() => setConflict(null)}
-              className="bg-gray-100 text-gray-700 px-4 py-1.5 rounded text-xs font-medium hover:bg-gray-200"
-            >
-              Cancelar
-            </button>
-          </div>
+          <p className="text-xs text-yellow-700 mt-0.5">
+            Los datos han sido autocompletados. Edítalos si es necesario y confirma la conversión.
+          </p>
         </div>
       )}
 
@@ -149,8 +155,18 @@ function CreateUserForm() {
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">DNI</label>
-          <input {...register('dni')} className={inputCls} placeholder="12345678" maxLength={8} />
-          {errors.dni && <p className="text-red-500 text-xs mt-1">{errors.dni.message}</p>}
+          <input
+            {...register('dni', {
+              onBlur: (e) => checkDni(e.target.value),
+            })}
+            className={inputCls}
+            placeholder="12345678"
+            maxLength={8}
+          />
+          {dniChecking && <p className="text-gray-400 text-xs mt-1">Verificando...</p>}
+          {!dniChecking && errors.dni && (
+            <p className="text-red-500 text-xs mt-1">{errors.dni.message}</p>
+          )}
         </div>
 
         <div>
@@ -175,25 +191,40 @@ function CreateUserForm() {
           {errors.role && <p className="text-red-500 text-xs mt-1">{errors.role.message}</p>}
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Contraseña temporal</label>
-          <input type="password" {...register('password')} className={inputCls} />
-          {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password.message}</p>}
-        </div>
+        {!isConflict && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Contraseña temporal</label>
+            <input type="password" {...register('password')} className={inputCls} />
+            {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password.message}</p>}
+          </div>
+        )}
       </div>
 
-      <p className="text-xs text-gray-500">
-        El usuario deberá cambiar la contraseña en su primer inicio de sesión.
-      </p>
+      {!isConflict && (
+        <p className="text-xs text-gray-500">
+          El usuario deberá cambiar la contraseña en su primer inicio de sesión.
+        </p>
+      )}
 
       <div className="flex gap-3 pt-2">
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="bg-green-600 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-50 transition-colors"
-        >
-          {isSubmitting ? 'Creando...' : 'Crear usuario'}
-        </button>
+        {isConflict ? (
+          <button
+            type="button"
+            onClick={handleConvertSubmit}
+            disabled={isConverting || dniChecking}
+            className="bg-yellow-600 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-yellow-700 disabled:opacity-50 transition-colors"
+          >
+            {isConverting ? 'Convirtiendo...' : `Convertir cuenta${selectedRole ? ` a ${ROLE_LABELS[selectedRole]}` : ''}`}
+          </button>
+        ) : (
+          <button
+            type="submit"
+            disabled={isSubmitting || dniChecking}
+            className="bg-green-600 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-50 transition-colors"
+          >
+            {isSubmitting ? 'Creando...' : 'Crear usuario'}
+          </button>
+        )}
         <button
           type="button"
           onClick={() => router.push('/admin/users')}
