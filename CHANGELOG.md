@@ -1,5 +1,50 @@
 # CHANGELOG — Miski GO
 
+## [2026-05-13] — Vista repartidor — recepción en punto central (paso 13)
+
+### Añadido
+- `supabase/migrations/20260513000021_storage_reception_photos.sql` — bucket `reception-photos` (10 MB, JPEG/PNG/WEBP/HEIC/HEIF); políticas de upload por carpeta de usuario y lectura pública
+- `src/app/(delivery)/layout.tsx` — layout mínimo para el panel del repartidor (sin sidebar; mobile-first)
+- `src/app/(delivery)/delivery/page.tsx` — redirige a `/delivery/reception`
+- `src/components/delivery/mobile-header.tsx` — encabezado sticky mobile con brand, título de página y botón de cerrar sesión
+- `src/app/(delivery)/delivery/reception/page.tsx` — Server Component: detecta ciclo activo (`in_progress` o `closed`), consulta todas las asignaciones confirmadas del ciclo, las agrega por proveedor→producto, verifica registros de recepción ya existentes, pasa datos tipados al cliente
+- `src/components/delivery/reception-board.tsx` — lista de proveedores con acordeón; dot indicador (verde=listo, ámbar=pendiente); auto-expande el primer pendiente; re-exporta tipos `ReceptionSupplierData`, `ReceptionItemData`
+- `src/components/delivery/supplier-reception-form.tsx` — formulario por proveedor: upload de foto (con preview y confirmación "Guardada"), campos de cantidad recibida y rechazada por producto (inputs touch-friendly), motivo de rechazo condicional si rechazado > 0; validación client-side antes de enviar; llama a `router.refresh()` tras éxito
+- `src/app/api/delivery/reception/route.ts` — POST: valida rol `delivery`/`superadmin`; verifica ciclo activo y ausencia de duplicados; por cada producto:
+  1. Inserta `reception_records` con photo_url obligatoria
+  2. Si hay shortfall (`expectedQty − (receivedQty − rejectedQty) > 0`): distribuye el faltante proporcionalmente entre las `order_item_assignments` afectadas, actualiza `assigned_quantity` (o marca `failed` si llega a 0), calcula compensación (`shortfall × unit_price_frozen`), inserta `wallet_transaction` tipo `refund` (status `approved`) e incrementa `wallet_balance` del cliente, marca `order_items.status = 'rejected'` si la cobertura total cae bajo la cantidad pedida
+  3. Registra en `audit_log`: `RECEPTION_RECORDED` siempre, `BAD_PRODUCT_REPORTED` si hay rechazo, `WALLET_BALANCE_UPDATED` por cada cliente compensado
+
+### Modificado
+- `src/lib/constants/index.ts` — añadido `RECEPTION_RECORDED: 'reception_recorded'` a `AUDIT_ACTIONS`
+
+### Reglas de negocio aplicadas
+- `received_qty` = total que llegó físicamente (bueno + malo); `rejected_qty` = rechazado por calidad (subconjunto de received)
+- Shortfall = `expected − (received − rejected)` → clientes no recibirán esa cantidad
+- Distribución proporcional: `assignment_shortfall = (assignment.assigned_qty / total_assigned) × shortfall`
+- El repartidor NUNCA ve precios ni datos financieros — toda la lógica de compensación ocurre en el API route con admin client
+- Una foto cubre todos los productos del proveedor (mismo `photo_url` para todos los `reception_records` de ese proveedor en el envío)
+- Registro ya existente para el mismo ciclo+proveedor+producto devuelve 409 (evita duplicados)
+- TypeScript: 0 errores. ESLint: 0 warnings.
+
+### Para aplicar
+```
+npx supabase db push
+```
+
+### Archivos afectados
+- `supabase/migrations/20260513000021_storage_reception_photos.sql` (nuevo)
+- `src/app/(delivery)/layout.tsx` (nuevo)
+- `src/app/(delivery)/delivery/page.tsx` (nuevo)
+- `src/components/delivery/mobile-header.tsx` (nuevo)
+- `src/app/(delivery)/delivery/reception/page.tsx` (nuevo)
+- `src/components/delivery/reception-board.tsx` (nuevo)
+- `src/components/delivery/supplier-reception-form.tsx` (nuevo)
+- `src/app/api/delivery/reception/route.ts` (nuevo)
+- `src/lib/constants/index.ts`
+
+---
+
 ## [2026-05-12] — Panel operador — gestión completa de pedidos (paso 12)
 
 ### Añadido

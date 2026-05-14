@@ -664,9 +664,9 @@ Construir estrictamente en este orden. No avanzar al siguiente paso sin que el a
 > Todo agente que trabaje en este proyecto debe leer este archivo completo y respetar todas las decisiones documentadas aquí antes de proponer o aplicar cambios.
 
 **Último agente:** Claude Code
-**Fecha:** 2026-05-12
-**Pasos completados:** 1 al 12
-**Último commit:** d418d2ccb0344e9d47a05c7434ca76d203d4c76d
-**Próximo paso:** Paso 13 — vista repartidor: recepción de productos (checklist por proveedor con foto obligatoria)
+**Fecha:** 2026-05-13
+**Pasos completados:** 1 al 13
+**Último commit:** d1813fbf0d32d5ba31106ffcbce049a06888b909
+**Próximo paso:** Paso 14 — vista repartidor: ruta y entrega (mapa optimizado, marcar entregado)
 **Bugs pendientes:** Ninguno
 **Decisiones pendientes:** Ninguna

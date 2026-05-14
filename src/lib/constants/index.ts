@@ -78,6 +78,7 @@ export const AUDIT_ACTIONS = {
   PASSWORD_RESET:             'password_reset',
   SUPPLIER_ASSIGNED:          'supplier_assigned',
   ASSIGNMENT_FAILED:          'assignment_failed',
+  RECEPTION_RECORDED:         'reception_recorded',
 } as const
 
 export const AUDIT_MODULES = {
