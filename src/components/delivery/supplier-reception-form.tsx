@@ -6,8 +6,8 @@ import { createClient } from '@/lib/supabase/client'
 import type { ReceptionSupplierData } from './reception-board'
 
 interface ItemState {
-  receivedQty: number  // total que llegó físicamente (bueno + malo)
-  rejectedQty: number  // de lo que llegó, cuánto se rechazó por calidad
+  receivedQty: number  // cantidad en buen estado
+  rejectedQty: number  // cantidad en mal estado
   rejectionReason: string
 }
 
@@ -44,6 +44,14 @@ export function SupplierReceptionForm({ supplier, cycleId, deliveryPersonId, onS
 
   const pendingItems = supplier.items.filter(i => !i.alreadyRecorded)
 
+  function isSumValid(productId: string, expectedQty: number): boolean {
+    const state = itemStates[productId]
+    if (!state) return false
+    return Math.abs(state.receivedQty + state.rejectedQty - expectedQty) <= 0.001
+  }
+
+  const allSumsValid = pendingItems.every(item => isSumValid(item.productId, item.expectedQty))
+
   function updateItem(productId: string, field: keyof ItemState, value: number | string) {
     setItemStates(prev => ({
       ...prev,
@@ -58,7 +66,6 @@ export function SupplierReceptionForm({ supplier, cycleId, deliveryPersonId, onS
     setUploadingPhoto(true)
     setError('')
 
-    // Preview
     const reader = new FileReader()
     reader.onload = ev => setPhotoPreview(ev.target?.result as string)
     reader.readAsDataURL(file)
@@ -91,14 +98,13 @@ export function SupplierReceptionForm({ supplier, cycleId, deliveryPersonId, onS
       const state = itemStates[item.productId]
       if (!state) continue
 
-      if (state.receivedQty < 0) return `"${item.productName}": cantidad recibida no puede ser negativa.`
-      if (state.rejectedQty < 0) return `"${item.productName}": cantidad rechazada no puede ser negativa.`
-      if (state.rejectedQty > state.receivedQty + 0.001) {
-        return `"${item.productName}": rechazado no puede superar lo recibido.`
+      if (state.receivedQty < 0) return `"${item.productName}": la cantidad recibida no puede ser negativa.`
+      if (state.rejectedQty < 0) return `"${item.productName}": la cantidad rechazada no puede ser negativa.`
+
+      if (!isSumValid(item.productId, item.expectedQty)) {
+        return `"${item.productName}": la cantidad recibida más la cantidad rechazada debe ser igual a la cantidad esperada (${item.expectedQty} ${item.unit}).`
       }
-      if (state.receivedQty > item.expectedQty + 0.001) {
-        return `"${item.productName}": recibido no puede superar lo esperado (${item.expectedQty} ${item.unit}).`
-      }
+
       if (state.rejectedQty > 0.001 && !state.rejectionReason.trim()) {
         return `"${item.productName}": se requiere motivo de rechazo.`
       }
@@ -207,8 +213,9 @@ export function SupplierReceptionForm({ supplier, cycleId, deliveryPersonId, onS
       <div className="space-y-4">
         {pendingItems.map(item => {
           const state = itemStates[item.productId] ?? { receivedQty: item.expectedQty, rejectedQty: 0, rejectionReason: '' }
-          const hasRejection = state.rejectedQty > 0
-          const shortfall = Math.round((item.expectedQty - (state.receivedQty - state.rejectedQty)) * 1000) / 1000
+          const hasRejection = state.rejectedQty > 0.001
+          const sumOk = isSumValid(item.productId, item.expectedQty)
+          const diff = Math.round((state.receivedQty + state.rejectedQty - item.expectedQty) * 1000) / 1000
 
           return (
             <div key={item.productId} className="bg-white rounded-xl border border-gray-200 p-4 space-y-3">
@@ -219,18 +226,23 @@ export function SupplierReceptionForm({ supplier, cycleId, deliveryPersonId, onS
                     Esperado: <span className="font-medium text-gray-600">{item.expectedQty} {item.unit}</span>
                   </p>
                 </div>
-                {shortfall > 0.001 && (
+                {!sumOk && (
                   <span className="text-xs font-medium text-red-600 bg-red-50 px-2 py-0.5 rounded-full shrink-0">
-                    Falta {shortfall} {item.unit}
+                    {diff > 0.001 ? `+${diff}` : diff < -0.001 ? `${diff}` : ''} {item.unit} diferencia
+                  </span>
+                )}
+                {sumOk && hasRejection && (
+                  <span className="text-xs font-medium text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full shrink-0">
+                    {state.rejectedQty} {item.unit} rechazado
                   </span>
                 )}
               </div>
 
-              {/* Received quantity */}
+              {/* Received and rejected quantities */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-medium text-gray-600 mb-1">
-                    Recibido ({item.unit})
+                    Recibido OK ({item.unit}) <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="number"
@@ -239,33 +251,45 @@ export function SupplierReceptionForm({ supplier, cycleId, deliveryPersonId, onS
                     step={item.unit === 'kg' || item.unit === 'liter' ? '0.1' : '1'}
                     value={state.receivedQty}
                     onChange={e => updateItem(item.productId, 'receivedQty', parseFloat(e.target.value) || 0)}
-                    className="w-full text-center text-base font-semibold border border-gray-300 rounded-xl py-3 focus:outline-none focus:border-green-400"
+                    className={`w-full text-center text-base font-semibold border rounded-xl py-3 focus:outline-none ${
+                      sumOk
+                        ? 'border-gray-300 focus:border-green-400'
+                        : 'border-red-300 bg-red-50 focus:border-red-400'
+                    }`}
                   />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-gray-600 mb-1">
-                    Rechazado ({item.unit})
+                    Rechazado ({item.unit}) <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="number"
                     min={0}
-                    max={state.receivedQty}
+                    max={item.expectedQty}
                     step={item.unit === 'kg' || item.unit === 'liter' ? '0.1' : '1'}
                     value={state.rejectedQty}
                     onChange={e => updateItem(item.productId, 'rejectedQty', parseFloat(e.target.value) || 0)}
                     className={`w-full text-center text-base font-semibold border rounded-xl py-3 focus:outline-none ${
-                      hasRejection
-                        ? 'border-red-300 bg-red-50 text-red-700 focus:border-red-400'
-                        : 'border-gray-300 focus:border-green-400'
+                      hasRejection && sumOk
+                        ? 'border-amber-300 bg-amber-50 text-amber-700 focus:border-amber-400'
+                        : !sumOk
+                          ? 'border-red-300 bg-red-50 focus:border-red-400'
+                          : 'border-gray-300 focus:border-green-400'
                     }`}
                   />
                 </div>
               </div>
 
+              {/* Sum hint */}
+              <p className={`text-xs ${sumOk ? 'text-gray-400' : 'text-red-600 font-medium'}`}>
+                Suma: {Math.round((state.receivedQty + state.rejectedQty) * 1000) / 1000} / {item.expectedQty} {item.unit}
+                {sumOk ? ' ✓' : ' — debe coincidir con lo esperado'}
+              </p>
+
               {/* Rejection reason — conditional */}
               {hasRejection && (
                 <div>
-                  <label className="block text-xs font-medium text-red-600 mb-1">
+                  <label className="block text-xs font-medium text-amber-700 mb-1">
                     Motivo de rechazo <span className="text-red-500">*</span>
                   </label>
                   <textarea
@@ -273,7 +297,7 @@ export function SupplierReceptionForm({ supplier, cycleId, deliveryPersonId, onS
                     value={state.rejectionReason}
                     onChange={e => updateItem(item.productId, 'rejectionReason', e.target.value)}
                     placeholder="Ej: producto en mal estado, color oscuro, presencia de hongos…"
-                    className="w-full text-sm border border-red-300 rounded-xl px-3 py-2 focus:outline-none focus:border-red-400 resize-none bg-red-50 placeholder:text-red-300"
+                    className="w-full text-sm border border-amber-300 rounded-xl px-3 py-2 focus:outline-none focus:border-amber-400 resize-none bg-amber-50 placeholder:text-amber-300"
                   />
                 </div>
               )}
@@ -290,14 +314,17 @@ export function SupplierReceptionForm({ supplier, cycleId, deliveryPersonId, onS
 
       <button
         type="submit"
-        disabled={submitting || uploadingPhoto || !photoUrl}
+        disabled={submitting || uploadingPhoto || !photoUrl || !allSumsValid}
         className="w-full py-4 rounded-xl text-sm font-semibold text-white bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
       >
         {submitting ? 'Guardando…' : 'Registrar recepción'}
       </button>
 
-      {!photoUrl && !uploadingPhoto && (
+      {(!photoUrl && !uploadingPhoto) && (
         <p className="text-center text-xs text-gray-400">Agrega la foto para continuar</p>
+      )}
+      {photoUrl && !allSumsValid && (
+        <p className="text-center text-xs text-red-500">Verifica que la suma de cantidades coincida con lo esperado</p>
       )}
     </form>
   )

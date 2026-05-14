@@ -19,11 +19,14 @@ const receptionSchema = z.object({
   items: z.array(itemSchema).min(1),
 }).superRefine((data, ctx) => {
   for (const item of data.items) {
-    if (item.rejectedQty > item.receivedQty + 0.001) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, message: `Rechazado no puede superar recibido en producto ${item.productId}` })
+    if (item.receivedQty < 0) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: `Cantidad recibida no puede ser negativa en producto ${item.productId}` })
     }
-    if (item.receivedQty > item.expectedQty + 0.001) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, message: `Recibido no puede superar esperado en producto ${item.productId}` })
+    if (item.rejectedQty < 0) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: `Cantidad rechazada no puede ser negativa en producto ${item.productId}` })
+    }
+    if (Math.abs(item.receivedQty + item.rejectedQty - item.expectedQty) > 0.001) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: `La cantidad recibida más la cantidad rechazada debe ser igual a la cantidad esperada (${item.expectedQty}) en producto ${item.productId}` })
     }
     if (item.rejectedQty > 0.001 && !item.rejectionReason?.trim()) {
       ctx.addIssue({ code: z.ZodIssueCode.custom, message: `Motivo de rechazo requerido en producto ${item.productId}` })
@@ -97,9 +100,10 @@ export async function POST(request: Request) {
   for (const item of items) {
     const { productId, expectedQty, receivedQty, rejectedQty, rejectionReason } = item
 
-    // goodQty = what was received in good condition
-    const goodQty = Math.round((receivedQty - rejectedQty) * 1000) / 1000
-    // shortfall = what customers won't get from this supplier for this product
+    // receivedQty = quantity in good condition; rejectedQty = bad quality
+    // received + rejected = expected (enforced by client and server validation)
+    const goodQty = Math.round(receivedQty * 1000) / 1000
+    // shortfall = what customers won't get (equals rejectedQty given the constraint)
     const shortfall = Math.round((expectedQty - goodQty) * 1000) / 1000
 
     // 1. Insert reception_record

@@ -79,6 +79,7 @@ export const AUDIT_ACTIONS = {
   SUPPLIER_ASSIGNED:          'supplier_assigned',
   ASSIGNMENT_FAILED:          'assignment_failed',
   RECEPTION_RECORDED:         'reception_recorded',
+  DISPATCH_CYCLE_STATUS_CHANGED: 'dispatch_cycle_status_changed',
 } as const
 
 export const AUDIT_MODULES = {

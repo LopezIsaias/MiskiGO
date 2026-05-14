@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 const NAV = [
   { label: 'Aprobación de pagos', href: '/operator/payments', exact: false },
   { label: 'Gestión de pedidos',  href: '/operator/orders',   exact: false },
+  { label: 'Ciclo de despacho',   href: '/operator/cycle',    exact: false },
 ] as const
 
 export function OperatorSidebar() {
