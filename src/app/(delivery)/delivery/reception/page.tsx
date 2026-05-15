@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { MobileHeader } from '@/components/delivery/mobile-header'
+import { DeliveryNav } from '@/components/delivery/delivery-nav'
 import { ReceptionBoard } from '@/components/delivery/reception-board'
 import type { ReceptionSupplierData } from '@/components/delivery/reception-board'
 import { formatDate } from '@/lib/utils'
@@ -50,6 +51,7 @@ export default async function ReceptionPage() {
     return (
       <div>
         <MobileHeader title="Recepción" />
+        <DeliveryNav />
         <div className="p-6 text-center">
           <p className="text-gray-500 text-sm mt-8">No hay ciclos activos con pedidos asignados.</p>
         </div>
@@ -143,6 +145,7 @@ export default async function ReceptionPage() {
   return (
     <div>
       <MobileHeader title="Recepción" subtitle={cycleLabel} />
+      <DeliveryNav />
       <div className="px-4 py-3 bg-white border-b border-gray-100">
         <p className="text-xs text-gray-500">
           {pendingCount === 0

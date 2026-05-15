@@ -80,6 +80,8 @@ export const AUDIT_ACTIONS = {
   ASSIGNMENT_FAILED:          'assignment_failed',
   RECEPTION_RECORDED:         'reception_recorded',
   DISPATCH_CYCLE_STATUS_CHANGED: 'dispatch_cycle_status_changed',
+  ORDER_DELIVERED:            'order_delivered',
+  DELIVERY_INCIDENT:          'delivery_incident',
 } as const
 
 export const AUDIT_MODULES = {

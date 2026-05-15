@@ -1,5 +1,41 @@
 # CHANGELOG — Miski GO
 
+## [2026-05-14] — Vista repartidor — ruta optimizada y marcar entregado (paso 14)
+
+### Añadido
+- `src/components/delivery/delivery-nav.tsx` — barra de tabs (Recepción | Ruta) que se muestra en ambas vistas del repartidor; `usePathname` para el tab activo
+- `src/app/api/delivery/route/start/route.ts` — POST: crea `delivery_route` + `delivery_stops` para el ciclo activo; transiciona todos los pedidos `assigned → in_transit`; si ya existe una ruta para ese repartidor+ciclo, la devuelve sin duplicar
+- `src/app/api/delivery/orders/[id]/deliver/route.ts` — PATCH: actualiza `orders.status = delivered`, registra `delivered_at` y calcula `claim_window_expires_at = delivered_at + 2 horas`, actualiza `delivery_stops`, inserta notificación `in_app` al cliente con el texto exacto del CLAUDE.md, escribe en `audit_log`
+- `src/app/api/delivery/orders/[id]/incident/route.ts` — PATCH: marca `delivery_stops.status = failed` con `failure_reason`; el pedido permanece `in_transit` para que el operador gestione; notifica a operadores/superadmin vía `in_app`; escribe en `audit_log`
+- `src/app/(delivery)/delivery/route/page.tsx` — Server Component: detecta ciclo `in_progress`, obtiene pedidos `assigned/in_transit/delivered` del ciclo, llama a **Google Maps Directions API server-side** con `optimizeWaypoints=true` para calcular el orden óptimo de paradas, construye URL de Static Maps con marcadores numerados, pasa todo a `DeliveryRouteBoard`
+- `src/components/delivery/delivery-route-board.tsx` — Client Component: imagen del mapa estático con marcadores numerados, botón "Abrir en Google Maps" (deep-link que funciona en móvil), barra de estadísticas, botón "Iniciar ruta" (llama al endpoint start), lista de paradas expandibles con nombre del cliente + dirección + nota + productos a entregar; botones "Marcar entregado" y "Incidencia" por parada; modal bottom-sheet para el motivo de incidencia; actualizaciones optimistas del estado local; exporta tipos `StopData` y `StopItem`
+
+### Modificado
+- `src/lib/constants/index.ts` — añadidos `ORDER_DELIVERED` y `DELIVERY_INCIDENT` a `AUDIT_ACTIONS`
+- `src/app/(delivery)/delivery/reception/page.tsx` — añadido `<DeliveryNav />` bajo el `<MobileHeader />` en todos los estados de la página (ciclo no encontrado, ciclo activo)
+
+### Reglas de negocio aplicadas
+- Optimización de ruta: llamada server-side a Directions API (`cache: 'no-store'`); si falla o la clave no está configurada, los pedidos se muestran en orden de creación sin romper la página
+- `claim_window_expires_at = delivered_at + 2 horas` (calculado en el API route, no en el cliente)
+- Texto de notificación al cliente: exactamente el definido en CLAUDE.md sección 4, con `[hora_límite]` sustituida por `formatTime(claimWindowExpiresAt)`
+- El repartidor **nunca** ve precios ni datos financieros: `unit_price_frozen`, `subtotal_frozen` y datos de asignación de proveedor se excluyen de todas las consultas
+- Incidencia: el pedido queda `in_transit` (no `failed`) para que el operador pueda reagendar o cancelar
+- Un solo mapa (Static Maps API) cubre todas las paradas ordenadas; la URL de navegación usa el esquema `maps.google.com/maps/dir/` que abre la app nativa en Android e iOS
+- TypeScript: 0 errores. ESLint: 0 warnings.
+
+### Archivos afectados
+- `src/lib/constants/index.ts`
+- `src/components/delivery/delivery-nav.tsx` (nuevo)
+- `src/app/api/delivery/route/start/route.ts` (nuevo)
+- `src/app/api/delivery/orders/[id]/deliver/route.ts` (nuevo)
+- `src/app/api/delivery/orders/[id]/incident/route.ts` (nuevo)
+- `src/app/(delivery)/delivery/route/page.tsx` (nuevo)
+- `src/components/delivery/delivery-route-board.tsx` (nuevo)
+- `src/app/(delivery)/delivery/reception/page.tsx`
+
+---
+
+
 ## [2026-05-13] — Vista repartidor — recepción en punto central (paso 13)
 
 ### Añadido
