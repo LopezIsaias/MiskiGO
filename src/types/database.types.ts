@@ -307,6 +307,7 @@ export type Database = {
           channel: string
           created_at: string
           id: string
+          read_at: string | null
           recipient_id: string
           reference_id: string | null
           reference_type: string | null
@@ -320,6 +321,7 @@ export type Database = {
           channel: string
           created_at?: string
           id?: string
+          read_at?: string | null
           recipient_id: string
           reference_id?: string | null
           reference_type?: string | null
@@ -333,6 +335,7 @@ export type Database = {
           channel?: string
           created_at?: string
           id?: string
+          read_at?: string | null
           recipient_id?: string
           reference_id?: string | null
           reference_type?: string | null

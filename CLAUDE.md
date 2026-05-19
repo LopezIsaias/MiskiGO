@@ -622,6 +622,7 @@ Actualizar `CHANGELOG.md` con el siguiente formato y actualizar la sección **##
 - **App móvil nativa:** el MVP es PWA mobile-first. La API ya estará lista para consumirse desde una app nativa.
 - **CI/CD avanzado:** tests automáticos en cada PR antes de merge a main.
 - **Reportes avanzados:** el modelo de datos ya captura toda la información necesaria.
+- **Mapa de entregas con chinchetas por dirección:** al registrarse el cliente elige su ubicación en un mapa (Google Maps picker) o ingresa coordenadas. Esto permite mostrar marcadores exactos en la ruta del repartidor en vez de solo direcciones de texto.
 
 ---
 
@@ -664,9 +665,9 @@ Construir estrictamente en este orden. No avanzar al siguiente paso sin que el a
 > Todo agente que trabaje en este proyecto debe leer este archivo completo y respetar todas las decisiones documentadas aquí antes de proponer o aplicar cambios.
 
 **Último agente:** Claude Code
-**Fecha:** 2026-05-13
-**Pasos completados:** 1 al 13
-**Último commit:** d1813fbf0d32d5ba31106ffcbce049a06888b909
-**Próximo paso:** Paso 14 — vista repartidor: ruta y entrega (mapa optimizado, marcar entregado)
+**Fecha:** 2026-05-19
+**Pasos completados:** 1 al 15
+**Último commit:** 5ee093e (delivery route + order delivery marking — paso 14)
+**Próximo paso:** Paso 16 — vista cliente: reclamos post-entrega (formulario con foto dentro de ventana)
 **Bugs pendientes:** Ninguno
 **Decisiones pendientes:** Ninguna

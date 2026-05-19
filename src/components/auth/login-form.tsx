@@ -3,14 +3,13 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useRouter } from 'next/navigation'
 import { loginSchema, type LoginInput } from '@/lib/validations/auth'
 import { createClient } from '@/lib/supabase/client'
 import { ROLE_DASHBOARD } from '@/lib/constants'
 
 export function LoginForm() {
-  const router = useRouter()
   const [serverError, setServerError] = useState<string | null>(null)
+  const supabase = createClient()
 
   const {
     register,
@@ -20,7 +19,6 @@ export function LoginForm() {
 
   async function onSubmit(data: LoginInput) {
     setServerError(null)
-    const supabase = createClient()
 
     const { data: authData, error } = await supabase.auth.signInWithPassword({
       email: data.email,
@@ -42,15 +40,14 @@ export function LoginForm() {
 
     const role = profile?.role ?? (authData.user.user_metadata?.role as string | undefined)
 
-    router.push(ROLE_DASHBOARD[role ?? ''] ?? '/login')
-    router.refresh()
+    window.location.assign(ROLE_DASHBOARD[role ?? ''] ?? '/login')
   }
 
   const inputCls =
     'w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500'
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <form method="post" onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       {serverError && (
         <div className="bg-red-50 text-red-600 text-sm px-4 py-3 rounded-lg">{serverError}</div>
       )}

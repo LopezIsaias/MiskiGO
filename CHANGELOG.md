@@ -1,5 +1,39 @@
 # CHANGELOG — Miski GO
 
+## [2026-05-19] — Notificación post-entrega y ventana de reclamo para el cliente (paso 15)
+
+### Añadido
+- `supabase/migrations/20260519000022_add_read_at_to_notifications.sql` — columna `read_at timestamptz` en `notifications` para rastrear cuándo el cliente lee cada notificación in_app
+- `src/app/api/customer/notifications/route.ts` — GET: devuelve hasta 20 notificaciones `in_app` del cliente autenticado, ordenadas por fecha, con `unreadCount` (read_at IS NULL)
+- `src/app/api/customer/notifications/read/route.ts` — PATCH: marca como leídas (read_at = now) todas las notificaciones in_app sin leer del cliente
+- `src/app/(customer)/customer/orders/page.tsx` — lista de pedidos del cliente ordenada por fecha DESC; para cada pedido `delivered` muestra `DeliveryClaimBanner`
+- `src/components/customer/delivery-claim-banner.tsx` — banner verde en pedidos entregados con el texto exacto del CLAUDE.md, botón "Reportar problema" (enlaza a `/customer/orders/[id]/claim`) visible solo mientras `claim_window_expires_at` sea futuro; `setTimeout` cierra la ventana automáticamente en el cliente; muestra "Plazo de reclamo vencido" al expirar
+- `src/components/customer/notification-bell.tsx` — campanita en el header del panel cliente; badge rojo con conteo de no leídas; panel desplegable con lista; marca todo como leído al abrir; polling cada 30 s con cleanup en unmount
+
+### Modificado
+- `src/types/database.types.ts` — añadido campo `read_at: string | null` en Row/Insert/Update de `notifications`
+- `src/components/customer/sidebar.tsx` — `<NotificationBell />` integrada en el header del sidebar junto al brand "Miski GO"
+- `CLAUDE.md` — añadida funcionalidad futura "Mapa de entregas con chinchetas"; estado actualizado a pasos 1–15 completados
+
+### Reglas de negocio aplicadas
+- La notificación `in_app` al cliente se crea en el paso 14 (deliver API) con el texto exacto del CLAUDE.md; el paso 15 sólo añade la UI para mostrarla
+- La ventana de reclamo se computa en el servidor (`claim_window_expires_at = delivered_at + 2h`); el cliente recibe el timestamp y gestiona el estado de "abierta/cerrada" localmente con `setTimeout`
+- El botón "Reportar problema" enlaza a `/customer/orders/[id]/claim` (implementado en paso 16)
+- El polling de notificaciones (30 s) incluye `active` flag para evitar setState después de unmount
+
+### Archivos afectados
+- `supabase/migrations/20260519000022_add_read_at_to_notifications.sql` (nuevo)
+- `src/types/database.types.ts`
+- `src/app/api/customer/notifications/route.ts` (nuevo)
+- `src/app/api/customer/notifications/read/route.ts` (nuevo)
+- `src/app/(customer)/customer/orders/page.tsx` (nuevo)
+- `src/components/customer/delivery-claim-banner.tsx` (nuevo)
+- `src/components/customer/notification-bell.tsx` (nuevo)
+- `src/components/customer/sidebar.tsx`
+- `CLAUDE.md`
+
+---
+
 ## [2026-05-14] — Vista repartidor — ruta optimizada y marcar entregado (paso 14)
 
 ### Añadido

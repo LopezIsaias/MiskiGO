@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useCartStore } from '@/stores/cart'
+import { NotificationBell } from '@/components/customer/notification-bell'
 
 const NAV = [
   { label: 'Catálogo', href: '/customer/catalog', exact: false },
@@ -23,9 +24,12 @@ export function CustomerSidebar() {
 
   return (
     <aside className="w-56 shrink-0 min-h-screen bg-white border-r border-gray-200 flex flex-col">
-      <div className="px-5 py-4 border-b border-gray-200">
-        <span className="text-base font-bold text-green-700">Miski GO</span>
-        <p className="text-xs text-gray-400 mt-0.5">Mi cuenta</p>
+      <div className="px-5 py-4 border-b border-gray-200 flex items-center justify-between">
+        <div>
+          <span className="text-base font-bold text-green-700">Miski GO</span>
+          <p className="text-xs text-gray-400 mt-0.5">Mi cuenta</p>
+        </div>
+        <NotificationBell />
       </div>
 
       <nav className="flex-1 px-2 py-3 space-y-0.5">
