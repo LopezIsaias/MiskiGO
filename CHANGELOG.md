@@ -1,5 +1,31 @@
 # CHANGELOG — Miski GO
 
+## [2026-05-19] — Log de auditoría para superadmin (paso 19)
+
+### Añadido
+- `src/components/admin/audit-filters.tsx` — Client Component: formulario con 5 filtros (desde / hasta / acción / módulo / nombre de usuario); al enviar actualiza la URL con `router.push` y resetea a `page=1`; botón "Limpiar" vuelve a `/admin/audit` sin params
+- `src/components/admin/audit-table.tsx` — Client Component: tabla de solo lectura (sin botones de edición ni eliminación); columnas Fecha y hora (UTC-5), Usuario, Rol, Acción (fuente monospace), Módulo (badge con color por módulo); botón "Ver detalle" abre un modal con metadata (usuario, rol, módulo, entidad, IP, notas) y bloques JSON para `previous_value` (fondo gris) y `new_value` (fondo verde); modal se cierra haciendo clic fuera o en ×
+- `src/app/(admin)/admin/audit/page.tsx` — Server Component: lee `searchParams` (Promise en Next.js 16); si hay filtro de usuario resuelve nombres a IDs con ILIKE; ejecuta query con `.count('exact')` y paginación de 50 registros; construye URL de paginación preservando todos los filtros activos; muestra hasta 7 botones de página centrados alrededor de la página actual; pasa datos tipados a `AuditFilters` y `AuditTable`
+- `src/app/api/admin/audit/export/route.ts` — GET: acepta los mismos query params que la página; aplica los mismos filtros sin límite de paginación (máx 5000 filas); devuelve CSV con cabeceras `Content-Type: text/csv` y `Content-Disposition: attachment` para descarga directa; columnas: Fecha y hora, Usuario, Rol, Acción, Módulo, Tipo de entidad, ID de entidad, IP, Notas; valores escapados con comillas dobles
+
+### Modificado
+- `src/components/admin/sidebar.tsx` — añadido link "Auditoría" → `/admin/audit`
+
+### Reglas de negocio aplicadas
+- La vista es estrictamente de solo lectura; no se expone ningún endpoint de modificación sobre `audit_log`
+- El filtro de usuario resuelve el nombre a IDs antes de filtrar (permite búsqueda parcial sin unión en la consulta principal)
+- El export CSV reutiliza exactamente los mismos filtros que la vista paginada; el usuario descarga el resultado completo filtrado (sin paginación, límite 5000 para seguridad)
+- Solo el `superadmin` puede acceder; la verificación ocurre tanto en la página como en la API de export
+
+### Archivos afectados
+- `src/components/admin/audit-filters.tsx` (nuevo)
+- `src/components/admin/audit-table.tsx` (nuevo)
+- `src/app/(admin)/admin/audit/page.tsx` (nuevo)
+- `src/app/api/admin/audit/export/route.ts` (nuevo)
+- `src/components/admin/sidebar.tsx`
+
+---
+
 ## [2026-05-19] — Billetera virtual completa (paso 18)
 
 ### Añadido

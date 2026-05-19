@@ -666,8 +666,8 @@ Construir estrictamente en este orden. No avanzar al siguiente paso sin que el a
 
 **Último agente:** Claude Code
 **Fecha:** 2026-05-19
-**Pasos completados:** 1 al 18
-**Último commit:** 8b66de7 (pre-step-18 — sin commit nuevo aún en esta sesión)
-**Próximo paso:** Paso 19 — log de auditoría (vista para superadmin)
+**Pasos completados:** 1 al 19
+**Último commit:** 8b66de7 (pre-step-18 — sin commit nuevo en esta sesión)
+**Próximo paso:** Paso 20 — parámetros del sistema (márgenes, horarios de corte editables por superadmin)
 **Bugs pendientes:** Ninguno
 **Decisiones pendientes:** Ninguna
