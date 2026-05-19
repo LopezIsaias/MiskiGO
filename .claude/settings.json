@@ -11,7 +11,9 @@
       "Bash(mkdir -p \"c:/Users/ilbsa/OneDrive/Documentos/MISKI-GO/src/app/api/operator/orders/[id]/items/[itemId]/assign\")",
       "Bash(node scripts/reset-admin-password.mjs)",
       "Bash(node scripts/check-admin-profile.mjs)",
-      "Bash(node -e \"const p = require\\('./package.json'\\); const keys = ['@supabase/supabase-js','@supabase/ssr','next','react']; keys.forEach\\(k => console.log\\(k, p.dependencies[k] || p.devDependencies?.[k] || 'n/a'\\)\\)\")"
+      "Bash(node -e \"const p = require\\('./package.json'\\); const keys = ['@supabase/supabase-js','@supabase/ssr','next','react']; keys.forEach\\(k => console.log\\(k, p.dependencies[k] || p.devDependencies?.[k] || 'n/a'\\)\\)\")",
+      "Bash(mkdir -p \"c:/Users/ilbsa/OneDrive/Documentos/MISKI-GO/src/app/api/customer/orders/[id]/claim\")",
+      "Bash(mkdir -p \"c:/Users/ilbsa/OneDrive/Documentos/MISKI-GO/src/app/\\(customer\\)/customer/orders/[id]/claim\")"
     ],
     "additionalDirectories": [
       "c:\\Users\\ilbsa\\OneDrive\\Documentos\\MISKI-GO\\src\\app\\(supplier)\\supplier\\publications\\[id]",

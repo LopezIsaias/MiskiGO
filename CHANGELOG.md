@@ -1,5 +1,53 @@
 # CHANGELOG — Miski GO
 
+## [2026-05-19] — Panel operador: gestión de reclamos (paso 17)
+
+### Añadido
+- `src/app/api/operator/claims/[id]/resolve/route.ts` — PATCH: resuelve un reclamo pendiente; valida rol operador/superadmin; actualiza `claims` con status/resolution_type/resolution_amount/is_justified/resolved_by/resolved_at; si `resolution_type = wallet_credit` inserta `wallet_transactions` con `status = pending` para aprobación del superadmin en paso 18; escribe en `audit_log`
+- `src/app/(operator)/operator/claims/page.tsx` — Server Component: lista todos los reclamos (pendientes primero, luego resueltos); pasa datos tipados al `ClaimsBoard`
+- `src/components/operator/claims-board.tsx` — Client Component con una `ClaimCard` por reclamo; muestra foto del reclamo (enlace a tamaño completo), cliente, pedido, producto, motivo; para pendientes: formulario inline de resolución con selector de decisión (aprobar / aprobar parcialmente / rechazar), tipo de resolución (radio), monto, checkbox de justificación; feedback visual post-resolución sin recarga completa
+
+### Modificado
+- `src/lib/constants/index.ts` — añadido `CLAIM_RESOLVED` a `AUDIT_ACTIONS`
+- `src/components/operator/sidebar.tsx` — añadido link "Reclamos" → `/operator/claims`
+
+### Reglas de negocio aplicadas
+- Solo claims con `status = 'pending'` son resolvibles; el API devuelve 404 si ya fue resuelto
+- `wallet_credit` crea una `wallet_transactions` con `status = 'pending'`; el balance del cliente **no** se modifica hasta que el superadmin la apruebe (paso 18)
+- `is_justified = false` se fuerza si el veredicto es `rejected`
+- Toda resolución queda en `audit_log` con los campos antes/después
+
+### Archivos afectados
+- `src/lib/constants/index.ts`
+- `src/app/api/operator/claims/[id]/resolve/route.ts` (nuevo)
+- `src/app/(operator)/operator/claims/page.tsx` (nuevo)
+- `src/components/operator/claims-board.tsx` (nuevo)
+- `src/components/operator/sidebar.tsx`
+
+---
+
+## [2026-05-19] — Reclamos del cliente con foto dentro de ventana de 2 horas (paso 16)
+
+### Añadido
+- `supabase/migrations/20260519000023_storage_claim_photos.sql` — bucket `claim-photos` (10 MB, imágenes); política de upload por carpeta de usuario y lectura pública
+- `src/app/api/customer/orders/[id]/claim/route.ts` — POST: valida ventana de reclamo server-side (`claim_window_expires_at > now()`), inserta un registro en `claims` por cada producto reclamado con la misma `photo_url`; devuelve 410 si la ventana ya venció
+- `src/app/(customer)/customer/orders/[id]/claim/page.tsx` — Server Component: verifica ownership del pedido, estado `delivered`, y ventana abierta; obtiene productos del pedido y reclamos existentes; pasa al `ClaimForm`; si la ventana ya venció muestra mensaje de "Plazo vencido"
+- `src/components/customer/claim-form.tsx` — Client Component: banner con hora límite, upload de foto única al bucket `claim-photos`, lista de productos con checkbox (deshabilitado si ya reclamado), para cada producto seleccionado: cantidad y motivo obligatorios; botón con conteo de productos seleccionados; pantalla de éxito post-envío
+
+### Reglas de negocio aplicadas
+- La ventana de reclamo se revalida en el servidor en cada POST (no solo en el cliente)
+- Un reclamo con `status in (pending, approved, partially_approved)` bloquea un nuevo reclamo del mismo producto en el mismo pedido
+- La foto es obligatoria por la política de la tabla `claims` (`photo_url NOT NULL`)
+- La misma foto cubre todos los productos reclamados en un mismo envío
+
+### Archivos afectados
+- `supabase/migrations/20260519000023_storage_claim_photos.sql` (nuevo)
+- `src/app/api/customer/orders/[id]/claim/route.ts` (nuevo)
+- `src/app/(customer)/customer/orders/[id]/claim/page.tsx` (nuevo)
+- `src/components/customer/claim-form.tsx` (nuevo)
+
+---
+
 ## [2026-05-19] — Notificación post-entrega y ventana de reclamo para el cliente (paso 15)
 
 ### Añadido

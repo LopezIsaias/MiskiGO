@@ -666,8 +666,8 @@ Construir estrictamente en este orden. No avanzar al siguiente paso sin que el a
 
 **Último agente:** Claude Code
 **Fecha:** 2026-05-19
-**Pasos completados:** 1 al 15
+**Pasos completados:** 1 al 17
 **Último commit:** 5ee093e (delivery route + order delivery marking — paso 14)
-**Próximo paso:** Paso 16 — vista cliente: reclamos post-entrega (formulario con foto dentro de ventana)
+**Próximo paso:** Paso 18 — billetera virtual (saldo, recargas, historial, aprobación de créditos por superadmin)
 **Bugs pendientes:** Ninguno
 **Decisiones pendientes:** Ninguna
