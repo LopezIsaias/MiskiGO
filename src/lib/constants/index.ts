@@ -83,6 +83,10 @@ export const AUDIT_ACTIONS = {
   ORDER_DELIVERED:            'order_delivered',
   DELIVERY_INCIDENT:          'delivery_incident',
   CLAIM_RESOLVED:             'claim_resolved',
+  WALLET_RECHARGE_APPROVED:   'wallet_recharge_approved',
+  WALLET_RECHARGE_REJECTED:   'wallet_recharge_rejected',
+  WALLET_CREDIT_APPROVED:     'wallet_credit_approved',
+  WALLET_CREDIT_REJECTED:     'wallet_credit_rejected',
 } as const
 
 export const AUDIT_MODULES = {

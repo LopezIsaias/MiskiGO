@@ -1,5 +1,49 @@
 # CHANGELOG — Miski GO
 
+## [2026-05-19] — Billetera virtual completa (paso 18)
+
+### Añadido
+- `supabase/migrations/20260519000024_storage_wallet_proofs.sql` — bucket `wallet-proofs` (10 MB, imágenes); política de upload por carpeta de usuario y lectura pública
+- `src/app/api/customer/wallet/recharge/route.ts` — POST: crea recarga pendiente en `wallet_transactions` (`type='recharge'`, `status='pending'`); valida monto, método (yape/transfer) y URL del comprobante; balance_before/after se calculan con el saldo actual del cliente
+- `src/app/api/operator/wallet/[id]/route.ts` — PATCH: operador aprueba o rechaza recargas (`type='recharge'`); al aprobar: actualiza `wallet_balance` en `users`, actualiza `balance_before/after` con valores reales al momento de la aprobación, escribe en `audit_log`; al rechazar: guarda motivo en `notes` y escribe en `audit_log`
+- `src/app/api/admin/wallet/[id]/route.ts` — PATCH: superadmin aprueba o rechaza créditos de billetera (`type != 'recharge'`, e.g. refunds de reclamos del paso 17); misma lógica de actualización de balance y audit_log
+- `src/components/customer/wallet-recharge-form.tsx` — Client Component: montos preestablecidos (S/20, 50, 100, 200) + campo libre; selector de método (Yape/Transferencia); upload de comprobante al bucket `wallet-proofs`; pantalla de éxito con texto "1 a 3 horas en horario laboral"
+- `src/app/(customer)/customer/wallet/page.tsx` — Server Component: saldo disponible resaltado en verde, aviso de recargas pendientes no incluidas, formulario de recarga, historial de movimientos (tipo, monto +/-, estado con color, fecha, pedido de referencia, motivo de rechazo si aplica, estimado de revisión si pendiente)
+- `src/components/operator/wallet-board.tsx` — Client Component: tarjeta por recarga con foto del comprobante (clickeable), cliente, método, monto y fecha; botones Aprobar / Rechazar con textarea de motivo para rechazos
+- `src/app/(operator)/operator/wallet/page.tsx` — Server Component: lista de recargas pendientes filtradas por `type='recharge'` y `status='pending'`, ordenadas de más antiguo a más reciente
+- `src/components/admin/wallet-credits-board.tsx` — Client Component: tarjeta por crédito pendiente con cliente, tipo, monto, notas (referencia al reclamo) y pedido asociado; botones Aprobar / Rechazar
+- `src/app/(admin)/admin/wallet/page.tsx` — Server Component: lista de créditos pendientes (`type != 'recharge'`, `status='pending'`); solo accesible para superadmin
+
+### Modificado
+- `src/lib/constants/index.ts` — añadidos `WALLET_RECHARGE_APPROVED`, `WALLET_RECHARGE_REJECTED`, `WALLET_CREDIT_APPROVED`, `WALLET_CREDIT_REJECTED` a `AUDIT_ACTIONS`
+- `src/components/customer/sidebar.tsx` — añadido link "Mi billetera" → `/customer/wallet`
+- `src/components/operator/sidebar.tsx` — añadido link "Recargas" → `/operator/wallet`
+- `src/components/admin/sidebar.tsx` — añadido link "Billetera" → `/admin/wallet`
+
+### Reglas de negocio aplicadas
+- El saldo que ve el cliente (`wallet_balance`) solo incluye transacciones aprobadas; las pendientes se muestran como aviso separado
+- El operador aprueba recargas con comprobante (flujo cliente-iniciado, igual que aprobación de pagos); el superadmin aprueba créditos por reclamos (flujo operador-propuesto, conforme a CLAUDE.md)
+- Al aprobar, `balance_before/after` se recalculan con el saldo real en ese momento (no el estimado al crear la recarga)
+- Toda aprobación/rechazo genera registro en `audit_log`
+
+### Archivos afectados
+- `supabase/migrations/20260519000024_storage_wallet_proofs.sql` (nuevo)
+- `src/app/api/customer/wallet/recharge/route.ts` (nuevo)
+- `src/app/api/operator/wallet/[id]/route.ts` (nuevo)
+- `src/app/api/admin/wallet/[id]/route.ts` (nuevo)
+- `src/components/customer/wallet-recharge-form.tsx` (nuevo)
+- `src/app/(customer)/customer/wallet/page.tsx` (nuevo)
+- `src/components/operator/wallet-board.tsx` (nuevo)
+- `src/app/(operator)/operator/wallet/page.tsx` (nuevo)
+- `src/components/admin/wallet-credits-board.tsx` (nuevo)
+- `src/app/(admin)/admin/wallet/page.tsx` (nuevo)
+- `src/lib/constants/index.ts`
+- `src/components/customer/sidebar.tsx`
+- `src/components/operator/sidebar.tsx`
+- `src/components/admin/sidebar.tsx`
+
+---
+
 ## [2026-05-19] — Panel operador: gestión de reclamos (paso 17)
 
 ### Añadido

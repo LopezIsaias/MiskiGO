@@ -5,10 +5,11 @@ import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
 const NAV = [
-  { label: 'Dashboard', href: '/admin', exact: true },
+  { label: 'Dashboard',  href: '/admin',            exact: true  },
   { label: 'Categorías', href: '/admin/categories', exact: false },
-  { label: 'Productos', href: '/admin/products', exact: false },
-  { label: 'Usuarios', href: '/admin/users', exact: false },
+  { label: 'Productos',  href: '/admin/products',   exact: false },
+  { label: 'Usuarios',   href: '/admin/users',      exact: false },
+  { label: 'Billetera',  href: '/admin/wallet',     exact: false },
 ] as const
 
 export function AdminSidebar() {

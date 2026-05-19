@@ -666,8 +666,8 @@ Construir estrictamente en este orden. No avanzar al siguiente paso sin que el a
 
 **Último agente:** Claude Code
 **Fecha:** 2026-05-19
-**Pasos completados:** 1 al 17
-**Último commit:** 5ee093e (delivery route + order delivery marking — paso 14)
-**Próximo paso:** Paso 18 — billetera virtual (saldo, recargas, historial, aprobación de créditos por superadmin)
+**Pasos completados:** 1 al 18
+**Último commit:** 8b66de7 (pre-step-18 — sin commit nuevo aún en esta sesión)
+**Próximo paso:** Paso 19 — log de auditoría (vista para superadmin)
 **Bugs pendientes:** Ninguno
 **Decisiones pendientes:** Ninguna

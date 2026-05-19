@@ -7,8 +7,9 @@ import { useCartStore } from '@/stores/cart'
 import { NotificationBell } from '@/components/customer/notification-bell'
 
 const NAV = [
-  { label: 'Catálogo', href: '/customer/catalog', exact: false },
-  { label: 'Mis pedidos', href: '/customer/orders', exact: false },
+  { label: 'Catálogo',     href: '/customer/catalog', exact: false },
+  { label: 'Mis pedidos',  href: '/customer/orders',  exact: false },
+  { label: 'Mi billetera', href: '/customer/wallet',  exact: false },
 ] as const
 
 export function CustomerSidebar() {

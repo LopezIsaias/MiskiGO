@@ -9,6 +9,7 @@ const NAV = [
   { label: 'Gestión de pedidos',  href: '/operator/orders',   exact: false },
   { label: 'Ciclo de despacho',   href: '/operator/cycle',    exact: false },
   { label: 'Reclamos',            href: '/operator/claims',   exact: false },
+  { label: 'Recargas',            href: '/operator/wallet',   exact: false },
 ] as const
 
 export function OperatorSidebar() {
