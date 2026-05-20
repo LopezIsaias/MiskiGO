@@ -1131,6 +1131,41 @@ export type Database = {
           },
         ]
       }
+      system_params: {
+        Row: {
+          key: string
+          value: string
+          label: string
+          description: string | null
+          updated_by: string | null
+          updated_at: string
+        }
+        Insert: {
+          key: string
+          value: string
+          label: string
+          description?: string | null
+          updated_by?: string | null
+          updated_at?: string
+        }
+        Update: {
+          key?: string
+          value?: string
+          label?: string
+          description?: string | null
+          updated_by?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "system_params_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -1316,6 +1351,7 @@ export type Claim               = DBTables['claims']['Row']
 export type ReputationEvent     = DBTables['reputation_events']['Row']
 export type Notification        = DBTables['notifications']['Row']
 export type ProductSuggestion   = DBTables['product_suggestions']['Row']
+export type SystemParam         = DBTables['system_params']['Row']
 
 // ─── Insert type aliases ──────────────────────────────────────────────────────
 

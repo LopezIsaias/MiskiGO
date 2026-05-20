@@ -664,10 +664,10 @@ Construir estrictamente en este orden. No avanzar al siguiente paso sin que el a
 > Esta sección debe actualizarse al final de cada sesión por cualquier agente (Claude Code, Gemini, etc.).
 > Todo agente que trabaje en este proyecto debe leer este archivo completo y respetar todas las decisiones documentadas aquí antes de proponer o aplicar cambios.
 
-**Último agente:** Claude Code
+**Último agente:** Claude Code (claude-sonnet-4-6)
 **Fecha:** 2026-05-19
-**Pasos completados:** 1 al 19
-**Último commit:** 8b66de7 (pre-step-18 — sin commit nuevo en esta sesión)
-**Próximo paso:** Paso 20 — parámetros del sistema (márgenes, horarios de corte editables por superadmin)
+**Pasos completados:** 1 al 20 — MVP completo
+**Último commit:** 3b21bce
+**Próximo paso:** MVP finalizado. Siguientes acciones posibles: aplicar migración `npx supabase db push`, hacer deploy a Vercel, o iniciar Fase 2 (WhatsApp API, pasarela de pagos, multi-región)
 **Bugs pendientes:** Ninguno
 **Decisiones pendientes:** Ninguna

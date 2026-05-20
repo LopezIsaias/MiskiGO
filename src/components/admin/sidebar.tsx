@@ -10,7 +10,8 @@ const NAV = [
   { label: 'Productos',  href: '/admin/products',   exact: false },
   { label: 'Usuarios',   href: '/admin/users',      exact: false },
   { label: 'Billetera',  href: '/admin/wallet',     exact: false },
-  { label: 'Auditoría',  href: '/admin/audit',      exact: false },
+  { label: 'Auditoría',    href: '/admin/audit',     exact: false },
+  { label: 'Configuración', href: '/admin/settings', exact: false },
 ] as const
 
 export function AdminSidebar() {

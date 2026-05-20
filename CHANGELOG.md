@@ -1,5 +1,37 @@
 # CHANGELOG — Miski GO
 
+## [2026-05-19] — Parámetros del sistema editables por superadmin (paso 20)
+
+### Añadido
+- `supabase/migrations/20260519000025_system_params.sql` — tabla `system_params` (key/value); filas iniciales para `cutoff_hour` (12) y `claim_window_hours` (2); RLS: SELECT para todos los autenticados, UPDATE solo para superadmin; GRANTs a PostgREST
+- `src/app/api/admin/system-params/route.ts` — GET: devuelve parámetros globales + todas las categorías con sus porcentajes; PATCH: valida con Zod, actualiza `system_params` y `product_categories`, escribe en `audit_log` con valores anteriores y nuevos
+- `src/components/admin/settings-form.tsx` — Client Component: dos secciones — "Ciclos de despacho" (hora de corte 0-23, ventana de reclamo 1-72 h) y "Parámetros por categoría" (tabla inline con costo operativo %, margen % y merma % por cada categoría); botón deshabilitado si no hay cambios; banner de éxito 3 s post-guardado
+- `src/app/(admin)/admin/settings/page.tsx` — Server Component: verifica rol superadmin, carga datos desde BD, renderiza `SettingsForm`; nota explicativa sobre inmutabilidad de precios congelados
+
+### Modificado
+- `src/lib/constants/index.ts` — añadido `SYSTEM_PARAMS_UPDATED` a `AUDIT_ACTIONS`
+- `src/lib/validations/admin.ts` — añadidos `categoryParamSchema`, `systemParamsSchema` y `SystemParamsInput`
+- `src/types/database.types.ts` — añadida tabla `system_params` (Row/Insert/Update/Relationships) y alias `SystemParam`
+- `src/components/admin/sidebar.tsx` — añadido link "Configuración" → `/admin/settings`
+
+### Reglas de negocio aplicadas
+- Cambiar parámetros de categoría no afecta pedidos existentes (los precios están congelados en `order_items.unit_price_frozen`)
+- Toda modificación queda en `audit_log` con `previous_value` y `new_value`
+- El botón "Guardar cambios" se deshabilita si el formulario no tiene cambios (React Hook Form `isDirty`)
+
+### Archivos afectados
+- `supabase/migrations/20260519000025_system_params.sql` (nuevo)
+- `src/app/api/admin/system-params/route.ts` (nuevo)
+- `src/components/admin/settings-form.tsx` (nuevo)
+- `src/app/(admin)/admin/settings/page.tsx` (nuevo)
+- `src/lib/constants/index.ts`
+- `src/lib/validations/admin.ts`
+- `src/types/database.types.ts`
+- `src/components/admin/sidebar.tsx`
+
+---
+
+
 ## [2026-05-19] — Log de auditoría para superadmin (paso 19)
 
 ### Añadido

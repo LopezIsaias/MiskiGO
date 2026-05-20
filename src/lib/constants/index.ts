@@ -87,6 +87,7 @@ export const AUDIT_ACTIONS = {
   WALLET_RECHARGE_REJECTED:   'wallet_recharge_rejected',
   WALLET_CREDIT_APPROVED:     'wallet_credit_approved',
   WALLET_CREDIT_REJECTED:     'wallet_credit_rejected',
+  SYSTEM_PARAMS_UPDATED:      'system_params_updated',
 } as const
 
 export const AUDIT_MODULES = {

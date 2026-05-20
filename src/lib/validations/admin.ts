@@ -60,3 +60,26 @@ export const resetPasswordSchema = z.object({
 })
 
 export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>
+
+export const categoryParamSchema = z.object({
+  id: z.string().uuid(),
+  operational_cost_pct: z.number().min(0.01, 'Debe ser mayor a 0').max(99.99, 'Debe ser menor a 100'),
+  suggested_margin_pct: z.number().min(0.01, 'Debe ser mayor a 0').max(99.99, 'Debe ser menor a 100'),
+  estimated_waste_pct:  z.number().min(0, 'Mínimo 0').max(99.99, 'Debe ser menor a 100'),
+})
+
+export const systemParamsSchema = z.object({
+  cutoff_hour: z
+    .number()
+    .int('Debe ser un número entero')
+    .min(0, 'Mínimo 0')
+    .max(23, 'Máximo 23'),
+  claim_window_hours: z
+    .number()
+    .int('Debe ser un número entero')
+    .min(1, 'Mínimo 1 hora')
+    .max(72, 'Máximo 72 horas'),
+  categories: z.array(categoryParamSchema),
+})
+
+export type SystemParamsInput = z.infer<typeof systemParamsSchema>
