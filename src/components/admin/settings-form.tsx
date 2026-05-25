@@ -179,9 +179,9 @@ export function SettingsForm({ params, categories }: SettingsFormProps) {
                 <div>
                   <input
                     type="number"
-                    step="0.1"
-                    min="0.01"
-                    max="99.99"
+                    step={1}
+                    min={0}
+                    max={99}
                     {...register(`categories.${index}.operational_cost_pct`, { valueAsNumber: true })}
                     className={inputCls}
                   />
@@ -194,9 +194,9 @@ export function SettingsForm({ params, categories }: SettingsFormProps) {
                 <div>
                   <input
                     type="number"
-                    step="0.1"
-                    min="0.01"
-                    max="99.99"
+                    step={1}
+                    min={0}
+                    max={99}
                     {...register(`categories.${index}.suggested_margin_pct`, { valueAsNumber: true })}
                     className={inputCls}
                   />
@@ -209,9 +209,9 @@ export function SettingsForm({ params, categories }: SettingsFormProps) {
                 <div>
                   <input
                     type="number"
-                    step="0.1"
-                    min="0"
-                    max="99.99"
+                    step={1}
+                    min={0}
+                    max={99}
                     {...register(`categories.${index}.estimated_waste_pct`, { valueAsNumber: true })}
                     className={inputCls}
                   />

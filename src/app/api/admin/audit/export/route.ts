@@ -108,7 +108,7 @@ function buildCsv(rows: ExportRow[]): NextResponse {
   ]
 
   const date = new Date().toISOString().slice(0, 10)
-  return new NextResponse(lines.join('\r\n'), {
+  return new NextResponse('﻿' + lines.join('\r\n'), {
     headers: {
       'Content-Type':        'text/csv; charset=utf-8',
       'Content-Disposition': `attachment; filename="audit_${date}.csv"`,

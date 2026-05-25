@@ -40,7 +40,7 @@ export function ClaimForm({ orderId, items, claimWindowExpiresAt, customerId }: 
   const [itemStates, setItemStates] = useState<Record<string, ItemState>>(() => {
     const init: Record<string, ItemState> = {}
     for (const item of items) {
-      init[item.productId] = { selected: false, claimedQuantity: item.orderedQuantity, reason: '' }
+      init[item.productId] = { selected: false, claimedQuantity: Math.max(1, Math.round(item.orderedQuantity)), reason: '' }
     }
     return init
   })
@@ -211,7 +211,6 @@ export function ClaimForm({ orderId, items, claimWindowExpiresAt, customerId }: 
         <div className="space-y-3">
           {items.map(item => {
             const state = itemStates[item.productId]!
-            const step   = (item.unit === 'kg' || item.unit === 'liter') ? '0.1' : '1'
 
             return (
               <div
@@ -251,11 +250,11 @@ export function ClaimForm({ orderId, items, claimWindowExpiresAt, customerId }: 
                       </label>
                       <input
                         type="number"
-                        min={0.001}
+                        min={1}
                         max={item.orderedQuantity}
-                        step={step}
+                        step={1}
                         value={state.claimedQuantity}
-                        onChange={e => updateField(item.productId, 'claimedQuantity', parseFloat(e.target.value) || 0)}
+                        onChange={e => updateField(item.productId, 'claimedQuantity', parseInt(e.target.value, 10) || 1)}
                         className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-red-400"
                       />
                     </div>

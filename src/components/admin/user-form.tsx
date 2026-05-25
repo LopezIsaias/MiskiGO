@@ -245,6 +245,8 @@ function EditUserForm({ user }: { user: User }) {
   const [togglingStatus, setTogglingStatus] = useState(false)
   const [currentStatus, setCurrentStatus] = useState(user.status)
 
+  const editableEmail = user.role === 'customer' || user.role === 'supplier'
+
   const {
     register,
     handleSubmit,
@@ -254,6 +256,7 @@ function EditUserForm({ user }: { user: User }) {
     defaultValues: {
       full_name: user.full_name,
       phone: user.phone ?? '',
+      ...(editableEmail ? { email: user.email } : {}),
     },
   })
 
@@ -321,7 +324,14 @@ function EditUserForm({ user }: { user: User }) {
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-            <input value={user.email} readOnly className={readonlyCls} />
+            {editableEmail ? (
+              <>
+                <input type="email" {...register('email')} className={inputCls} />
+                {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>}
+              </>
+            ) : (
+              <input value={user.email} readOnly className={readonlyCls} />
+            )}
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Rol</label>

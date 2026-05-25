@@ -86,12 +86,14 @@ export async function PATCH(request: NextRequest) {
   }
 
   // Audit log
+  const ip = request.headers.get('x-forwarded-for') ?? request.headers.get('x-real-ip') ?? 'local'
   await adminClient.from('audit_log').insert({
     user_id: auth.userId,
     role_at_time: 'superadmin',
     action: AUDIT_ACTIONS.SYSTEM_PARAMS_UPDATED,
     module: AUDIT_MODULES.SYSTEM,
     entity_type: 'system_params',
+    ip_address: ip,
     previous_value: {
       cutoff_hour: prevMap['cutoff_hour'],
       claim_window_hours: prevMap['claim_window_hours'],

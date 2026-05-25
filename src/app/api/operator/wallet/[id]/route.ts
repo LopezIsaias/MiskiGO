@@ -41,6 +41,7 @@ export async function PATCH(
 
   const adminClient = createAdminClient()
   const now = new Date().toISOString()
+  const ip = request.headers.get('x-forwarded-for') ?? request.headers.get('x-real-ip') ?? 'local'
 
   const { data: tx } = await adminClient
     .from('wallet_transactions')
@@ -85,6 +86,7 @@ export async function PATCH(
       module:       AUDIT_MODULES.WALLET,
       entity_type:  'wallet_transaction',
       entity_id:    txId,
+      ip_address:   ip,
       new_value:    { customer_id: tx.user_id, amount: tx.amount, balance_before: balanceBefore, balance_after: balanceAfter },
     })
   } else {
@@ -105,6 +107,7 @@ export async function PATCH(
       module:       AUDIT_MODULES.WALLET,
       entity_type:  'wallet_transaction',
       entity_id:    txId,
+      ip_address:   ip,
       new_value:    { customer_id: tx.user_id, amount: tx.amount, reason: parsed.data.reason },
     })
   }

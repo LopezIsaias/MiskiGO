@@ -47,6 +47,7 @@ export type CreateUserInput = z.infer<typeof createUserSchema>
 export const updateUserSchema = z.object({
   full_name: z.string().min(2, 'Mínimo 2 caracteres').max(120, 'Máximo 120 caracteres'),
   phone: z.string().min(9, 'Mínimo 9 caracteres').optional().or(z.literal('')),
+  email: z.string().email('Email inválido').optional().or(z.literal('')),
 })
 
 export type UpdateUserInput = z.infer<typeof updateUserSchema>
@@ -63,9 +64,9 @@ export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>
 
 export const categoryParamSchema = z.object({
   id: z.string().uuid(),
-  operational_cost_pct: z.number().min(0.01, 'Debe ser mayor a 0').max(99.99, 'Debe ser menor a 100'),
-  suggested_margin_pct: z.number().min(0.01, 'Debe ser mayor a 0').max(99.99, 'Debe ser menor a 100'),
-  estimated_waste_pct:  z.number().min(0, 'Mínimo 0').max(99.99, 'Debe ser menor a 100'),
+  operational_cost_pct: z.number().int('Debe ser un número entero').min(0, 'Mínimo 0').max(99, 'Debe ser menor a 100'),
+  suggested_margin_pct: z.number().int('Debe ser un número entero').min(0, 'Mínimo 0').max(99, 'Debe ser menor a 100'),
+  estimated_waste_pct:  z.number().int('Debe ser un número entero').min(0, 'Mínimo 0').max(99, 'Debe ser menor a 100'),
 })
 
 export const systemParamsSchema = z.object({

@@ -7,7 +7,7 @@ const bodySchema = z.object({
   photoUrl: z.string().url('URL de foto inválida'),
   items: z.array(z.object({
     productId:       z.string().uuid(),
-    claimedQuantity: z.number().positive('La cantidad debe ser mayor a 0'),
+    claimedQuantity: z.number().int('La cantidad debe ser un número entero').min(1, 'La cantidad debe ser al menos 1'),
     reason:          z.string().min(1, 'El motivo es obligatorio'),
   })).min(1, 'Selecciona al menos un producto'),
 })

@@ -14,14 +14,22 @@ type RawClaim = {
   reason:           string
   photo_url:        string
   created_at:       string
+  product_id:       string
   resolution_type:  string | null
   resolution_amount: number | null
   is_justified:     boolean | null
   resolved_at:      string | null
   customer:  { full_name: string; phone: string | null } | null
-  order:     { id: string; delivery_address: string } | null
+  order:     { id: string; delivery_address: string; dispatch_cycle_id: string } | null
   product:   { name: string; unit: string } | null
   resolver:  { full_name: string } | null
+}
+
+type RawReception = {
+  dispatch_cycle_id: string
+  product_id:        string
+  photo_url:         string
+  rejected_quantity: number
 }
 
 export default async function ClaimsPage() {
@@ -45,9 +53,10 @@ export default async function ClaimsPage() {
     .from('claims')
     .select(`
       id, status, claimed_quantity, reason, photo_url, created_at,
+      product_id,
       resolution_type, resolution_amount, is_justified, resolved_at,
       customer:users!customer_id(full_name, phone),
-      order:orders!order_id(id, delivery_address),
+      order:orders!order_id(id, delivery_address, dispatch_cycle_id),
       product:products!product_id(name, unit),
       resolver:users!resolved_by(full_name)
     `)
@@ -55,8 +64,36 @@ export default async function ClaimsPage() {
 
   const claims = (rawClaims ?? []) as unknown as RawClaim[]
 
-  const pending  = claims.filter(c => c.status === 'pending') as ClaimRow[]
-  const resolved = claims.filter(c => c.status !== 'pending') as ClaimRow[]
+  // Fetch reception photos for each (dispatch_cycle_id, product_id) pair
+  const cycleIds  = [...new Set(claims.map(c => c.order?.dispatch_cycle_id).filter(Boolean))] as string[]
+  const productIds = [...new Set(claims.map(c => c.product_id).filter(Boolean))] as string[]
+
+  const receptionMap: Record<string, string | null> = {}
+  if (cycleIds.length > 0 && productIds.length > 0) {
+    const { data: rawReceptions } = await adminClient
+      .from('reception_records')
+      .select('dispatch_cycle_id, product_id, photo_url, rejected_quantity')
+      .in('dispatch_cycle_id', cycleIds)
+      .in('product_id', productIds)
+
+    for (const r of (rawReceptions ?? []) as unknown as RawReception[]) {
+      const key = `${r.dispatch_cycle_id}|${r.product_id}`
+      // Prefer records that flagged rejected items; otherwise keep first found
+      if (!(key in receptionMap) || Number(r.rejected_quantity) > 0) {
+        receptionMap[key] = r.photo_url
+      }
+    }
+  }
+
+  const enrichedClaims = claims.map(c => ({
+    ...c,
+    reception_photo_url: c.order?.dispatch_cycle_id
+      ? (receptionMap[`${c.order.dispatch_cycle_id}|${c.product_id}`] ?? null)
+      : null,
+  }))
+
+  const pending  = enrichedClaims.filter(c => c.status === 'pending') as ClaimRow[]
+  const resolved = enrichedClaims.filter(c => c.status !== 'pending') as ClaimRow[]
 
   return (
     <div className="max-w-3xl">

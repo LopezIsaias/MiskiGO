@@ -100,12 +100,14 @@ export default async function UsersPage() {
                     )}
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <Link
-                      href={`/admin/users/${u.id}/edit`}
-                      className="text-green-600 hover:text-green-700 font-medium text-xs"
-                    >
-                      Editar
-                    </Link>
+                    {u.role !== 'superadmin' && (
+                      <Link
+                        href={`/admin/users/${u.id}/edit`}
+                        className="text-green-600 hover:text-green-700 font-medium text-xs"
+                      >
+                        Editar
+                      </Link>
+                    )}
                   </td>
                 </tr>
               ))}

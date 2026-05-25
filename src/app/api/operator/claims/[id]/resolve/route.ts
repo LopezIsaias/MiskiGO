@@ -79,7 +79,7 @@ export async function PATCH(
     })
     .eq('id', claimId)
 
-  // If wallet credit: create pending wallet_transaction for superadmin approval
+  // If wallet credit: auto-approve and credit balance immediately
   if (resolution_type === 'wallet_credit' && resolution_amount) {
     const { data: customer } = await adminClient
       .from('users')
@@ -88,6 +88,7 @@ export async function PATCH(
       .maybeSingle()
 
     const balanceBefore = Number(customer?.wallet_balance ?? 0)
+    const balanceAfter  = balanceBefore + resolution_amount
 
     await adminClient
       .from('wallet_transactions')
@@ -96,13 +97,21 @@ export async function PATCH(
         type:               'refund',
         amount:             resolution_amount,
         balance_before:     balanceBefore,
-        balance_after:      balanceBefore + resolution_amount,
+        balance_after:      balanceAfter,
         reference_order_id: claim.order_id,
-        status:             'pending',
+        status:             'approved',
+        approved_by:        user.id,
+        approved_at:        now,
         notes:              `Crédito por reclamo aprobado — ${claimId}`,
       })
+
+    await adminClient
+      .from('users')
+      .update({ wallet_balance: balanceAfter })
+      .eq('id', claim.customer_id)
   }
 
+  const ip = request.headers.get('x-forwarded-for') ?? request.headers.get('x-real-ip') ?? 'local'
   await adminClient.from('audit_log').insert({
     user_id:      user.id,
     role_at_time: profile!.role,
@@ -110,6 +119,7 @@ export async function PATCH(
     module:       AUDIT_MODULES.CLAIMS,
     entity_type:  'claim',
     entity_id:    claimId,
+    ip_address:   ip,
     new_value: {
       status,
       is_justified,

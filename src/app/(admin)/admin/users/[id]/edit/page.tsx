@@ -1,4 +1,4 @@
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { UserForm } from '@/components/admin/user-form'
 import { ResetPasswordForm } from '@/components/admin/reset-password-form'
@@ -15,10 +15,10 @@ export default async function EditUserPage({ params }: Props) {
     .from('users')
     .select('*')
     .eq('id', id)
-    .in('role', ['operator', 'delivery'])
     .maybeSingle()
 
   if (!user) notFound()
+  if (user.role === 'superadmin') redirect('/admin/users')
 
   return (
     <div>

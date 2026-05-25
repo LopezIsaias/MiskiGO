@@ -15,6 +15,7 @@ export interface ClaimRow {
   resolution_amount: number | null
   is_justified:     boolean | null
   resolved_at:      string | null
+  reception_photo_url: string | null
   customer:         { full_name: string; phone: string | null } | null
   order:            { id: string; delivery_address: string } | null
   product:          { name: string; unit: string } | null
@@ -104,15 +105,40 @@ function ClaimCard({ claim }: CardProps) {
     }`}>
       {/* Header */}
       <div className="px-5 py-4 flex items-start gap-4 border-b border-gray-100">
-        {/* Photo */}
-        <a href={claim.photo_url} target="_blank" rel="noopener noreferrer" className="shrink-0">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={claim.photo_url}
-            alt="Foto del reclamo"
-            className="w-20 h-20 object-cover rounded-lg border border-gray-200 hover:opacity-80 transition-opacity"
-          />
-        </a>
+        {/* Photos */}
+        <div className="shrink-0 flex gap-2">
+          <div className="flex flex-col items-center gap-1">
+            <a href={claim.photo_url} target="_blank" rel="noopener noreferrer">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={claim.photo_url}
+                alt="Foto del cliente"
+                className="w-20 h-20 object-cover rounded-lg border border-gray-200 hover:opacity-80 transition-opacity"
+              />
+            </a>
+            <span className="text-[10px] text-gray-400 font-medium">Cliente</span>
+          </div>
+
+          <div className="flex flex-col items-center gap-1">
+            {claim.reception_photo_url ? (
+              <a href={claim.reception_photo_url} target="_blank" rel="noopener noreferrer">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={claim.reception_photo_url}
+                  alt="Foto en recepción"
+                  className="w-20 h-20 object-cover rounded-lg border border-blue-200 hover:opacity-80 transition-opacity"
+                />
+              </a>
+            ) : (
+              <div className="w-20 h-20 rounded-lg border border-dashed border-gray-200 bg-gray-50 flex items-center justify-center">
+                <span className="text-[9px] text-gray-400 text-center leading-tight px-1">
+                  Sin reporte de recepción
+                </span>
+              </div>
+            )}
+            <span className="text-[10px] text-gray-400 font-medium">Repartidor</span>
+          </div>
+        </div>
 
         {/* Info */}
         <div className="flex-1 min-w-0">
@@ -131,6 +157,11 @@ function ClaimCard({ claim }: CardProps) {
           <p className="text-xs text-gray-600 mt-1.5 bg-gray-50 rounded-lg px-3 py-2 italic">
             &ldquo;{claim.reason}&rdquo;
           </p>
+          {!claim.reception_photo_url && (
+            <p className="text-xs text-gray-400 mt-1.5 italic">
+              El repartidor no reportó problemas en recepción.
+            </p>
+          )}
         </div>
       </div>
 
@@ -216,7 +247,7 @@ function ClaimCard({ claim }: CardProps) {
               />
               {resolutionType === 'wallet_credit' && (
                 <p className="text-xs text-gray-400 mt-1">
-                  Quedará pendiente de aprobación por el superadmin.
+                  El saldo se acreditará automáticamente al confirmar.
                 </p>
               )}
             </div>

@@ -14,7 +14,7 @@ async function requireSuperadmin() {
   return { supabase, userId: user.id }
 }
 
-// PUT: update full_name and phone
+// PUT: update full_name, phone, and optionally email (customer/supplier)
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const ctx = await requireSuperadmin()
   if (!ctx) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
@@ -24,15 +24,33 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   const parsed = updateUserSchema.safeParse(body)
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 422 })
 
-  const { full_name, phone } = parsed.data
+  const { full_name, phone, email } = parsed.data
   const { supabase } = ctx
+  const now = new Date().toISOString()
 
   const { error } = await supabase
     .from('users')
-    .update({ full_name, phone: phone || null, updated_at: new Date().toISOString() })
+    .update({ full_name, phone: phone || null, updated_at: now })
     .eq('id', id)
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  if (email) {
+    const { data: existing } = await supabase
+      .from('users')
+      .select('email')
+      .eq('id', id)
+      .maybeSingle()
+
+    if (email !== existing?.email) {
+      const adminClient = createAdminClient()
+      const { error: authError } = await adminClient.auth.admin.updateUserById(id, { email })
+      if (authError) return NextResponse.json({ error: authError.message }, { status: 500 })
+      const { error: emailError } = await adminClient.from('users').update({ email }).eq('id', id)
+      if (emailError) return NextResponse.json({ error: emailError.message }, { status: 500 })
+    }
+  }
+
   return NextResponse.json({ success: true })
 }
 
@@ -60,6 +78,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
   const { supabase, userId } = ctx
   const adminClient = createAdminClient()
+  const ip = request.headers.get('x-forwarded-for') ?? request.headers.get('x-real-ip') ?? 'local'
 
   if (parsed.data.action === 'toggle_status') {
     const { data: user } = await supabase
@@ -85,6 +104,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       module: AUDIT_MODULES.USERS,
       entity_type: 'user',
       entity_id: id,
+      ip_address: ip,
       previous_value: { status: user.status },
       new_value: { status: newStatus },
     })
@@ -113,6 +133,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       module: AUDIT_MODULES.USERS,
       entity_type: 'user',
       entity_id: id,
+      ip_address: ip,
     })
 
     return NextResponse.json({ success: true })
@@ -158,6 +179,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       module: AUDIT_MODULES.USERS,
       entity_type: 'user',
       entity_id: id,
+      ip_address: ip,
       previous_value: { role: existingUser.role },
       new_value: { role, ...(full_name ? { full_name } : {}), ...(email ? { email } : {}) },
     })
