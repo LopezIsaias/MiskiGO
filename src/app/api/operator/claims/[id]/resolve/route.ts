@@ -9,6 +9,7 @@ const bodySchema = z.object({
   is_justified:      z.boolean(),
   resolution_type:   z.enum(['wallet_credit', 'external_refund', 'reprogrammed']).nullable().optional(),
   resolution_amount: z.number().positive().nullable().optional(),
+  proof_url:         z.string().url().nullable().optional(),
 }).superRefine((data, ctx) => {
   if (data.status !== 'rejected' && !data.resolution_type) {
     ctx.addIssue({ code: 'custom', path: ['resolution_type'], message: 'Tipo de resolución requerido' })
@@ -18,6 +19,12 @@ const bodySchema = z.object({
     !data.resolution_amount
   ) {
     ctx.addIssue({ code: 'custom', path: ['resolution_amount'], message: 'Monto de resolución requerido' })
+  }
+  if (
+    (data.resolution_type === 'wallet_credit' || data.resolution_type === 'external_refund') &&
+    !data.proof_url
+  ) {
+    ctx.addIssue({ code: 'custom', path: ['proof_url'], message: 'Comprobante obligatorio para este tipo de resolución' })
   }
 })
 
@@ -65,17 +72,18 @@ export async function PATCH(
     return NextResponse.json({ error: 'Reclamo no encontrado o ya resuelto' }, { status: 404 })
   }
 
-  const { status, is_justified, resolution_type, resolution_amount } = parsed.data
+  const { status, is_justified, resolution_type, resolution_amount, proof_url } = parsed.data
 
   await adminClient
     .from('claims')
     .update({
       status,
       is_justified,
-      resolution_type:   resolution_type ?? null,
-      resolution_amount: resolution_amount ?? null,
-      resolved_by:       user.id,
-      resolved_at:       now,
+      resolution_type:     resolution_type ?? null,
+      resolution_amount:   resolution_amount ?? null,
+      resolution_proof_url: (proof_url ?? null) as never,
+      resolved_by:         user.id,
+      resolved_at:         now,
     })
     .eq('id', claimId)
 
@@ -99,6 +107,7 @@ export async function PATCH(
         balance_before:     balanceBefore,
         balance_after:      balanceAfter,
         reference_order_id: claim.order_id,
+        proof_url:          proof_url ?? null,
         status:             'approved',
         approved_by:        user.id,
         approved_at:        now,
@@ -109,6 +118,33 @@ export async function PATCH(
       .from('users')
       .update({ wallet_balance: balanceAfter })
       .eq('id', claim.customer_id)
+  }
+
+  // For external_refund: insert a wallet_transaction as refund record (with proof)
+  if (resolution_type === 'external_refund' && resolution_amount) {
+    const { data: customer } = await adminClient
+      .from('users')
+      .select('wallet_balance')
+      .eq('id', claim.customer_id)
+      .maybeSingle()
+
+    const balanceBefore = Number(customer?.wallet_balance ?? 0)
+
+    await adminClient
+      .from('wallet_transactions')
+      .insert({
+        user_id:            claim.customer_id,
+        type:               'refund',
+        amount:             resolution_amount,
+        balance_before:     balanceBefore,
+        balance_after:      balanceBefore,
+        reference_order_id: claim.order_id,
+        proof_url:          proof_url ?? null,
+        status:             'approved',
+        approved_by:        user.id,
+        approved_at:        now,
+        notes:              `Reembolso externo por reclamo — ${claimId}`,
+      })
   }
 
   const ip = request.headers.get('x-forwarded-for') ?? request.headers.get('x-real-ip') ?? 'local'

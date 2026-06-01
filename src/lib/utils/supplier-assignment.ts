@@ -81,6 +81,7 @@ export async function runSupplierAssignment(params: AssignmentParams): Promise<A
   let allAssigned = true
   const failedItemIds: string[] = []
   const now = new Date().toISOString()
+  const notifiedSuppliers = new Set<string>()
 
   for (const item of orderItems) {
     const pendingAsgs = item.order_item_assignments.filter(a => a.status === 'pending')
@@ -163,6 +164,7 @@ export async function runSupplierAssignment(params: AssignmentParams): Promise<A
           .from('order_item_assignments')
           .update({ status: 'confirmed', confirmed_at: now })
           .in('id', pendingAsgs.map(a => a.id))
+        for (const a of pendingAsgs) notifiedSuppliers.add(a.supplier_id)
       }
 
       if (extraPlans.length > 0) {
@@ -178,6 +180,7 @@ export async function runSupplierAssignment(params: AssignmentParams): Promise<A
             confirmed_at: now,
           }))
         )
+        for (const p of extraPlans) notifiedSuppliers.add(p.supplier_id)
       }
 
       await adminClient.from('order_items').update({ status: 'assigned' }).eq('id', item.id)
@@ -186,6 +189,22 @@ export async function runSupplierAssignment(params: AssignmentParams): Promise<A
 
   if (allAssigned) {
     await adminClient.from('orders').update({ status: 'assigned' }).eq('id', orderId)
+  }
+
+  // Notify each confirmed supplier once
+  if (notifiedSuppliers.size > 0) {
+    await adminClient.from('notifications').insert(
+      [...notifiedSuppliers].map(supplierId => ({
+        recipient_id:   supplierId,
+        type:           'assignment_created',
+        channel:        'whatsapp',
+        title:          'Nuevo pedido asignado',
+        body:           `Se te asignó un pedido #${orderId.slice(0, 8).toUpperCase()}. Ingresa a tu panel para confirmar o rechazar.`,
+        reference_type: 'order',
+        reference_id:   orderId,
+        status:         'pending',
+      }))
+    )
   }
 
   if (failedItemIds.length > 0 && operatorId) {

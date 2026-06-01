@@ -24,7 +24,7 @@ export function CustomerSidebar() {
   }
 
   return (
-    <aside className="w-56 shrink-0 min-h-screen bg-white border-r border-gray-200 flex flex-col">
+    <aside className="w-56 shrink-0 h-screen bg-white border-r border-gray-200 flex flex-col">
       <div className="px-5 py-4 border-b border-gray-200 flex items-center justify-between">
         <div>
           <span className="text-base font-bold text-green-700">Miski GO</span>

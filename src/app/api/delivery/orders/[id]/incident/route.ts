@@ -5,8 +5,9 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { AUDIT_ACTIONS, AUDIT_MODULES } from '@/lib/constants'
 
 const bodySchema = z.object({
-  routeId: z.string().uuid().nullable().optional(),
-  reason:  z.string().min(1, 'El motivo de la incidencia es obligatorio'),
+  routeId:  z.string().uuid().nullable().optional(),
+  reason:   z.string().min(1, 'El motivo de la incidencia es obligatorio'),
+  photoUrl: z.string().url().optional(),
 })
 
 export async function PATCH(
@@ -39,62 +40,128 @@ export async function PATCH(
     return NextResponse.json({ error: parsed.error.issues[0]?.message ?? 'Datos inválidos' }, { status: 422 })
   }
 
-  const { routeId, reason } = parsed.data
+  const { routeId, reason, photoUrl } = parsed.data
+
   const adminClient = createAdminClient()
   const now = new Date().toISOString()
 
-  const { data: order } = await adminClient
+  const { data: rawIncidentOrder } = await adminClient
     .from('orders')
-    .select('id, status')
+    .select('id, status, delivery_attempts')
     .eq('id', orderId)
     .in('status', ['in_transit', 'assigned'])
     .maybeSingle()
+
+  const order = rawIncidentOrder as unknown as { id: string; status: string; delivery_attempts: number | null } | null
 
   if (!order) {
     return NextResponse.json({ error: 'Pedido no encontrado o no en estado válido' }, { status: 404 })
   }
 
-  if (routeId) {
+  const currentAttempts: number = order.delivery_attempts ?? 0
+  const isSecondAttempt = currentAttempts >= 1
+
+  if (isSecondAttempt && !photoUrl) {
+    return NextResponse.json({ error: 'La foto es obligatoria en el segundo intento fallido.' }, { status: 422 })
+  }
+
+  if (isSecondAttempt) {
+    // Second failed attempt → in_storage
     await adminClient
-      .from('delivery_stops')
-      .update({ status: 'failed', failure_reason: reason, completed_at: now })
-      .eq('route_id', routeId)
-      .eq('order_id', orderId)
+      .from('orders')
+      .update({ status: 'in_storage', delivery_attempts: 2 as never })
+      .eq('id', orderId)
+
+    if (routeId) {
+      await adminClient
+        .from('delivery_stops')
+        .update({ status: 'failed', failure_reason: reason, completed_at: now })
+        .eq('route_id', routeId)
+        .eq('order_id', orderId)
+    }
+
+    // Notify operators/superadmin
+    const { data: operators } = await adminClient
+      .from('users')
+      .select('id')
+      .in('role', ['operator', 'superadmin'])
+      .eq('status', 'active')
+      .limit(5)
+
+    if (operators && operators.length > 0) {
+      await adminClient.from('notifications').insert(
+        operators.map((op: { id: string }) => ({
+          recipient_id:   op.id,
+          type:           'delivery_in_storage',
+          channel:        'in_app',
+          title:          'Pedido en almacén',
+          body:           `Pedido #${orderId.slice(0, 8).toUpperCase()} no pudo entregarse en 2 intentos y fue almacenado. Motivo: ${reason}`,
+          reference_type: 'order',
+          reference_id:   orderId,
+          status:         'sent',
+          sent_at:        now,
+        }))
+      )
+    }
+
+    await adminClient.from('audit_log').insert({
+      user_id:      user.id,
+      role_at_time: profile!.role,
+      action:       AUDIT_ACTIONS.ORDER_IN_STORAGE,
+      module:       AUDIT_MODULES.DELIVERIES,
+      entity_type:  'order',
+      entity_id:    orderId,
+      new_value:    { reason, photo_url: photoUrl ?? null, delivery_attempts: 2 },
+    })
+  } else {
+    // First failed attempt → increment delivery_attempts to 1
+    await adminClient.from('orders').update({
+      updated_at: now,
+      delivery_attempts: 1 as never,
+    }).eq('id', orderId)
+
+    if (routeId) {
+      await adminClient
+        .from('delivery_stops')
+        .update({ status: 'failed', failure_reason: reason, completed_at: now })
+        .eq('route_id', routeId)
+        .eq('order_id', orderId)
+    }
+
+    // Notify operators/superadmin
+    const { data: operators } = await adminClient
+      .from('users')
+      .select('id')
+      .in('role', ['operator', 'superadmin'])
+      .eq('status', 'active')
+      .limit(5)
+
+    if (operators && operators.length > 0) {
+      await adminClient.from('notifications').insert(
+        operators.map((op: { id: string }) => ({
+          recipient_id:   op.id,
+          type:           'delivery_incident',
+          channel:        'in_app',
+          title:          'Incidencia en entrega (1er intento)',
+          body:           `Repartidor reportó incidencia en pedido #${orderId.slice(0, 8).toUpperCase()}: ${reason}`,
+          reference_type: 'order',
+          reference_id:   orderId,
+          status:         'sent',
+          sent_at:        now,
+        }))
+      )
+    }
+
+    await adminClient.from('audit_log').insert({
+      user_id:      user.id,
+      role_at_time: profile!.role,
+      action:       AUDIT_ACTIONS.DELIVERY_INCIDENT,
+      module:       AUDIT_MODULES.DELIVERIES,
+      entity_type:  'order',
+      entity_id:    orderId,
+      new_value:    { reason, route_id: routeId ?? null, delivery_attempts: 1 },
+    })
   }
 
-  // Notify operators/superadmin
-  const { data: operators } = await adminClient
-    .from('users')
-    .select('id')
-    .in('role', ['operator', 'superadmin'])
-    .eq('status', 'active')
-    .limit(5)
-
-  if (operators && operators.length > 0) {
-    await adminClient.from('notifications').insert(
-      operators.map(op => ({
-        recipient_id:   op.id,
-        type:           'delivery_incident',
-        channel:        'in_app',
-        title:          'Incidencia en entrega',
-        body:           `Repartidor reportó incidencia en pedido ${orderId.slice(0, 8).toUpperCase()}: ${reason}`,
-        reference_type: 'order',
-        reference_id:   orderId,
-        status:         'sent',
-        sent_at:        now,
-      }))
-    )
-  }
-
-  await adminClient.from('audit_log').insert({
-    user_id:      user.id,
-    role_at_time: profile!.role,
-    action:       AUDIT_ACTIONS.DELIVERY_INCIDENT,
-    module:       AUDIT_MODULES.DELIVERIES,
-    entity_type:  'order',
-    entity_id:    orderId,
-    new_value:    { reason, route_id: routeId ?? null },
-  })
-
-  return NextResponse.json({ success: true })
+  return NextResponse.json({ success: true, isInStorage: isSecondAttempt })
 }

@@ -8,17 +8,18 @@ import type { ClaimRow } from '@/components/operator/claims-board'
 export const metadata: Metadata = { title: 'Reclamos' }
 
 type RawClaim = {
-  id:               string
-  status:           string
-  claimed_quantity: number
-  reason:           string
-  photo_url:        string
-  created_at:       string
-  product_id:       string
-  resolution_type:  string | null
-  resolution_amount: number | null
-  is_justified:     boolean | null
-  resolved_at:      string | null
+  id:                   string
+  status:               string
+  claimed_quantity:     number
+  reason:               string
+  photo_url:            string
+  created_at:           string
+  product_id:           string
+  resolution_type:      string | null
+  resolution_amount:    number | null
+  resolution_proof_url: string | null
+  is_justified:         boolean | null
+  resolved_at:          string | null
   customer:  { full_name: string; phone: string | null } | null
   order:     { id: string; delivery_address: string; dispatch_cycle_id: string } | null
   product:   { name: string; unit: string } | null
@@ -54,7 +55,7 @@ export default async function ClaimsPage() {
     .select(`
       id, status, claimed_quantity, reason, photo_url, created_at,
       product_id,
-      resolution_type, resolution_amount, is_justified, resolved_at,
+      resolution_type, resolution_amount, resolution_proof_url, is_justified, resolved_at,
       customer:users!customer_id(full_name, phone),
       order:orders!order_id(id, delivery_address, dispatch_cycle_id),
       product:products!product_id(name, unit),

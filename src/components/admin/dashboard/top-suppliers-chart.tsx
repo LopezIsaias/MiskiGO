@@ -33,7 +33,7 @@ export function TopSuppliersChart({ data }: Props) {
             <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" horizontal={false} />
             <XAxis type="number" tick={{ fontSize: 11 }} />
             <YAxis dataKey="name" type="category" width={95} tick={{ fontSize: 11 }} />
-            <Tooltip formatter={(v: number) => [v, 'Cantidad despachada']} />
+            <Tooltip formatter={(v: unknown) => [Number(v), 'Cantidad despachada']} />
             <Bar dataKey="cantidad" fill="#0ea5e9" radius={[0, 4, 4, 0]} />
           </BarChart>
         </ResponsiveContainer>

@@ -2,17 +2,19 @@ import { redirect } from 'next/navigation'
 import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { DateFilter }         from '@/components/admin/dashboard/date-filter'
-import { SummaryCards }       from '@/components/admin/dashboard/summary-cards'
-import { SalesChart }         from '@/components/admin/dashboard/sales-chart'
-import { TopProductsChart }   from '@/components/admin/dashboard/top-products-chart'
-import { TopSuppliersChart }  from '@/components/admin/dashboard/top-suppliers-chart'
-import { RecentOrdersTable }  from '@/components/admin/dashboard/recent-orders-table'
-import { QualityIndicators }  from '@/components/admin/dashboard/quality-indicators'
-import type { SalePoint }     from '@/components/admin/dashboard/sales-chart'
-import type { TopProduct }    from '@/components/admin/dashboard/top-products-chart'
-import type { TopSupplier }   from '@/components/admin/dashboard/top-suppliers-chart'
-import type { RecentOrder }   from '@/components/admin/dashboard/recent-orders-table'
+import { DateFilter }            from '@/components/admin/dashboard/date-filter'
+import { SummaryCards }           from '@/components/admin/dashboard/summary-cards'
+import { SalesChart }             from '@/components/admin/dashboard/sales-chart'
+import { TopProductsChart }       from '@/components/admin/dashboard/top-products-chart'
+import { TopSuppliersChart }      from '@/components/admin/dashboard/top-suppliers-chart'
+import { RecentOrdersTable }      from '@/components/admin/dashboard/recent-orders-table'
+import { QualityIndicators }      from '@/components/admin/dashboard/quality-indicators'
+import { ProfitabilitySection }   from '@/components/admin/dashboard/profitability-section'
+import type { SalePoint }         from '@/components/admin/dashboard/sales-chart'
+import type { TopProduct }        from '@/components/admin/dashboard/top-products-chart'
+import type { TopSupplier }       from '@/components/admin/dashboard/top-suppliers-chart'
+import type { RecentOrder }       from '@/components/admin/dashboard/recent-orders-table'
+import type { ProfitabilityCycle } from '@/components/admin/dashboard/profitability-section'
 
 export const metadata: Metadata = { title: 'Dashboard' }
 
@@ -36,6 +38,17 @@ function toISO(d: Date): string {
 }
 
 // ─── types ──────────────────────────────────────────────────────────────────
+
+type RawProfitAssignment = {
+  platform_margin_frozen: number
+  assigned_quantity:      number
+  status:                 string
+  order_item: {
+    unit_price_frozen: number
+    order: { dispatch_cycle_id: string; dispatch_cycle: { dispatch_date: string } | null } | null
+    product: { category: { operational_cost_pct: number } | null } | null
+  } | null
+}
 
 type Assignment = {
   assigned_quantity:     number
@@ -276,7 +289,7 @@ export default async function AdminDashboardPage({
   // ── queries ──────────────────────────────────────────────────────────────
   const adminClient = createAdminClient()
 
-  const [{ data: rawOrders }, { count: claimsCount }] = await Promise.all([
+  const [{ data: rawOrders }, { count: claimsCount }, { data: rawProfitAsgns }] = await Promise.all([
     adminClient
       .from('orders')
       .select(ORDER_SELECT)
@@ -286,6 +299,24 @@ export default async function AdminDashboardPage({
     adminClient
       .from('claims')
       .select('*', { count: 'exact', head: true })
+      .gte('created_at', fromDate)
+      .lte('created_at', `${toDate}T23:59:59`),
+    adminClient
+      .from('order_item_assignments')
+      .select(`
+        platform_margin_frozen, assigned_quantity, status,
+        order_item:order_items!order_item_id(
+          unit_price_frozen,
+          order:orders!order_id(
+            dispatch_cycle_id,
+            dispatch_cycle:dispatch_cycles!dispatch_cycle_id(dispatch_date)
+          ),
+          product:products!product_id(
+            category:product_categories!category_id(operational_cost_pct)
+          )
+        )
+      `)
+      .in('status', ['confirmed', 'shipped'])
       .gte('created_at', fromDate)
       .lte('created_at', `${toDate}T23:59:59`),
   ])
@@ -314,6 +345,47 @@ export default async function AdminDashboardPage({
   const data = computeMetrics(
     orders, claimsCount ?? 0, prevOrders, fromDate, toDate, isCurrentWeek,
   )
+
+  // ── profitability ────────────────────────────────────────────────────────
+  const profitAsgns = (rawProfitAsgns ?? []) as unknown as RawProfitAssignment[]
+
+  let totalGrossMargin = 0
+  let totalOpCost = 0
+  const cycleMap = new Map<string, { label: string; gross: number; op: number }>()
+
+  for (const a of profitAsgns) {
+    const gross  = Number(a.platform_margin_frozen)
+    const price  = Number(a.order_item?.unit_price_frozen ?? 0)
+    const qty    = Number(a.assigned_quantity)
+    const opPct  = Number(a.order_item?.product?.category?.operational_cost_pct ?? 0.22)
+    const opCost = price * qty * opPct
+
+    totalGrossMargin += gross
+    totalOpCost      += opCost
+
+    const cycleId = a.order_item?.order?.dispatch_cycle_id
+    if (cycleId) {
+      const dispatchDate = a.order_item?.order?.dispatch_cycle?.dispatch_date ?? cycleId.slice(0, 10)
+      const label = dispatchDate
+      if (!cycleMap.has(cycleId)) {
+        cycleMap.set(cycleId, { label, gross: 0, op: 0 })
+      }
+      const entry = cycleMap.get(cycleId)!
+      entry.gross += gross
+      entry.op    += opCost
+    }
+  }
+
+  const totalNetProfit = totalGrossMargin - totalOpCost
+
+  const profitCycles: ProfitabilityCycle[] = Array.from(cycleMap.values())
+    .sort((a, b) => a.label.localeCompare(b.label))
+    .map(c => ({
+      label:       c.label,
+      grossMargin: Math.round(c.gross * 100) / 100,
+      opCost:      Math.round(c.op   * 100) / 100,
+      netProfit:   Math.round((c.gross - c.op) * 100) / 100,
+    }))
 
   // ── render ───────────────────────────────────────────────────────────────
   return (
@@ -347,12 +419,22 @@ export default async function AdminDashboardPage({
       </div>
 
       {/* Section 4 — recent orders + quality */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <RecentOrdersTable orders={data.recentOrders} />
         <QualityIndicators
           claimRate={data.claimRate}
           supplierFulfillmentRate={data.supplierFulfillmentRate}
           onTimeDeliveryRate={data.onTimeDeliveryRate}
+        />
+      </div>
+
+      {/* Section 5 — profitability */}
+      <div className="pb-8">
+        <ProfitabilitySection
+          grossMargin={Math.round(totalGrossMargin * 100) / 100}
+          opCost={Math.round(totalOpCost * 100) / 100}
+          netProfit={Math.round(totalNetProfit * 100) / 100}
+          cycles={profitCycles}
         />
       </div>
     </div>

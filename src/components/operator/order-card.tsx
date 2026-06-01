@@ -3,10 +3,12 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { formatCurrency, timeAgo, toWANumber } from '@/lib/utils'
+import { StarRating } from '@/components/ui/star-rating'
 
 export interface SupplierAssignment {
   id: string
   supplierName: string
+  supplierScore: number
   assignedQty: number
   supplierPrice: number
   status: string
@@ -249,7 +251,10 @@ export function OrderCard({ order }: { order: Order }) {
                     <td className="py-2 text-right text-gray-700">{formatCurrency(item.unitPrice)}</td>
                     <td className="py-2 pl-4 text-gray-700">
                       {item.assignments.filter(a => a.status === 'confirmed').map(a => (
-                        <div key={a.id}>{a.supplierName} · {a.assignedQty} {item.unit}</div>
+                        <div key={a.id} className="flex items-center gap-1.5">
+                          {a.supplierName} · {a.assignedQty} {item.unit}
+                          <StarRating score={a.supplierScore} showPercent={false} />
+                        </div>
                       ))}
                       {item.itemStatus === 'failed' && (
                         <ManualAssignPanel orderId={order.id} item={item} />

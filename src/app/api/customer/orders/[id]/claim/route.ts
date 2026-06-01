@@ -4,7 +4,8 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 
 const bodySchema = z.object({
-  photoUrl: z.string().url('URL de foto inválida'),
+  photoUrl:      z.string().url('URL de foto inválida'),
+  photoMetadata: z.record(z.string(), z.unknown()).nullable().optional(),
   items: z.array(z.object({
     productId:       z.string().uuid(),
     claimedQuantity: z.number().int('La cantidad debe ser un número entero').min(1, 'La cantidad debe ser al menos 1'),
@@ -60,24 +61,55 @@ export async function POST(
     return NextResponse.json({ error: 'El plazo de reclamo ha vencido' }, { status: 410 })
   }
 
-  const { photoUrl, items } = parsed.data
+  const { photoUrl, photoMetadata, items } = parsed.data
+  const now = new Date().toISOString()
 
+  const insertRows = items.map(item => ({
+    order_id:         orderId,
+    customer_id:      user.id,
+    product_id:       item.productId,
+    claimed_quantity: item.claimedQuantity,
+    reason:           item.reason,
+    photo_url:        photoUrl,
+    photo_metadata:   (photoMetadata ?? null) as never,
+    status:           'pending' as const,
+  }))
   const { error: insertError } = await adminClient
     .from('claims')
-    .insert(
-      items.map(item => ({
-        order_id:         orderId,
-        customer_id:      user.id,
-        product_id:       item.productId,
-        claimed_quantity: item.claimedQuantity,
-        reason:           item.reason,
-        photo_url:        photoUrl,
-        status:           'pending' as const,
-      }))
-    )
+    .insert(insertRows)
 
   if (insertError) {
     return NextResponse.json({ error: 'Error al registrar el reclamo' }, { status: 500 })
+  }
+
+  // Notify operators if photo appears to be old (DateTimeOriginal > 2h ago)
+  const dateStr = photoMetadata?.DateTimeOriginal as string | undefined
+  if (dateStr) {
+    const taken = new Date(dateStr)
+    const diffHours = (Date.now() - taken.getTime()) / (1000 * 60 * 60)
+    if (diffHours > 2) {
+      const { data: operators } = await adminClient
+        .from('users')
+        .select('id')
+        .in('role', ['operator', 'superadmin'])
+        .eq('status', 'active')
+        .limit(5)
+      if (operators && operators.length > 0) {
+        await adminClient.from('notifications').insert(
+          operators.map((op: { id: string }) => ({
+            recipient_id:   op.id,
+            type:           'stale_photo_warning',
+            channel:        'in_app',
+            title:          'Foto posiblemente no tomada en el momento del evento',
+            body:           `Un reclamo del pedido #${orderId.slice(0,8).toUpperCase()} incluye una foto tomada el ${taken.toLocaleString('es-PE')}. Verificar autenticidad.`,
+            reference_type: 'order',
+            reference_id:   orderId,
+            status:         'sent',
+            sent_at:        now,
+          }))
+        )
+      }
+    }
   }
 
   return NextResponse.json({ success: true })

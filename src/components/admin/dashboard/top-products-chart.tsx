@@ -36,8 +36,8 @@ export function TopProductsChart({ data }: Props) {
             <XAxis type="number" tick={{ fontSize: 11 }} />
             <YAxis dataKey="name" type="category" width={95} tick={{ fontSize: 11 }} />
             <Tooltip
-              formatter={(v: number, _name: string, props: { payload?: { unit?: string } }) =>
-                [`${v} ${props.payload?.unit ?? ''}`, 'Cantidad']
+              formatter={(v: unknown, _name: unknown, props: { payload?: { unit?: string } }) =>
+                [`${Number(v)} ${props.payload?.unit ?? ''}`, 'Cantidad']
               }
             />
             <Bar dataKey="cantidad" fill="#16a34a" radius={[0, 4, 4, 0]} />

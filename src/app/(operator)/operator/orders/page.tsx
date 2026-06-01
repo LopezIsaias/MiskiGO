@@ -11,7 +11,7 @@ type RawAssignment = {
   supplier_price_frozen: number
   status: string
   failure_reason: string | null
-  supplier: { full_name: string } | null
+  supplier: { full_name: string; reliability_score: number | null } | null
 }
 
 type RawItem = {
@@ -74,7 +74,7 @@ export default async function OperatorOrdersPage() {
           product:products!product_id(name, unit),
           order_item_assignments(
             id, assigned_quantity, supplier_price_frozen, status, failure_reason,
-            supplier:users!supplier_id(full_name)
+            supplier:users!supplier_id(full_name, reliability_score)
           )
         )
       `)
@@ -106,6 +106,7 @@ export default async function OperatorOrdersPage() {
         assignments: item.order_item_assignments.map((a): SupplierAssignment => ({
           id: a.id,
           supplierName: a.supplier?.full_name ?? '—',
+          supplierScore: Number(a.supplier?.reliability_score ?? 100),
           assignedQty: a.assigned_quantity,
           supplierPrice: a.supplier_price_frozen,
           status: a.status,

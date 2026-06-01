@@ -5,11 +5,12 @@ import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
 const NAV = [
-  { label: 'Aprobación de pagos', href: '/operator/payments', exact: false },
-  { label: 'Gestión de pedidos',  href: '/operator/orders',   exact: false },
-  { label: 'Ciclo de despacho',   href: '/operator/cycle',    exact: false },
-  { label: 'Reclamos',            href: '/operator/claims',   exact: false },
-  { label: 'Recargas',            href: '/operator/wallet',   exact: false },
+  { label: 'Aprobación de pagos',   href: '/operator/payments',   exact: false },
+  { label: 'Gestión de pedidos',    href: '/operator/orders',     exact: false },
+  { label: 'Ciclo de despacho',     href: '/operator/cycle',      exact: false },
+  { label: 'Reclamos',              href: '/operator/claims',     exact: false },
+  { label: 'Recargas',              href: '/operator/wallet',     exact: false },
+  { label: 'Repartidores activos',  href: '/operator/deliveries', exact: false },
 ] as const
 
 export function OperatorSidebar() {
@@ -23,7 +24,7 @@ export function OperatorSidebar() {
   }
 
   return (
-    <aside className="w-56 shrink-0 min-h-screen bg-white border-r border-gray-200 flex flex-col">
+    <aside className="w-56 shrink-0 h-screen bg-white border-r border-gray-200 flex flex-col">
       <div className="px-5 py-4 border-b border-gray-200">
         <span className="text-base font-bold text-green-700">Miski GO</span>
         <p className="text-xs text-gray-400 mt-0.5">Operaciones</p>

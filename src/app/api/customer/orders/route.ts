@@ -191,6 +191,9 @@ export async function POST(request: Request) {
       }
     }
 
+    // Generate 6-digit delivery confirmation code
+    const confirmationCode = String(Math.floor(100000 + Math.random() * 900000))
+
     // Create order
     const { data: order, error: orderErr } = await supabase
       .from('orders')
@@ -207,6 +210,7 @@ export async function POST(request: Request) {
         delivery_address,
         delivery_notes: delivery_notes ?? null,
         customer_note: customer_note ?? null,
+        delivery_confirmation_code: confirmationCode as never,
       })
       .select('id')
       .single()

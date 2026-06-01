@@ -13,10 +13,11 @@ const itemSchema = z.object({
 })
 
 const receptionSchema = z.object({
-  cycleId: z.string().uuid(),
-  supplierId: z.string().uuid(),
-  photoUrl: z.string().url(),
-  items: z.array(itemSchema).min(1),
+  cycleId:       z.string().uuid(),
+  supplierId:    z.string().uuid(),
+  photoUrl:      z.string().url(),
+  photoMetadata: z.record(z.string(), z.unknown()).nullable().optional(),
+  items:         z.array(itemSchema).min(1),
 }).superRefine((data, ctx) => {
   for (const item of data.items) {
     if (item.receivedQty < 0) {
@@ -71,7 +72,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: parsed.error.issues[0]?.message ?? 'Datos inválidos' }, { status: 422 })
   }
 
-  const { cycleId, supplierId, photoUrl, items } = parsed.data
+  const { cycleId, supplierId, photoUrl, photoMetadata, items } = parsed.data
   const adminClient = createAdminClient()
   const now = new Date().toISOString()
 
@@ -119,10 +120,43 @@ export async function POST(request: Request) {
         rejected_quantity: rejectedQty,
         rejection_reason: rejectedQty > 0 ? (rejectionReason ?? null) : null,
         photo_url: photoUrl,
+        photo_metadata: (photoMetadata ?? null) as never,
         recorded_at: now,
       })
       .select('id')
       .maybeSingle()
+
+    // Stale photo check (only for first item to avoid duplicate notifications)
+    if (items.indexOf(item) === 0) {
+      const dateStr = photoMetadata?.DateTimeOriginal as string | undefined
+      if (dateStr) {
+        const taken = new Date(dateStr)
+        const diffHours = (Date.now() - taken.getTime()) / (1000 * 60 * 60)
+        if (diffHours > 2) {
+          const { data: operators } = await adminClient
+            .from('users')
+            .select('id')
+            .in('role', ['operator', 'superadmin'])
+            .eq('status', 'active')
+            .limit(5)
+          if (operators && operators.length > 0) {
+            await adminClient.from('notifications').insert(
+              operators.map((op: { id: string }) => ({
+                recipient_id:   op.id,
+                type:           'stale_photo_warning',
+                channel:        'in_app',
+                title:          'Foto posiblemente no tomada en el momento del evento',
+                body:           `Una recepción del ciclo ${cycleId.slice(0,8).toUpperCase()} incluye una foto tomada el ${taken.toLocaleString('es-PE')}. Verificar autenticidad.`,
+                reference_type: 'dispatch_cycle',
+                reference_id:   cycleId,
+                status:         'sent',
+                sent_at:        now,
+              }))
+            )
+          }
+        }
+      }
+    }
 
     // 2. Handle shortfall: update assignments and compensate customers
     if (shortfall > 0.001) {

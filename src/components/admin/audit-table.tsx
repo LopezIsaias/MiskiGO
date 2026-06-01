@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { formatDateTime } from '@/lib/utils'
+import { describeAuditAction } from '@/lib/utils/audit-descriptions'
 
 export interface AuditRow {
   id:             string
@@ -50,7 +51,7 @@ export function AuditTable({ rows }: Props) {
                 <tr className="border-b border-gray-100 bg-gray-50 text-xs text-gray-500 font-semibold uppercase tracking-wide">
                   <th className="text-left px-4 py-3 whitespace-nowrap">Fecha y hora</th>
                   <th className="text-left px-4 py-3 whitespace-nowrap">Usuario</th>
-                  <th className="text-left px-4 py-3 whitespace-nowrap">Rol</th>
+                  <th className="text-left px-4 py-3 whitespace-nowrap">Descripción</th>
                   <th className="text-left px-4 py-3 whitespace-nowrap">Acción</th>
                   <th className="text-left px-4 py-3 whitespace-nowrap">Módulo</th>
                   <th className="px-4 py-3"></th>
@@ -65,10 +66,10 @@ export function AuditTable({ rows }: Props) {
                     <td className="px-4 py-3 text-sm font-medium text-gray-800 whitespace-nowrap">
                       {row.actor?.full_name ?? '—'}
                     </td>
-                    <td className="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">
-                      {row.role_at_time}
+                    <td className="px-4 py-3 text-xs text-gray-600 max-w-xs">
+                      {describeAuditAction(row)}
                     </td>
-                    <td className="px-4 py-3 text-xs text-gray-700 font-mono whitespace-nowrap">
+                    <td className="px-4 py-3 text-xs text-gray-400 font-mono whitespace-nowrap">
                       {row.action}
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap">

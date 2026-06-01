@@ -54,7 +54,7 @@ export function SalesChart({ data, isWeekComparison }: Props) {
             />
             <YAxis tickFormatter={tickFmt} tick={{ fontSize: 11 }} width={60} />
             <Tooltip
-              formatter={(v: number, name: string) => [tickFmt(v), name]}
+              formatter={(v: unknown, name: unknown) => [tickFmt(Number(v)), String(name)]}
               labelStyle={{ fontSize: 12 }}
             />
             {isWeekComparison && <Legend iconType="line" wrapperStyle={{ fontSize: 12 }} />}

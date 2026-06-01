@@ -6,7 +6,8 @@ import { AUDIT_ACTIONS, AUDIT_MODULES } from '@/lib/constants'
 import { formatTime } from '@/lib/utils'
 
 const bodySchema = z.object({
-  routeId: z.string().uuid().nullable().optional(),
+  routeId:          z.string().uuid().nullable().optional(),
+  confirmationCode: z.string().length(6, 'El código debe tener 6 dígitos'),
 })
 
 export async function PATCH(
@@ -32,22 +33,43 @@ export async function PATCH(
   let body: unknown
   try { body = await request.json() } catch { body = {} }
 
-  const routeId = bodySchema.safeParse(body).data?.routeId ?? null
+  const parsed = bodySchema.safeParse(body)
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error.issues[0]?.message ?? 'Datos inválidos' }, { status: 422 })
+  }
+
+  const { routeId, confirmationCode } = parsed.data
 
   const adminClient = createAdminClient()
   const now = new Date()
   const nowISO = now.toISOString()
   const claimExpiry = new Date(now.getTime() + 2 * 60 * 60 * 1000).toISOString()
 
-  const { data: order } = await adminClient
+  const { data: rawOrder } = await adminClient
     .from('orders')
-    .select('id, status, customer_id')
+    .select('id, status, customer_id, delivery_confirmation_code')
     .eq('id', orderId)
     .in('status', ['in_transit', 'assigned'])
     .maybeSingle()
 
+  const order = rawOrder as unknown as { id: string; status: string; customer_id: string; delivery_confirmation_code: string | null } | null
+
   if (!order) {
     return NextResponse.json({ error: 'Pedido no encontrado o no en tránsito' }, { status: 404 })
+  }
+
+  // Validate confirmation code
+  if (order.delivery_confirmation_code !== confirmationCode) {
+    await adminClient.from('audit_log').insert({
+      user_id:      user.id,
+      role_at_time: profile!.role,
+      action:       AUDIT_ACTIONS.DELIVERY_CODE_FAILED,
+      module:       AUDIT_MODULES.DELIVERIES,
+      entity_type:  'order',
+      entity_id:    orderId,
+      new_value:    { attempted_code: confirmationCode },
+    })
+    return NextResponse.json({ error: 'Código incorrecto. Verifica con el cliente.' }, { status: 422 })
   }
 
   await adminClient.from('orders').update({

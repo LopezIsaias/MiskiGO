@@ -14,6 +14,7 @@ export const ORDER_STATUSES = {
   ASSIGNED: 'assigned',
   IN_TRANSIT: 'in_transit',
   DELIVERED: 'delivered',
+  IN_STORAGE: 'in_storage',
   COMPLETED: 'completed',
   CANCELLED: 'cancelled',
   FAILED: 'failed',
@@ -89,6 +90,10 @@ export const AUDIT_ACTIONS = {
   WALLET_CREDIT_REJECTED:     'wallet_credit_rejected',
   SYSTEM_PARAMS_UPDATED:      'system_params_updated',
   CATEGORY_UPDATED:           'category_updated',
+  ORDER_IN_STORAGE:           'order_in_storage',
+  SUPPLIER_CONFIRMED:         'supplier_confirmed',
+  SUPPLIER_REJECTED:          'supplier_rejected',
+  DELIVERY_CODE_FAILED:       'delivery_code_failed',
 } as const
 
 export const AUDIT_MODULES = {
@@ -100,4 +105,5 @@ export const AUDIT_MODULES = {
   DELIVERIES:  'deliveries',
   CLAIMS:      'claims',
   SYSTEM:      'system',
+  SUPPLIERS:   'suppliers',
 } as const

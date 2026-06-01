@@ -5,7 +5,8 @@ import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
 const NAV = [
-  { label: 'Dashboard', href: '/supplier', exact: true },
+  { label: 'Dashboard',        href: '/supplier',             exact: true  },
+  { label: 'Pedidos asignados', href: '/supplier/assignments', exact: false },
   { label: 'Mis publicaciones', href: '/supplier/publications', exact: false },
 ] as const
 
@@ -20,7 +21,7 @@ export function SupplierSidebar() {
   }
 
   return (
-    <aside className="w-56 shrink-0 min-h-screen bg-white border-r border-gray-200 flex flex-col">
+    <aside className="w-56 shrink-0 h-screen bg-white border-r border-gray-200 flex flex-col">
       <div className="px-5 py-4 border-b border-gray-200">
         <span className="text-base font-bold text-green-700">Miski GO</span>
         <p className="text-xs text-gray-400 mt-0.5">Proveedor</p>

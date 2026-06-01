@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
+import { StarRating } from '@/components/ui/star-rating'
 
 const STATUS_LABEL: Record<string, string> = {
   active: 'Activas',
@@ -12,11 +13,12 @@ export default async function SupplierDashboard() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  const { data: profile } = await supabase
+  const { data: rawProfile } = await supabase
     .from('users')
-    .select('full_name')
+    .select('full_name, reliability_score')
     .eq('id', user!.id)
     .maybeSingle()
+  const profile = rawProfile as unknown as { full_name: string | null; reliability_score: number | null } | null
 
   const { data: publications } = await supabase
     .from('supplier_publications')
@@ -38,6 +40,10 @@ export default async function SupplierDashboard() {
         <p className="text-sm text-gray-500 mt-1">
           Publica tu disponibilidad de productos para los próximos ciclos de despacho.
         </p>
+        <div className="mt-2 flex items-center gap-2">
+          <span className="text-xs text-gray-400">Confiabilidad:</span>
+          <StarRating score={Number(profile?.reliability_score ?? 100)} size="md" />
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4 mb-8 sm:grid-cols-4">

@@ -4,6 +4,8 @@ import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { formatCurrency } from '@/lib/utils'
+import { extractExif } from '@/lib/utils/exif-client'
+import type { ExifData } from '@/lib/utils/exif-client'
 
 const PRESET_AMOUNTS = [20, 50, 100, 200]
 
@@ -12,6 +14,7 @@ export function WalletRechargeForm() {
   const [amount,        setAmount]        = useState('')
   const [method,        setMethod]        = useState<'yape' | 'transfer' | ''>('')
   const [proofFile,     setProofFile]     = useState<File | null>(null)
+  const [proofExif,     setProofExif]     = useState<ExifData | null>(null)
   const [proofPreview,  setProofPreview]  = useState('')
   const [uploading,     setUploading]     = useState(false)
   const [saving,        setSaving]        = useState(false)
@@ -27,6 +30,7 @@ export function WalletRechargeForm() {
     if (!file) return
     setProofFile(file)
     setProofPreview(URL.createObjectURL(file))
+    extractExif(file).then(exif => setProofExif(exif)).catch(() => {})
   }
 
   function clearProof() {
@@ -64,7 +68,7 @@ export function WalletRechargeForm() {
       const res = await fetch('/api/customer/wallet/recharge', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ amount: parsedAmount, method, proofUrl: publicUrl }),
+        body:    JSON.stringify({ amount: parsedAmount, method, proofUrl: publicUrl, photoMetadata: proofExif }),
       })
 
       if (!res.ok) {

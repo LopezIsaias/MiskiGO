@@ -14,11 +14,20 @@
       "Bash(node -e \"const p = require\\('./package.json'\\); const keys = ['@supabase/supabase-js','@supabase/ssr','next','react']; keys.forEach\\(k => console.log\\(k, p.dependencies[k] || p.devDependencies?.[k] || 'n/a'\\)\\)\")",
       "Bash(mkdir -p \"c:/Users/ilbsa/OneDrive/Documentos/MISKI-GO/src/app/api/customer/orders/[id]/claim\")",
       "Bash(mkdir -p \"c:/Users/ilbsa/OneDrive/Documentos/MISKI-GO/src/app/\\(customer\\)/customer/orders/[id]/claim\")",
-      "Bash(node -e \"const p = require\\('./package.json'\\); console.log\\(p.dependencies.next, p.dependencies.typescript\\)\")"
+      "Bash(node -e \"const p = require\\('./package.json'\\); console.log\\(p.dependencies.next, p.dependencies.typescript\\)\")",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)",
+      "Bash(findstr recharts *)",
+      "Bash(mkdir -p \"c:/Users/ilbsa/OneDrive/Documentos/miski-go/src/app/api/supplier/assignments/[id]\" 2>/dev/null; echo \"ok\")"
     ],
     "additionalDirectories": [
       "c:\\Users\\ilbsa\\OneDrive\\Documentos\\MISKI-GO\\src\\app\\(supplier)\\supplier\\publications\\[id]",
-      "c:\\Users\\ilbsa\\.claude\\projects\\c--Users-ilbsa-OneDrive-Documentos-MISKI-GO\\memory"
+      "c:\\Users\\ilbsa\\.claude\\projects\\c--Users-ilbsa-OneDrive-Documentos-MISKI-GO\\memory",
+      "c:\\Users\\ilbsa\\OneDrive\\Documentos\\miski-go\\src\\app\\api\\supplier\\assignments"
     ]
+  },
+  "enabledPlugins": {
+    "frontend-design@claude-code-plugins": true
   }
 }

@@ -1,25 +1,27 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
 import { formatDateTime, formatCurrency } from '@/lib/utils'
 
 export interface ClaimRow {
-  id:               string
-  status:           string
-  claimed_quantity: number
-  reason:           string
-  photo_url:        string
-  created_at:       string
-  resolution_type:  string | null
-  resolution_amount: number | null
-  is_justified:     boolean | null
-  resolved_at:      string | null
-  reception_photo_url: string | null
-  customer:         { full_name: string; phone: string | null } | null
-  order:            { id: string; delivery_address: string } | null
-  product:          { name: string; unit: string } | null
-  resolver:         { full_name: string } | null
+  id:                   string
+  status:               string
+  claimed_quantity:     number
+  reason:               string
+  photo_url:            string
+  created_at:           string
+  resolution_type:      string | null
+  resolution_amount:    number | null
+  resolution_proof_url: string | null
+  is_justified:         boolean | null
+  resolved_at:          string | null
+  reception_photo_url:  string | null
+  customer:             { full_name: string; phone: string | null } | null
+  order:                { id: string; delivery_address: string } | null
+  product:              { name: string; unit: string } | null
+  resolver:             { full_name: string } | null
 }
 
 const STATUS_LABEL: Record<string, string> = {
@@ -50,22 +52,53 @@ function ClaimCard({ claim }: CardProps) {
   const router = useRouter()
   const isPending = claim.status === 'pending'
 
+  const proofInputRef = useRef<HTMLInputElement>(null)
+
   type Verdict = 'approved' | 'partially_approved' | 'rejected'
   const [verdict,          setVerdict]          = useState<Verdict | null>(null)
   const [resolutionType,   setResolutionType]   = useState<'wallet_credit' | 'external_refund' | 'reprogrammed' | ''>('')
   const [resolutionAmount, setResolutionAmount] = useState('')
   const [isJustified,      setIsJustified]      = useState(true)
+  const [proofUrl,         setProofUrl]         = useState<string | null>(null)
+  const [proofPreview,     setProofPreview]     = useState<string | null>(null)
+  const [uploadingProof,   setUploadingProof]   = useState(false)
   const [saving,           setSaving]           = useState(false)
   const [error,            setError]            = useState('')
   const [resolved,         setResolved]         = useState(false)
 
   const needsType   = verdict === 'approved' || verdict === 'partially_approved'
   const needsAmount = resolutionType === 'wallet_credit' || resolutionType === 'external_refund'
+  const needsProof  = resolutionType === 'wallet_credit' || resolutionType === 'external_refund'
 
   const canSubmit =
     verdict !== null &&
     (!needsType   || resolutionType !== '') &&
-    (!needsAmount || (parseFloat(resolutionAmount) > 0))
+    (!needsAmount || (parseFloat(resolutionAmount) > 0)) &&
+    (!needsProof  || proofUrl !== null)
+
+  async function handleProofSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploadingProof(true)
+    setError('')
+    setProofPreview(URL.createObjectURL(file))
+    try {
+      const supabase = createClient()
+      const ext = file.name.split('.').pop() ?? 'jpg'
+      const path = `claims/${claim.id}_${Date.now()}.${ext}`
+      const { error: uploadErr } = await supabase.storage
+        .from('resolution-proofs')
+        .upload(path, file, { upsert: false })
+      if (uploadErr) throw uploadErr
+      const { data: { publicUrl } } = supabase.storage.from('resolution-proofs').getPublicUrl(path)
+      setProofUrl(publicUrl)
+    } catch {
+      setError('Error al subir el comprobante.')
+      setProofPreview(null)
+    } finally {
+      setUploadingProof(false)
+    }
+  }
 
   async function handleResolve() {
     if (!verdict || !canSubmit) return
@@ -77,6 +110,7 @@ function ClaimCard({ claim }: CardProps) {
         is_justified: verdict === 'rejected' ? false : isJustified,
         resolution_type:   needsType   ? (resolutionType || null) : null,
         resolution_amount: needsAmount ? parseFloat(resolutionAmount) : null,
+        proof_url:         needsProof  ? proofUrl : null,
       }
       const res = await fetch(`/api/operator/claims/${claim.id}/resolve`, {
         method: 'PATCH',
@@ -167,7 +201,7 @@ function ClaimCard({ claim }: CardProps) {
 
       {/* Resolved summary */}
       {!isPending && (
-        <div className="px-5 py-3 text-xs text-gray-500 space-y-0.5">
+        <div className="px-5 py-3 text-xs text-gray-500 space-y-1">
           {claim.resolution_type && (
             <p>Resolución: <span className="font-medium text-gray-700">{RESOLUTION_LABEL[claim.resolution_type] ?? claim.resolution_type}</span></p>
           )}
@@ -177,6 +211,19 @@ function ClaimCard({ claim }: CardProps) {
           <p>Justificado: <span className="font-medium text-gray-700">{claim.is_justified ? 'Sí' : 'No'}</span></p>
           {claim.resolver && claim.resolved_at && (
             <p>Resuelto por <span className="font-medium text-gray-700">{claim.resolver.full_name}</span> el {formatDateTime(claim.resolved_at)}</p>
+          )}
+          {claim.resolution_proof_url && (
+            <div className="pt-1">
+              <p className="text-gray-400 mb-1">Comprobante:</p>
+              <a href={claim.resolution_proof_url} target="_blank" rel="noopener noreferrer">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={claim.resolution_proof_url}
+                  alt="Comprobante de resolución"
+                  className="w-24 h-16 object-cover rounded-lg border border-gray-200 hover:opacity-80 transition-opacity"
+                />
+              </a>
+            </div>
           )}
         </div>
       )}
@@ -250,6 +297,48 @@ function ClaimCard({ claim }: CardProps) {
                   El saldo se acreditará automáticamente al confirmar.
                 </p>
               )}
+            </div>
+          )}
+
+          {/* Proof upload — required for wallet_credit and external_refund */}
+          {needsProof && (
+            <div>
+              <p className="text-xs font-semibold text-gray-600 mb-2">
+                Comprobante <span className="text-red-500">*</span>
+                <span className="ml-1 text-gray-400 font-normal">
+                  {resolutionType === 'wallet_credit'
+                    ? '(captura del registro interno)'
+                    : '(captura que muestre hora y código de operación)'}
+                </span>
+              </p>
+              {proofPreview ? (
+                <div className="relative w-32">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={proofPreview} alt="Comprobante" className="w-32 h-24 object-cover rounded-lg border border-gray-200" />
+                  {uploadingProof && (
+                    <div className="absolute inset-0 bg-white/70 flex items-center justify-center rounded-lg">
+                      <span className="text-xs text-gray-500">Subiendo…</span>
+                    </div>
+                  )}
+                  {!uploadingProof && proofUrl && (
+                    <div className="absolute bottom-1 right-1 bg-green-600 text-white text-[9px] px-1.5 py-0.5 rounded-full">✓</div>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => { setProofPreview(null); setProofUrl(null) }}
+                    className="absolute -top-1.5 -right-1.5 bg-white border border-gray-200 rounded-full w-5 h-5 text-xs flex items-center justify-center text-gray-500"
+                  >✕</button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => proofInputRef.current?.click()}
+                  className="h-16 w-48 rounded-lg border-2 border-dashed border-gray-300 text-xs text-gray-400 hover:border-green-400 hover:text-green-600 transition-colors"
+                >
+                  + Subir comprobante
+                </button>
+              )}
+              <input ref={proofInputRef} type="file" accept="image/*" className="hidden" onChange={handleProofSelect} />
             </div>
           )}
 

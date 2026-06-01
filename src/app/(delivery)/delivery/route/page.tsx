@@ -17,6 +17,8 @@ type RawOrder = {
   delivery_notes: string | null
   delivered_at: string | null
   claim_window_expires_at: string | null
+  delivery_confirmation_code: string | null
+  delivery_attempts: number
   customer: { full_name: string } | null
   items: {
     quantity: number
@@ -157,6 +159,7 @@ export default async function DeliveryRoutePage() {
     .select(`
       id, status, delivery_address, customer_note, delivery_notes,
       delivered_at, claim_window_expires_at,
+      delivery_confirmation_code, delivery_attempts,
       customer:users!customer_id(full_name),
       items:order_items!order_id(
         quantity,
@@ -164,7 +167,7 @@ export default async function DeliveryRoutePage() {
       )
     `)
     .eq('dispatch_cycle_id', cycleId)
-    .in('status', ['assigned', 'in_transit', 'delivered'])
+    .in('status', ['assigned', 'in_transit', 'delivered', 'in_storage'])
     .order('created_at', { ascending: true })
 
   const { data: rawOrders } = orderIds
@@ -205,17 +208,19 @@ export default async function DeliveryRoutePage() {
   const stops: StopData[] = orderedOrders.map((o, idx) => {
     const stopInfo = stopStatusMap.get(o.id)
     return {
-      orderId:               o.id,
-      stopOrder:             idx + 1,
-      customerName:          o.customer?.full_name ?? 'Cliente',
-      deliveryAddress:       o.delivery_address,
-      customerNote:          o.customer_note,
-      deliveryNotes:         o.delivery_notes,
-      orderStatus:           o.status,
-      stopStatus:            stopInfo?.status ?? null,
-      failureReason:         stopInfo?.failureReason ?? null,
-      deliveredAt:           o.delivered_at,
-      claimWindowExpiresAt:  o.claim_window_expires_at,
+      orderId:                    o.id,
+      stopOrder:                  idx + 1,
+      customerName:               o.customer?.full_name ?? 'Cliente',
+      deliveryAddress:            o.delivery_address,
+      customerNote:               o.customer_note,
+      deliveryNotes:              o.delivery_notes,
+      orderStatus:                o.status,
+      stopStatus:                 stopInfo?.status ?? null,
+      failureReason:              stopInfo?.failureReason ?? null,
+      deliveredAt:                o.delivered_at,
+      claimWindowExpiresAt:       o.claim_window_expires_at,
+      deliveryConfirmationCode:   o.delivery_confirmation_code,
+      deliveryAttempts:           o.delivery_attempts ?? 0,
       items: o.items
         .filter(it => it.product)
         .map(it => ({

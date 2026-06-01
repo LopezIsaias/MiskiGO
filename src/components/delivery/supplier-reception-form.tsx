@@ -4,6 +4,8 @@ import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import type { ReceptionSupplierData } from './reception-board'
+import { extractExif } from '@/lib/utils/exif-client'
+import type { ExifData } from '@/lib/utils/exif-client'
 
 interface ItemState {
   receivedQty: number  // cantidad en buen estado
@@ -23,6 +25,7 @@ export function SupplierReceptionForm({ supplier, cycleId, deliveryPersonId, onS
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [photoUrl, setPhotoUrl] = useState<string | null>(null)
+  const [photoExif, setPhotoExif] = useState<ExifData | null>(null)
   const [photoPreview, setPhotoPreview] = useState<string | null>(null)
   const [uploadingPhoto, setUploadingPhoto] = useState(false)
   const [submitting, setSubmitting] = useState(false)
@@ -69,6 +72,9 @@ export function SupplierReceptionForm({ supplier, cycleId, deliveryPersonId, onS
     const reader = new FileReader()
     reader.onload = ev => setPhotoPreview(ev.target?.result as string)
     reader.readAsDataURL(file)
+
+    const exif = await extractExif(file)
+    setPhotoExif(exif)
 
     try {
       const supabase = createClient()
@@ -136,6 +142,7 @@ export function SupplierReceptionForm({ supplier, cycleId, deliveryPersonId, onS
           cycleId,
           supplierId: supplier.supplierId,
           photoUrl,
+          photoMetadata: photoExif,
           items,
         }),
       })

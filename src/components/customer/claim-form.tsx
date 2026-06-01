@@ -4,6 +4,8 @@ import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { formatTime } from '@/lib/utils'
+import { extractExif } from '@/lib/utils/exif-client'
+import type { ExifData } from '@/lib/utils/exif-client'
 
 export interface ClaimableItem {
   productId:       string
@@ -31,6 +33,7 @@ export function ClaimForm({ orderId, items, claimWindowExpiresAt, customerId }: 
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [photoUrl,       setPhotoUrl]       = useState<string | null>(null)
+  const [photoExif,      setPhotoExif]      = useState<ExifData | null>(null)
   const [photoPreview,   setPhotoPreview]   = useState<string | null>(null)
   const [uploadingPhoto, setUploadingPhoto] = useState(false)
   const [submitting,     setSubmitting]     = useState(false)
@@ -71,6 +74,9 @@ export function ClaimForm({ orderId, items, claimWindowExpiresAt, customerId }: 
     reader.onload = ev => setPhotoPreview(ev.target?.result as string)
     reader.readAsDataURL(file)
 
+    const exif = await extractExif(file)
+    setPhotoExif(exif)
+
     try {
       const supabase = createClient()
       const ext = file.name.split('.').pop() ?? 'jpg'
@@ -110,7 +116,7 @@ export function ClaimForm({ orderId, items, claimWindowExpiresAt, customerId }: 
       const res = await fetch(`/api/customer/orders/${orderId}/claim`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ photoUrl, items: claimItems }),
+        body: JSON.stringify({ photoUrl, photoMetadata: photoExif, items: claimItems }),
       })
       if (!res.ok) {
         const d = await res.json() as { error?: string }

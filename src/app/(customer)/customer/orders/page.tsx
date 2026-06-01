@@ -8,15 +8,16 @@ import { DeliveryClaimBanner } from '@/components/customer/delivery-claim-banner
 export const metadata: Metadata = { title: 'Mis pedidos' }
 
 const STATUS_LABEL: Record<string, string> = {
-  pending_payment:  'Pendiente de pago',
+  pending_payment:   'Pendiente de pago',
   payment_submitted: 'Pago enviado',
-  confirmed:        'Confirmado',
-  assigned:         'Asignado',
-  in_transit:       'En camino',
-  delivered:        'Entregado',
-  completed:        'Completado',
-  cancelled:        'Cancelado',
-  failed:           'Fallido',
+  confirmed:         'Confirmado',
+  assigned:          'Asignado',
+  in_transit:        'En camino',
+  delivered:         'Entregado',
+  in_storage:        'En almacén',
+  completed:         'Completado',
+  cancelled:         'Cancelado',
+  failed:            'Fallido',
 }
 
 const STATUS_COLOR: Record<string, string> = {
@@ -26,21 +27,23 @@ const STATUS_COLOR: Record<string, string> = {
   assigned:          'bg-indigo-100 text-indigo-800',
   in_transit:        'bg-orange-100 text-orange-800',
   delivered:         'bg-green-100 text-green-800',
+  in_storage:        'bg-amber-100 text-amber-800',
   completed:         'bg-green-100 text-green-800',
   cancelled:         'bg-gray-100 text-gray-600',
   failed:            'bg-red-100 text-red-800',
 }
 
 type RawOrder = {
-  id:                     string
-  status:                 string
-  total_amount:           number
-  delivery_address:       string
-  delivered_at:           string | null
-  claim_window_expires_at: string | null
-  created_at:             string
+  id:                       string
+  status:                   string
+  total_amount:             number
+  delivery_address:         string
+  delivered_at:             string | null
+  claim_window_expires_at:  string | null
+  created_at:               string
+  delivery_confirmation_code: string | null
   items: {
-    quantity:        number
+    quantity:          number
     unit_price_frozen: number
     product: { name: string; unit: string } | null
   }[]
@@ -57,6 +60,7 @@ export default async function OrdersPage() {
     .select(`
       id, status, total_amount, delivery_address,
       delivered_at, claim_window_expires_at, created_at,
+      delivery_confirmation_code,
       items:order_items!order_id(
         quantity, unit_price_frozen,
         product:products!product_id(name, unit)
@@ -104,6 +108,26 @@ export default async function OrdersPage() {
                 <span className="text-xs text-gray-500">Total</span>
                 <span className="text-sm font-bold text-gray-900">{formatCurrency(order.total_amount)}</span>
               </div>
+
+              {/* Confirmation code — visible when order is active and en route */}
+              {['assigned', 'in_transit'].includes(order.status) && order.delivery_confirmation_code && (
+                <div className="mt-3 bg-blue-50 border border-blue-200 rounded-xl px-4 py-3">
+                  <p className="text-xs text-blue-600 font-semibold mb-1">Código de confirmación de entrega</p>
+                  <p className="text-3xl font-bold text-blue-800 tracking-[0.3em]">
+                    {order.delivery_confirmation_code}
+                  </p>
+                  <p className="text-xs text-blue-500 mt-1">Dáselo al repartidor cuando llegue</p>
+                </div>
+              )}
+
+              {/* In-storage banner */}
+              {order.status === 'in_storage' && (
+                <div className="mt-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+                  <p className="text-sm text-amber-800">
+                    Tu pedido está en nuestro almacén esperando ser recogido. Coordina con nosotros para la entrega.
+                  </p>
+                </div>
+              )}
 
               {order.status === 'delivered' && order.claim_window_expires_at && (
                 <DeliveryClaimBanner

@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
+import { StarRating } from '@/components/ui/star-rating'
 
 const ROLE_LABELS: Record<string, string> = {
   superadmin:      'Superadmin',
@@ -20,16 +21,24 @@ const ROLE_BADGE: Record<string, string> = {
   customer:        'bg-amber-100 text-amber-700',
 }
 
+type UserRow = {
+  id: string; full_name: string; email: string; phone: string | null
+  dni: string | null; role: string; status: string; reliability_score: number | null
+  must_change_password: boolean | null; created_at: string
+}
+
 export default async function UsersPage() {
   const supabase = await createClient()
 
-  const { data: users, error } = await supabase
+  const { data: rawUsers, error } = await supabase
     .from('users')
-    .select('id, full_name, email, phone, dni, role, status, must_change_password, created_at')
+    .select('id, full_name, email, phone, dni, role, status, reliability_score, must_change_password, created_at')
     .is('deleted_at', null)
     .order('created_at', { ascending: false })
 
   if (error) notFound()
+
+  const users = (rawUsers ?? []) as unknown as UserRow[]
 
   return (
     <div>
@@ -59,6 +68,7 @@ export default async function UsersPage() {
                 <th className="text-left px-4 py-3 font-medium text-gray-600">DNI</th>
                 <th className="text-left px-4 py-3 font-medium text-gray-600">Email</th>
                 <th className="text-left px-4 py-3 font-medium text-gray-600">Rol</th>
+                <th className="text-left px-4 py-3 font-medium text-gray-600">Confiabilidad</th>
                 <th className="text-left px-4 py-3 font-medium text-gray-600">Estado</th>
                 <th className="text-left px-4 py-3 font-medium text-gray-600">Contraseña</th>
                 <th className="px-4 py-3" />
@@ -78,6 +88,13 @@ export default async function UsersPage() {
                     >
                       {ROLE_LABELS[u.role] ?? u.role}
                     </span>
+                  </td>
+                  <td className="px-4 py-3">
+                    {u.role === 'supplier' ? (
+                      <StarRating score={Number(u.reliability_score ?? 100)} showPercent />
+                    ) : (
+                      <span className="text-gray-300 text-xs">—</span>
+                    )}
                   </td>
                   <td className="px-4 py-3">
                     <span
