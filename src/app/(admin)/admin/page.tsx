@@ -393,8 +393,8 @@ export default async function AdminDashboardPage({
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-xs text-gray-400 mt-0.5">{fromDate} → {toDate}</p>
+          <h1 className="text-2xl font-bold text-miski-forest">Dashboard</h1>
+          <p className="text-xs text-miski-olive mt-0.5">{fromDate} → {toDate}</p>
         </div>
         <DateFilter preset={preset} from={fromDate} to={toDate} />
       </div>
