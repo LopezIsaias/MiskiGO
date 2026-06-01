@@ -32,7 +32,7 @@ const UNIT_LABEL: Record<string, string> = {
 }
 
 const inputCls =
-  'w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500'
+  'w-full border border-miski-sage rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-miski-lime/50 focus:border-miski-green transition-colors placeholder:text-gray-300 text-gray-800'
 
 export function PublicationForm({ products, regions, cutoffs, publication }: PublicationFormProps) {
   const router = useRouter()
@@ -91,9 +91,9 @@ export function PublicationForm({ products, regions, cutoffs, publication }: Pub
       )}
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Producto</label>
+        <label className="block text-xs font-semibold text-miski-forest/70 uppercase tracking-wider mb-1.5">Producto</label>
         {isEdit ? (
-          <div className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-50 text-gray-500">
+          <div className="w-full border border-miski-sage/40 rounded-lg px-3 py-2.5 text-sm bg-miski-sage/10 text-gray-500">
             {publication!.product?.name ?? '—'}{' '}
             <span className="text-gray-400">
               ({UNIT_LABEL[publication!.product?.unit ?? ''] ?? publication!.product?.unit})
@@ -118,9 +118,9 @@ export function PublicationForm({ products, regions, cutoffs, publication }: Pub
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Región</label>
+        <label className="block text-xs font-semibold text-miski-forest/70 uppercase tracking-wider mb-1.5">Región</label>
         {isEdit ? (
-          <div className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-50 text-gray-500">
+          <div className="w-full border border-miski-sage/40 rounded-lg px-3 py-2.5 text-sm bg-miski-sage/10 text-gray-500">
             {publication!.region?.name} — {publication!.region?.city}
           </div>
         ) : (
@@ -142,7 +142,7 @@ export function PublicationForm({ products, regions, cutoffs, publication }: Pub
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-xs font-semibold text-miski-forest/70 uppercase tracking-wider mb-1.5">
             Cantidad disponible
           </label>
           <input
@@ -159,7 +159,7 @@ export function PublicationForm({ products, regions, cutoffs, publication }: Pub
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-xs font-semibold text-miski-forest/70 uppercase tracking-wider mb-1.5">
             Precio mínimo (S/)
           </label>
           <input
@@ -177,9 +177,9 @@ export function PublicationForm({ products, regions, cutoffs, publication }: Pub
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Ciclo de despacho</label>
+        <label className="block text-xs font-semibold text-miski-forest/70 uppercase tracking-wider mb-1.5">Ciclo de despacho</label>
         {isEdit ? (
-          <div className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-50 text-gray-500">
+          <div className="w-full border border-miski-sage/40 rounded-lg px-3 py-2.5 text-sm bg-miski-sage/10 text-gray-500">
             {cutoffs.find(c => c.isoString === publication!.expires_at)?.label ??
               new Date(publication!.expires_at).toLocaleDateString('es-PE')}
           </div>
@@ -198,7 +198,7 @@ export function PublicationForm({ products, regions, cutoffs, publication }: Pub
             )}
           </>
         )}
-        <p className="text-xs text-gray-400 mt-1">
+        <p className="text-xs text-miski-olive mt-1">
           La oferta se cerrará automáticamente al llegar el corte del ciclo seleccionado.
         </p>
       </div>
@@ -207,7 +207,7 @@ export function PublicationForm({ products, regions, cutoffs, publication }: Pub
         <button
           type="submit"
           disabled={isSubmitting}
-          className="bg-green-600 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-50 transition-colors"
+          className="bg-miski-forest text-white hover:bg-miski-green rounded-lg px-5 py-2.5 text-sm font-semibold transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isSubmitting
             ? isEdit
@@ -220,7 +220,7 @@ export function PublicationForm({ products, regions, cutoffs, publication }: Pub
         <button
           type="button"
           onClick={() => router.push('/supplier/publications')}
-          className="bg-gray-100 text-gray-700 px-5 py-2 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors"
+          className="border border-miski-sage text-miski-forest hover:bg-miski-sage/30 rounded-lg px-5 py-2.5 text-sm font-medium transition-colors"
         >
           Cancelar
         </button>

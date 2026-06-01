@@ -167,7 +167,7 @@ export function SupplierReceptionForm({ supplier, cycleId, deliveryPersonId, onS
 
       {/* Photo upload */}
       <div>
-        <p className="text-xs font-semibold text-gray-700 mb-2">
+        <p className="block text-xs font-semibold text-miski-forest/70 uppercase tracking-wider mb-1.5">
           Foto del lote <span className="text-red-500">*</span>
         </p>
         {photoPreview ? (
@@ -176,22 +176,22 @@ export function SupplierReceptionForm({ supplier, cycleId, deliveryPersonId, onS
             <img
               src={photoPreview}
               alt="Foto del lote"
-              className="w-full h-40 object-cover rounded-xl border border-gray-200"
+              className="w-full h-40 object-cover rounded-xl border border-miski-sage/40"
             />
             {uploadingPhoto && (
               <div className="absolute inset-0 bg-white/70 flex items-center justify-center rounded-xl">
-                <span className="text-sm text-gray-500">Subiendo…</span>
+                <span className="text-sm text-miski-olive">Subiendo…</span>
               </div>
             )}
             {!uploadingPhoto && photoUrl && (
-              <div className="absolute bottom-2 right-2 bg-green-600 text-white text-xs px-2 py-0.5 rounded-full">
+              <div className="absolute bottom-2 right-2 bg-miski-green text-white text-xs px-2 py-0.5 rounded-full">
                 ✓ Guardada
               </div>
             )}
             <button
               type="button"
               onClick={() => { setPhotoPreview(null); setPhotoUrl(null) }}
-              className="absolute top-2 right-2 bg-white/80 text-gray-600 rounded-full w-7 h-7 text-xs flex items-center justify-center border border-gray-200"
+              className="absolute top-2 right-2 bg-white/80 text-gray-600 rounded-full w-7 h-7 text-xs flex items-center justify-center border border-miski-sage/40"
             >
               ✕
             </button>
@@ -200,7 +200,7 @@ export function SupplierReceptionForm({ supplier, cycleId, deliveryPersonId, onS
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            className="w-full h-24 rounded-xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center gap-1 text-gray-400 hover:border-green-400 hover:text-green-500 transition-colors bg-white"
+            className="w-full h-24 rounded-xl border-2 border-dashed border-miski-sage bg-miski-cream/20 hover:bg-miski-cream/40 flex flex-col items-center justify-center gap-1 text-miski-olive transition-colors"
           >
             <span className="text-2xl">📷</span>
             <span className="text-xs font-medium">Tomar o seleccionar foto</span>
@@ -225,21 +225,21 @@ export function SupplierReceptionForm({ supplier, cycleId, deliveryPersonId, onS
           const diff = Math.round((state.receivedQty + state.rejectedQty - item.expectedQty) * 1000) / 1000
 
           return (
-            <div key={item.productId} className="bg-white rounded-xl border border-gray-200 p-4 space-y-3">
+            <div key={item.productId} className="bg-white rounded-xl border border-miski-sage/40 shadow-sm p-4 space-y-3">
               <div className="flex items-start justify-between gap-2">
                 <div>
-                  <p className="text-sm font-semibold text-gray-800">{item.productName}</p>
-                  <p className="text-xs text-gray-400">
-                    Esperado: <span className="font-medium text-gray-600">{item.expectedQty} {item.unit}</span>
+                  <p className="text-sm font-semibold text-miski-forest">{item.productName}</p>
+                  <p className="text-xs text-miski-olive">
+                    Esperado: <span className="font-medium text-gray-700">{item.expectedQty} {item.unit}</span>
                   </p>
                 </div>
                 {!sumOk && (
-                  <span className="text-xs font-medium text-red-600 bg-red-50 px-2 py-0.5 rounded-full shrink-0">
+                  <span className="bg-red-100 text-red-700 text-xs font-semibold px-2.5 py-1 rounded-full shrink-0">
                     {diff > 0.001 ? `+${diff}` : diff < -0.001 ? `${diff}` : ''} {item.unit} diferencia
                   </span>
                 )}
                 {sumOk && hasRejection && (
-                  <span className="text-xs font-medium text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full shrink-0">
+                  <span className="bg-miski-gold-light/40 text-amber-800 font-semibold text-xs px-2.5 py-1 rounded-full shrink-0">
                     {state.rejectedQty} {item.unit} rechazado
                   </span>
                 )}
@@ -248,7 +248,7 @@ export function SupplierReceptionForm({ supplier, cycleId, deliveryPersonId, onS
               {/* Received and rejected quantities */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">
+                  <label className="block text-xs font-semibold text-miski-forest/70 uppercase tracking-wider mb-1.5">
                     Recibido OK ({item.unit}) <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -258,15 +258,15 @@ export function SupplierReceptionForm({ supplier, cycleId, deliveryPersonId, onS
                     step={item.unit === 'kg' || item.unit === 'liter' ? '0.1' : '1'}
                     value={state.receivedQty}
                     onChange={e => updateItem(item.productId, 'receivedQty', parseFloat(e.target.value) || 0)}
-                    className={`w-full text-center text-base font-semibold border rounded-xl py-3 focus:outline-none ${
+                    className={`w-full text-center text-base font-semibold border rounded-lg py-3 focus:outline-none focus:ring-2 transition-colors text-gray-800 ${
                       sumOk
-                        ? 'border-gray-300 focus:border-green-400'
-                        : 'border-red-300 bg-red-50 focus:border-red-400'
+                        ? 'border-miski-sage focus:ring-miski-lime/50 focus:border-miski-green'
+                        : 'border-red-300 bg-red-50 focus:ring-red-200 focus:border-red-400'
                     }`}
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">
+                  <label className="block text-xs font-semibold text-miski-forest/70 uppercase tracking-wider mb-1.5">
                     Rechazado ({item.unit}) <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -276,19 +276,19 @@ export function SupplierReceptionForm({ supplier, cycleId, deliveryPersonId, onS
                     step={item.unit === 'kg' || item.unit === 'liter' ? '0.1' : '1'}
                     value={state.rejectedQty}
                     onChange={e => updateItem(item.productId, 'rejectedQty', parseFloat(e.target.value) || 0)}
-                    className={`w-full text-center text-base font-semibold border rounded-xl py-3 focus:outline-none ${
+                    className={`w-full text-center text-base font-semibold border rounded-lg py-3 focus:outline-none focus:ring-2 transition-colors text-gray-800 ${
                       hasRejection && sumOk
-                        ? 'border-amber-300 bg-amber-50 text-amber-700 focus:border-amber-400'
+                        ? 'border-amber-300 bg-amber-50 text-amber-700 focus:ring-amber-200 focus:border-amber-400'
                         : !sumOk
-                          ? 'border-red-300 bg-red-50 focus:border-red-400'
-                          : 'border-gray-300 focus:border-green-400'
+                          ? 'border-red-300 bg-red-50 focus:ring-red-200 focus:border-red-400'
+                          : 'border-miski-sage focus:ring-miski-lime/50 focus:border-miski-green'
                     }`}
                   />
                 </div>
               </div>
 
               {/* Sum hint */}
-              <p className={`text-xs ${sumOk ? 'text-gray-400' : 'text-red-600 font-medium'}`}>
+              <p className={`text-xs ${sumOk ? 'text-miski-olive' : 'text-red-600 font-medium'}`}>
                 Suma: {Math.round((state.receivedQty + state.rejectedQty) * 1000) / 1000} / {item.expectedQty} {item.unit}
                 {sumOk ? ' ✓' : ' — debe coincidir con lo esperado'}
               </p>
@@ -296,7 +296,7 @@ export function SupplierReceptionForm({ supplier, cycleId, deliveryPersonId, onS
               {/* Rejection reason — conditional */}
               {hasRejection && (
                 <div>
-                  <label className="block text-xs font-medium text-amber-700 mb-1">
+                  <label className="block text-xs font-semibold text-miski-forest/70 uppercase tracking-wider mb-1.5">
                     Motivo de rechazo <span className="text-red-500">*</span>
                   </label>
                   <textarea
@@ -304,7 +304,7 @@ export function SupplierReceptionForm({ supplier, cycleId, deliveryPersonId, onS
                     value={state.rejectionReason}
                     onChange={e => updateItem(item.productId, 'rejectionReason', e.target.value)}
                     placeholder="Ej: producto en mal estado, color oscuro, presencia de hongos…"
-                    className="w-full text-sm border border-amber-300 rounded-xl px-3 py-2 focus:outline-none focus:border-amber-400 resize-none bg-amber-50 placeholder:text-amber-300"
+                    className="w-full border border-miski-sage rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-miski-lime/50 focus:border-miski-green transition-colors text-gray-800 resize-none bg-amber-50 placeholder:text-amber-300"
                   />
                 </div>
               )}
@@ -322,13 +322,13 @@ export function SupplierReceptionForm({ supplier, cycleId, deliveryPersonId, onS
       <button
         type="submit"
         disabled={submitting || uploadingPhoto || !photoUrl || !allSumsValid}
-        className="w-full py-4 rounded-xl text-sm font-semibold text-white bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        className="bg-miski-forest text-white hover:bg-miski-green rounded-xl px-4 py-3 text-sm font-semibold w-full transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {submitting ? 'Guardando…' : 'Registrar recepción'}
       </button>
 
       {(!photoUrl && !uploadingPhoto) && (
-        <p className="text-center text-xs text-gray-400">Agrega la foto para continuar</p>
+        <p className="text-center text-xs text-miski-olive">Agrega la foto para continuar</p>
       )}
       {photoUrl && !allSumsValid && (
         <p className="text-center text-xs text-red-500">Verifica que la suma de cantidades coincida con lo esperado</p>

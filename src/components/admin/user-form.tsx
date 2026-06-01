@@ -24,9 +24,11 @@ const ROLE_LABELS: Record<string, string> = {
 }
 
 const inputCls =
-  'w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500'
+  'w-full border border-miski-sage rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-miski-lime/50 focus:border-miski-green transition-colors placeholder:text-gray-300 text-gray-800'
 const readonlyCls =
-  'w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-50 text-gray-500'
+  'w-full border border-miski-sage/50 rounded-lg px-3 py-2.5 text-sm bg-miski-sage/10 text-gray-500'
+
+const labelCls = 'block text-xs font-semibold text-miski-forest/70 uppercase tracking-wider mb-1.5'
 
 // ——— Create form ———
 
@@ -136,11 +138,11 @@ function CreateUserForm() {
       )}
 
       {isConflict && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg px-4 py-3">
-          <p className="text-sm font-medium text-yellow-800">
+        <div className="bg-miski-gold-light/20 border border-miski-gold/30 rounded-lg px-4 py-3">
+          <p className="text-sm font-medium text-amber-800">
             Este DNI ya está registrado como cliente
           </p>
-          <p className="text-xs text-yellow-700 mt-0.5">
+          <p className="text-xs text-amber-800/80 mt-0.5">
             Los datos han sido autocompletados. Edítalos si es necesario y confirma la conversión.
           </p>
         </div>
@@ -148,7 +150,7 @@ function CreateUserForm() {
 
       <div className="grid grid-cols-2 gap-4">
         <div className="col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Nombre completo</label>
+          <label className={labelCls}>Nombre completo</label>
           <input
             {...register('full_name')}
             className={inputCls}
@@ -159,7 +161,7 @@ function CreateUserForm() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">DNI</label>
+          <label className={labelCls}>DNI</label>
           <input
             {...register('dni', {
               onBlur: (e) => checkDni(e.target.value),
@@ -175,7 +177,7 @@ function CreateUserForm() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
+          <label className={labelCls}>Teléfono</label>
           <input
             {...register('phone')}
             className={inputCls}
@@ -187,13 +189,13 @@ function CreateUserForm() {
         </div>
 
         <div className="col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+          <label className={labelCls}>Email</label>
           <input type="email" {...register('email')} className={inputCls} placeholder="usuario@miski.com" />
           {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>}
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Rol</label>
+          <label className={labelCls}>Rol</label>
           <select {...register('role')} className={inputCls}>
             <option value="">Selecciona un rol</option>
             <option value="operator">Operador</option>
@@ -204,7 +206,7 @@ function CreateUserForm() {
 
         {!isConflict && (
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Contraseña temporal</label>
+            <label className={labelCls}>Contraseña temporal</label>
             <input type="password" {...register('password')} className={inputCls} />
             {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password.message}</p>}
           </div>
@@ -212,7 +214,7 @@ function CreateUserForm() {
       </div>
 
       {!isConflict && (
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-miski-olive">
           El usuario deberá cambiar la contraseña en su primer inicio de sesión.
         </p>
       )}
@@ -223,7 +225,7 @@ function CreateUserForm() {
             type="button"
             onClick={handleConvertSubmit}
             disabled={isConverting || dniChecking}
-            className="bg-yellow-600 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-yellow-700 disabled:opacity-50 transition-colors"
+            className="bg-miski-gold text-white hover:bg-miski-gold-light hover:text-amber-900 rounded-lg px-4 py-2.5 text-sm font-semibold transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isConverting ? 'Convirtiendo...' : `Convertir cuenta${selectedRole ? ` a ${ROLE_LABELS[selectedRole]}` : ''}`}
           </button>
@@ -231,7 +233,7 @@ function CreateUserForm() {
           <button
             type="submit"
             disabled={isSubmitting || dniChecking}
-            className="bg-green-600 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-50 transition-colors"
+            className="bg-miski-forest text-white hover:bg-miski-green rounded-lg px-4 py-2.5 text-sm font-semibold transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isSubmitting ? 'Creando...' : 'Crear usuario'}
           </button>
@@ -239,7 +241,7 @@ function CreateUserForm() {
         <button
           type="button"
           onClick={() => router.push('/admin/users')}
-          className="bg-gray-100 text-gray-700 px-5 py-2 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors"
+          className="border border-miski-sage text-miski-forest hover:bg-miski-sage/30 rounded-lg px-4 py-2.5 text-sm font-medium transition-colors"
         >
           Cancelar
         </button>
@@ -315,7 +317,7 @@ function EditUserForm({ user }: { user: User }) {
       {/* Basic info */}
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Nombre completo</label>
+          <label className={labelCls}>Nombre completo</label>
           <input
             {...register('full_name')}
             className={inputCls}
@@ -326,11 +328,11 @@ function EditUserForm({ user }: { user: User }) {
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">DNI</label>
+            <label className={labelCls}>DNI</label>
             <input value={user.dni ?? ''} readOnly className={readonlyCls} />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
+            <label className={labelCls}>Teléfono</label>
             <input
               {...register('phone')}
               className={inputCls}
@@ -343,7 +345,7 @@ function EditUserForm({ user }: { user: User }) {
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <label className={labelCls}>Email</label>
             {editableEmail ? (
               <>
                 <input type="email" {...register('email')} className={inputCls} />
@@ -354,7 +356,7 @@ function EditUserForm({ user }: { user: User }) {
             )}
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Rol</label>
+            <label className={labelCls}>Rol</label>
             <input value={ROLE_LABELS[user.role] ?? user.role} readOnly className={readonlyCls} />
           </div>
         </div>
@@ -363,14 +365,14 @@ function EditUserForm({ user }: { user: User }) {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="bg-green-600 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-50 transition-colors"
+            className="bg-miski-forest text-white hover:bg-miski-green rounded-lg px-4 py-2.5 text-sm font-semibold transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isSubmitting ? 'Guardando...' : 'Guardar cambios'}
           </button>
           <button
             type="button"
             onClick={() => router.push('/admin/users')}
-            className="bg-gray-100 text-gray-700 px-5 py-2 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors"
+            className="border border-miski-sage text-miski-forest hover:bg-miski-sage/30 rounded-lg px-4 py-2.5 text-sm font-medium transition-colors"
           >
             Cancelar
           </button>
@@ -378,12 +380,14 @@ function EditUserForm({ user }: { user: User }) {
       </form>
 
       {/* Status */}
-      <div className="border-t border-gray-200 pt-6">
-        <h3 className="text-sm font-medium text-gray-900 mb-3">Estado de la cuenta</h3>
+      <div className="border-t border-miski-sage/30 pt-6">
+        <h3 className="text-sm font-medium text-miski-forest mb-3">Estado de la cuenta</h3>
         <div className="flex items-center gap-4">
           <span
-            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-              isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+              isActive
+                ? 'bg-miski-lime/20 text-miski-forest'
+                : 'bg-red-100 text-red-700'
             }`}
           >
             {isActive ? 'Activo' : 'Suspendido'}
@@ -395,7 +399,7 @@ function EditUserForm({ user }: { user: User }) {
             className={`text-sm px-4 py-1.5 rounded-lg font-medium transition-colors disabled:opacity-50 ${
               isActive
                 ? 'bg-red-50 text-red-600 hover:bg-red-100'
-                : 'bg-green-50 text-green-600 hover:bg-green-100'
+                : 'bg-miski-lime/20 text-miski-forest hover:bg-miski-lime/30'
             }`}
           >
             {togglingStatus ? '...' : isActive ? 'Suspender' : 'Reactivar'}

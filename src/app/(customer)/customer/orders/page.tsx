@@ -21,16 +21,16 @@ const STATUS_LABEL: Record<string, string> = {
 }
 
 const STATUS_COLOR: Record<string, string> = {
-  pending_payment:   'bg-yellow-100 text-yellow-800',
-  payment_submitted: 'bg-blue-100 text-blue-800',
-  confirmed:         'bg-blue-100 text-blue-800',
-  assigned:          'bg-indigo-100 text-indigo-800',
-  in_transit:        'bg-orange-100 text-orange-800',
-  delivered:         'bg-green-100 text-green-800',
-  in_storage:        'bg-amber-100 text-amber-800',
-  completed:         'bg-green-100 text-green-800',
-  cancelled:         'bg-gray-100 text-gray-600',
-  failed:            'bg-red-100 text-red-800',
+  pending_payment:   'bg-miski-gold-light/40 text-amber-800',
+  payment_submitted: 'bg-miski-gold-light/40 text-amber-800',
+  confirmed:         'bg-miski-lime/20 text-miski-forest',
+  assigned:          'bg-miski-lime/20 text-miski-forest',
+  in_transit:        'bg-miski-green/15 text-miski-forest',
+  delivered:         'bg-miski-lime/20 text-miski-forest',
+  in_storage:        'bg-miski-gold-light/40 text-amber-800',
+  completed:         'bg-miski-lime/20 text-miski-forest',
+  cancelled:         'bg-red-100 text-red-700',
+  failed:            'bg-red-100 text-red-700',
 }
 
 type RawOrder = {
@@ -73,14 +73,14 @@ export default async function OrdersPage() {
 
   return (
     <div className="max-w-2xl">
-      <h1 className="text-xl font-bold text-gray-900 mb-6">Mis pedidos</h1>
+      <h1 className="text-2xl font-bold text-miski-forest mb-6">Mis pedidos</h1>
 
       {orders.length === 0 ? (
         <p className="text-gray-400 text-sm">Aún no tienes pedidos.</p>
       ) : (
         <div className="space-y-4">
           {orders.map(order => (
-            <div key={order.id} className="bg-white rounded-xl border border-gray-200 p-5">
+            <div key={order.id} className="bg-white rounded-xl border border-miski-sage/40 shadow-sm p-5">
               <div className="flex items-start justify-between gap-3 mb-3">
                 <div>
                   <p className="text-xs text-gray-400">
@@ -88,7 +88,7 @@ export default async function OrdersPage() {
                   </p>
                   <p className="text-sm text-gray-600 mt-0.5">{order.delivery_address}</p>
                 </div>
-                <span className={`shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full ${STATUS_COLOR[order.status] ?? 'bg-gray-100 text-gray-600'}`}>
+                <span className={`shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full ${STATUS_COLOR[order.status] ?? 'bg-miski-gold-light/40 text-amber-800'}`}>
                   {STATUS_LABEL[order.status] ?? order.status}
                 </span>
               </div>
@@ -104,9 +104,9 @@ export default async function OrdersPage() {
                 ))}
               </div>
 
-              <div className="flex items-center justify-between border-t border-gray-100 pt-3">
-                <span className="text-xs text-gray-500">Total</span>
-                <span className="text-sm font-bold text-gray-900">{formatCurrency(order.total_amount)}</span>
+              <div className="flex items-center justify-between border-t border-miski-sage/20 pt-3">
+                <span className="text-xs text-miski-olive">Total</span>
+                <span className="text-sm font-bold text-miski-forest">{formatCurrency(order.total_amount)}</span>
               </div>
 
               {/* Confirmation code — visible when order is active and en route */}
@@ -122,7 +122,7 @@ export default async function OrdersPage() {
 
               {/* In-storage banner */}
               {order.status === 'in_storage' && (
-                <div className="mt-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+                <div className="mt-3 bg-miski-gold-light/20 border border-miski-gold/40 rounded-xl px-4 py-3">
                   <p className="text-sm text-amber-800">
                     Tu pedido está en nuestro almacén esperando ser recogido. Coordina con nosotros para la entrega.
                   </p>

@@ -15,11 +15,11 @@ function truncate(s: string, n = 15): string {
 
 export function TopSuppliersChart({ data }: Props) {
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-5">
-      <h3 className="text-sm font-semibold text-gray-700 mb-4">Top 5 proveedores por volumen</h3>
+    <div className="bg-white rounded-xl border border-miski-sage/40 shadow-sm p-5">
+      <h3 className="text-lg font-semibold text-miski-forest mb-4">Top 5 proveedores por volumen</h3>
 
       {data.length === 0 ? (
-        <p className="text-xs text-gray-400 text-center py-12">Sin datos en el período</p>
+        <p className="text-xs text-miski-olive text-center py-12">Sin datos en el período</p>
       ) : (
         <ResponsiveContainer width="100%" height={220}>
           <BarChart
@@ -34,7 +34,7 @@ export function TopSuppliersChart({ data }: Props) {
             <XAxis type="number" tick={{ fontSize: 11 }} />
             <YAxis dataKey="name" type="category" width={95} tick={{ fontSize: 11 }} />
             <Tooltip formatter={(v: unknown) => [Number(v), 'Cantidad despachada']} />
-            <Bar dataKey="cantidad" fill="#0ea5e9" radius={[0, 4, 4, 0]} />
+            <Bar dataKey="cantidad" fill="#469C53" radius={[0, 4, 4, 0]} />
           </BarChart>
         </ResponsiveContainer>
       )}

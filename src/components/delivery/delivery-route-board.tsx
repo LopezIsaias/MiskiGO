@@ -57,33 +57,33 @@ function StopCard({ stop, index, routeStarted, isDelivering, onDeliver, onIncide
 
   const [expanded, setExpanded] = useState(isPending)
 
-  const borderColor = isDelivered  ? 'border-green-200 bg-green-50'
-    : isInStorage   ? 'border-amber-200 bg-amber-50'
-    : isFailed      ? 'border-red-200 bg-red-50'
-    : 'border-gray-200 bg-white'
+  const borderColor = isDelivered  ? 'border-l-4 border-miski-green bg-white'
+    : isInStorage   ? 'border-l-4 border-miski-gold bg-white'
+    : isFailed      ? 'border-l-4 border-red-400 bg-white'
+    : 'border-l-4 border-miski-gold bg-white'
 
-  const numberColor = isDelivered ? 'bg-green-500'
-    : isInStorage   ? 'bg-amber-500'
+  const numberColor = isDelivered ? 'bg-miski-green'
+    : isInStorage   ? 'bg-miski-gold'
     : isFailed      ? 'bg-red-500'
-    : 'bg-gray-400'
+    : 'bg-miski-forest'
 
   const numberLabel = isDelivered ? '✓' : isInStorage ? '⚠' : isFailed ? '✕' : index
 
   return (
-    <div className={`rounded-xl border ${borderColor} overflow-hidden`}>
+    <div className={`rounded-xl border shadow-sm overflow-hidden ${borderColor}`}>
       <button
         type="button"
         onClick={() => setExpanded(p => !p)}
         className="w-full flex items-start gap-3 p-4 text-left"
       >
-        <div className={`shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white ${numberColor}`}>
+        <div className={`shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white ${numberColor}`}>
           {numberLabel}
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-gray-800 truncate">{stop.customerName}</p>
-          <p className="text-xs text-gray-500 truncate">{stop.deliveryAddress}</p>
+          <p className={`text-sm font-semibold truncate ${isDelivered ? 'text-gray-400' : 'text-miski-forest'}`}>{stop.customerName}</p>
+          <p className={`text-xs truncate ${isDelivered ? 'text-gray-400' : 'text-miski-olive'}`}>{stop.deliveryAddress}</p>
           {isDelivered && stop.deliveredAt && (
-            <p className="text-xs text-green-600 mt-0.5">
+            <p className="text-xs text-miski-green mt-0.5">
               Entregado a las {formatTime(stop.deliveredAt)}
               {stop.claimWindowExpiresAt && (
                 <> · ventana hasta {formatTime(stop.claimWindowExpiresAt)}</>
@@ -97,36 +97,36 @@ function StopCard({ stop, index, routeStarted, isDelivering, onDeliver, onIncide
             <p className="text-xs text-red-600 mt-0.5">Incidencia: {stop.failureReason}</p>
           )}
           {isPending && stop.deliveryAttempts > 0 && (
-            <p className="text-xs text-orange-500 mt-0.5">Intento {stop.deliveryAttempts}/2 fallido</p>
+            <p className="text-xs text-amber-600 mt-0.5">Intento {stop.deliveryAttempts}/2 fallido</p>
           )}
         </div>
-        <span className="text-xs text-gray-400 shrink-0 mt-1">{expanded ? '▲' : '▼'}</span>
+        <span className="text-xs text-miski-sage shrink-0 mt-1">{expanded ? '▲' : '▼'}</span>
       </button>
 
       {expanded && (
-        <div className="px-4 pb-4 space-y-3 border-t border-gray-100">
+        <div className="px-4 pb-4 space-y-3 border-t border-miski-sage/20">
           <div className="pt-3">
-            <p className="text-xs font-medium text-gray-500 mb-1.5">Productos a entregar</p>
+            <p className="text-xs font-semibold text-miski-forest/70 uppercase tracking-wider mb-1.5">Productos a entregar</p>
             <div className="space-y-1">
               {stop.items.map((item, i) => (
                 <div key={i} className="flex justify-between text-xs">
                   <span className="text-gray-700">{item.productName}</span>
-                  <span className="font-semibold text-gray-800">{item.quantity} {item.unit}</span>
+                  <span className="font-semibold text-miski-forest">{item.quantity} {item.unit}</span>
                 </div>
               ))}
             </div>
           </div>
 
           {stop.customerNote && (
-            <div className="bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+            <div className="bg-miski-gold-light/20 border border-miski-gold/30 rounded-lg px-3 py-2">
               <p className="text-xs text-amber-800">
                 <span className="font-semibold">Nota del cliente:</span> {stop.customerNote}
               </p>
             </div>
           )}
           {stop.deliveryNotes && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg px-3 py-2">
-              <p className="text-xs text-blue-800">
+            <div className="bg-miski-sage/20 border border-miski-sage/40 rounded-lg px-3 py-2">
+              <p className="text-xs text-miski-forest">
                 <span className="font-semibold">Instrucciones:</span> {stop.deliveryNotes}
               </p>
             </div>
@@ -145,7 +145,7 @@ function StopCard({ stop, index, routeStarted, isDelivering, onDeliver, onIncide
                 type="button"
                 onClick={onDeliver}
                 disabled={isDelivering}
-                className="flex-1 py-2.5 rounded-xl text-xs font-semibold text-white bg-green-600 active:bg-green-700 disabled:opacity-50"
+                className="flex-1 bg-miski-lime text-miski-forest font-semibold rounded-xl py-2.5 px-4 active:scale-[0.98] text-xs disabled:opacity-50"
               >
                 {isDelivering ? 'Verificando…' : 'Marcar entregado'}
               </button>
@@ -153,7 +153,7 @@ function StopCard({ stop, index, routeStarted, isDelivering, onDeliver, onIncide
           )}
 
           {!routeStarted && isPending && (
-            <p className="text-xs text-gray-400 text-center pt-1">
+            <p className="text-xs text-miski-olive text-center pt-1">
               Inicia la ruta para registrar entregas
             </p>
           )}
@@ -363,15 +363,15 @@ export function DeliveryRouteBoard({
           href={googleMapsUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="absolute bottom-2 right-2 bg-white text-xs text-blue-600 font-semibold px-3 py-1.5 rounded-full shadow-sm border border-gray-200"
+          className="absolute bottom-2 right-2 bg-white text-xs text-miski-forest font-semibold px-3 py-1.5 rounded-full shadow-sm border border-miski-sage/40"
         >
           Abrir en Google Maps
         </a>
       </div>
 
       {/* Action bar */}
-      <div className="px-4 py-3 bg-white border-b border-gray-100 flex items-center justify-between gap-3">
-        <p className="text-xs text-gray-500">
+      <div className="px-4 py-3 bg-white border-b border-miski-sage/20 flex items-center justify-between gap-3">
+        <p className="text-xs text-miski-olive">
           {totalCount} paradas · {pendingCount} pendientes · {deliveredCount} finalizadas
         </p>
         {!routeId && (
@@ -379,16 +379,16 @@ export function DeliveryRouteBoard({
             type="button"
             onClick={handleStartRoute}
             disabled={starting || totalCount === 0}
-            className="shrink-0 text-xs font-semibold bg-green-600 text-white px-4 py-2 rounded-lg disabled:opacity-50 active:bg-green-700"
+            className="shrink-0 text-xs font-semibold bg-miski-forest text-white px-4 py-2 rounded-lg disabled:opacity-50 hover:bg-miski-green active:scale-[0.98] transition-all"
           >
             {starting ? 'Iniciando…' : 'Iniciar ruta'}
           </button>
         )}
         {routeId && allDone && (
-          <span className="text-xs font-semibold text-green-600">Ruta completada ✓</span>
+          <span className="bg-miski-lime/20 text-miski-forest text-xs font-semibold px-2.5 py-1 rounded-full">Ruta completada ✓</span>
         )}
         {routeId && !allDone && (
-          <button type="button" onClick={() => router.refresh()} className="shrink-0 text-xs text-gray-500 underline">
+          <button type="button" onClick={() => router.refresh()} className="shrink-0 text-xs text-miski-olive underline">
             Actualizar
           </button>
         )}
@@ -426,8 +426,8 @@ export function DeliveryRouteBoard({
             onClick={e => e.stopPropagation()}
           >
             <div>
-              <h3 className="text-base font-semibold text-gray-800">Confirmar entrega</h3>
-              <p className="text-xs text-gray-500 mt-0.5">
+              <h3 className="text-base font-semibold text-miski-forest">Confirmar entrega</h3>
+              <p className="text-xs text-miski-olive mt-0.5">
                 Pide al cliente su código de 6 dígitos y escríbelo abajo.
               </p>
             </div>
@@ -444,7 +444,7 @@ export function DeliveryRouteBoard({
               }}
               placeholder="• • • • • •"
               autoFocus
-              className="w-full text-center text-4xl font-bold tracking-[0.4em] border-2 border-gray-300 rounded-xl py-3 focus:outline-none focus:border-green-500"
+              className="w-full text-center text-4xl font-bold tracking-[0.4em] border-2 border-miski-sage rounded-xl py-3 focus:outline-none focus:border-miski-green focus:ring-2 focus:ring-miski-lime/50 transition-colors text-gray-800"
             />
 
             {codeError && (
@@ -465,7 +465,7 @@ export function DeliveryRouteBoard({
                 type="button"
                 onClick={handleDeliver}
                 disabled={enteredCode.length !== 6 || delivering === codeOrderId}
-                className="flex-1 py-3 rounded-xl text-sm font-semibold text-white bg-green-600 disabled:opacity-50 active:bg-green-700"
+                className="flex-1 bg-miski-lime text-miski-forest font-semibold rounded-xl py-3 text-sm active:scale-[0.98] disabled:opacity-50 transition-all"
               >
                 {delivering === codeOrderId ? 'Verificando…' : 'Confirmar entrega'}
               </button>
@@ -485,10 +485,10 @@ export function DeliveryRouteBoard({
             onClick={e => e.stopPropagation()}
           >
             <div>
-              <h3 className="text-base font-semibold text-gray-800">
+              <h3 className="text-base font-semibold text-miski-forest">
                 {isSecondAttempt ? 'Segundo intento fallido — almacenamiento' : 'Reportar incidencia'}
               </h3>
-              <p className="text-xs text-gray-500 mt-0.5">
+              <p className="text-xs text-miski-olive mt-0.5">
                 {isSecondAttempt
                   ? 'El pedido pasará a estado "En almacén". Sube una foto del lugar de almacenamiento (obligatorio).'
                   : `Pedido ${incidentOrderId?.slice(0, 8).toUpperCase()} · se registrará el primer intento fallido.`}
@@ -502,14 +502,14 @@ export function DeliveryRouteBoard({
               placeholder={isSecondAttempt
                 ? 'Describe el motivo y dónde se almacenó el pedido…'
                 : 'Ej: cliente no se encontraba, dirección incorrecta, portón cerrado…'}
-              className="w-full text-sm border border-gray-300 rounded-xl px-3 py-2 focus:outline-none focus:border-red-400 resize-none"
+              className="w-full border border-miski-sage rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-miski-lime/50 focus:border-miski-green transition-colors text-gray-800 resize-none"
               autoFocus
             />
 
             {/* Photo upload — required on second attempt */}
             {isSecondAttempt && (
               <div>
-                <p className="text-xs font-semibold text-gray-600 mb-1.5">
+                <p className="block text-xs font-semibold text-miski-forest/70 uppercase tracking-wider mb-1.5">
                   Foto del lugar de almacenamiento <span className="text-red-500">*</span>
                 </p>
                 <input
@@ -525,8 +525,8 @@ export function DeliveryRouteBoard({
                   onClick={() => photoInputRef.current?.click()}
                   className={`w-full py-3 rounded-xl text-sm font-medium border-2 border-dashed transition-colors ${
                     incidentPhotoFile
-                      ? 'border-green-400 bg-green-50 text-green-700'
-                      : 'border-gray-300 text-gray-500'
+                      ? 'border-miski-green bg-miski-lime/10 text-miski-forest'
+                      : 'border-miski-sage bg-miski-cream/20 text-miski-olive hover:bg-miski-cream/40'
                   }`}
                 >
                   {incidentPhotoFile
@@ -556,7 +556,7 @@ export function DeliveryRouteBoard({
                   !incidentReason.trim() ||
                   (isSecondAttempt && !incidentPhotoFile)
                 }
-                className={`flex-1 py-3 rounded-xl text-sm font-semibold text-white disabled:opacity-50 ${
+                className={`flex-1 py-3 rounded-xl text-sm font-semibold text-white disabled:opacity-50 active:scale-[0.98] transition-all ${
                   isSecondAttempt ? 'bg-amber-600 active:bg-amber-700' : 'bg-red-600 active:bg-red-700'
                 }`}
               >

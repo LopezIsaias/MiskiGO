@@ -22,7 +22,7 @@ export default async function EditUserPage({ params }: Props) {
 
   return (
     <div>
-      <h1 className="text-xl font-bold text-gray-900 mb-6">Editar usuario</h1>
+      <h1 className="text-xl font-bold text-miski-forest mb-6">Editar usuario</h1>
       <UserForm user={user} />
       <div className="max-w-lg mt-0">
         <ResetPasswordForm userId={id} />

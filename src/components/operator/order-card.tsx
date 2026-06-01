@@ -49,11 +49,11 @@ interface PubOption {
 
 const METHOD_LABEL: Record<string, string> = { yape: 'Yape', transfer: 'Transferencia', wallet: 'Billetera' }
 const ITEM_STATUS_BADGE: Record<string, string> = {
-  pending:  'bg-gray-100 text-gray-600',
-  assigned: 'bg-green-100 text-green-700',
+  pending:  'bg-miski-gold-light/40 text-amber-800',
+  assigned: 'bg-miski-lime/20 text-miski-forest',
   failed:   'bg-red-100 text-red-700',
-  delivered:'bg-purple-100 text-purple-700',
-  rejected: 'bg-orange-100 text-orange-700',
+  delivered:'bg-miski-forest/10 text-miski-forest',
+  rejected: 'bg-red-100 text-red-700',
 }
 const ITEM_STATUS_LABEL: Record<string, string> = {
   pending: 'Pendiente', assigned: 'Asignado', failed: 'Sin stock',
@@ -120,13 +120,13 @@ function ManualAssignPanel({ orderId, item }: { orderId: string; item: OrderItem
       <button
         onClick={fetchPubs}
         disabled={loading}
-        className="text-xs font-medium text-amber-700 border border-amber-300 rounded px-2 py-1 hover:bg-amber-50 disabled:opacity-50"
+        className="text-xs font-medium border border-miski-sage text-miski-forest rounded px-2 py-1 hover:bg-miski-sage/30 disabled:opacity-50"
       >
         {loading ? 'Buscando…' : 'Buscar proveedor alternativo'}
       </button>
       {error && <p className="text-xs text-red-600">{error}</p>}
       {open && !loading && (
-        <div className="mt-1 space-y-1 border border-gray-200 rounded-lg p-2 bg-gray-50">
+        <div className="mt-1 space-y-1 border border-miski-sage/40 rounded-lg p-2 bg-miski-cream/30">
           {pubs.length === 0 ? (
             <p className="text-xs text-red-600">Sin stock disponible actualmente</p>
           ) : (
@@ -140,7 +140,7 @@ function ManualAssignPanel({ orderId, item }: { orderId: string; item: OrderItem
                   <button
                     onClick={() => doAssign(pub.id)}
                     disabled={!!assigningId}
-                    className="ml-auto text-green-700 border border-green-300 rounded px-2 py-0.5 hover:bg-green-50 disabled:opacity-50"
+                    className="ml-auto border border-miski-sage text-miski-forest rounded px-2 py-0.5 hover:bg-miski-sage/30 disabled:opacity-50"
                   >
                     {assigningId === pub.id ? 'Asignando…' : `Asignar ${deduct} ${item.unit}`}
                   </button>
@@ -196,24 +196,24 @@ export function OrderCard({ order }: { order: Order }) {
   ]
 
   return (
-    <div className={`bg-white rounded-xl border overflow-hidden ${hasFailed ? 'border-amber-300' : 'border-gray-200'}`}>
+    <div className={`bg-white rounded-xl border overflow-hidden shadow-sm ${hasFailed ? 'border-miski-gold' : 'border-miski-sage/40'}`}>
       {/* Header */}
       <div
-        className="px-4 py-3 flex items-center gap-3 cursor-pointer hover:bg-gray-50 transition-colors"
+        className="px-4 py-3 flex items-center gap-3 cursor-pointer hover:bg-miski-cream/30 transition-colors"
         onClick={() => setExpanded(e => !e)}
       >
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-semibold text-gray-900 text-sm">{order.customerName}</span>
+            <span className="font-semibold text-miski-forest text-sm">{order.customerName}</span>
             {order.customerPhone && (
               <span className="text-xs text-gray-400 font-mono">{order.customerPhone}</span>
             )}
             {hasFailed && (
-              <span className="text-xs font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-700">⚠ Stock</span>
+              <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-miski-gold-light/40 text-amber-800">⚠ Stock</span>
             )}
           </div>
           <div className="flex items-center gap-3 mt-0.5 text-xs text-gray-500">
-            <span className="font-medium text-gray-800">{formatCurrency(order.totalAmount)}</span>
+            <span className="font-bold text-miski-forest">{formatCurrency(order.totalAmount)}</span>
             {order.paymentMethod && (
               <span className="px-1.5 py-0.5 rounded bg-gray-100 text-gray-600">
                 {METHOD_LABEL[order.paymentMethod] ?? order.paymentMethod}
@@ -227,7 +227,7 @@ export function OrderCard({ order }: { order: Order }) {
       </div>
 
       {expanded && (
-        <div className="border-t border-gray-100 divide-y divide-gray-100">
+        <div className="border-t border-miski-sage/20 divide-y divide-miski-sage/20">
           {/* Items table */}
           <div className="p-4">
             <table className="w-full text-xs">
@@ -240,7 +240,7 @@ export function OrderCard({ order }: { order: Order }) {
                   <th className="text-right pb-2 font-medium">Estado</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50">
+              <tbody className="divide-y divide-miski-sage/10">
                 {order.items.map(item => (
                   <tr key={item.id} className="align-top">
                     <td className="py-2 pr-2 text-gray-800">
@@ -274,11 +274,11 @@ export function OrderCard({ order }: { order: Order }) {
           {/* WhatsApp messages */}
           <div className="p-4 space-y-3">
             <div className="flex items-center justify-between">
-              <p className="text-xs font-semibold text-gray-600">Notificar por WhatsApp</p>
+              <p className="text-xs font-semibold text-miski-forest">Notificar por WhatsApp</p>
               {order.customerPhone && (
                 <button
                   onClick={() => copyText(order.customerPhone!, 'phone')}
-                  className="text-xs text-gray-500 hover:text-gray-800 font-mono border border-gray-200 rounded px-2 py-0.5"
+                  className="text-xs text-miski-forest/70 hover:text-miski-forest font-mono border border-miski-sage rounded px-2 py-0.5"
                 >
                   {copiedKey === 'phone' ? '¡Copiado!' : order.customerPhone}
                 </button>
@@ -286,13 +286,13 @@ export function OrderCard({ order }: { order: Order }) {
             </div>
             <div className="grid grid-cols-1 gap-2">
               {WA_MESSAGES.map(({ key, label, msg, highlight }) => (
-                <div key={key} className={`rounded-lg border p-3 space-y-2 ${highlight ? 'border-green-300 bg-green-50' : 'border-gray-200'}`}>
-                  <p className="text-xs font-semibold text-gray-600">{label}</p>
+                <div key={key} className={`rounded-lg border p-3 space-y-2 ${highlight ? 'border-miski-green bg-miski-lime/10' : 'border-miski-sage/40'}`}>
+                  <p className="text-xs font-semibold text-miski-forest">{label}</p>
                   <p className="text-xs text-gray-700 leading-relaxed whitespace-pre-wrap">{msg}</p>
                   <div className="flex gap-2">
                     <button
                       onClick={() => copyText(msg, key)}
-                      className="text-xs text-gray-500 hover:text-gray-700 border border-gray-200 rounded px-2 py-1"
+                      className="text-xs border border-miski-sage text-miski-forest hover:bg-miski-sage/30 rounded px-2 py-1 transition-colors"
                     >
                       {copiedKey === key ? '¡Copiado!' : 'Copiar'}
                     </button>
@@ -301,7 +301,7 @@ export function OrderCard({ order }: { order: Order }) {
                         href={`https://wa.me/${waNumber}?text=${encodeURIComponent(msg)}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-xs text-green-600 hover:text-green-800 border border-green-200 rounded px-2 py-1"
+                        className="text-xs text-miski-green hover:text-miski-forest border border-miski-green/30 rounded px-2 py-1"
                       >
                         Abrir WhatsApp
                       </a>

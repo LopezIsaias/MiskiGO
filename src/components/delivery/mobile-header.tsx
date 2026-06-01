@@ -18,18 +18,24 @@ export function MobileHeader({ title, subtitle }: Props) {
   }
 
   return (
-    <header className="sticky top-0 z-10 bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between shadow-sm">
+    <header className="sticky top-0 z-10 bg-miski-forest px-4 py-3 flex items-center justify-between shadow-sm">
       <div className="min-w-0">
-        <span className="text-sm font-bold text-green-700 block">Miski GO</span>
-        <span className="text-xs text-gray-400 block leading-none">Repartidor</span>
+        <span className="text-sm font-bold text-white block">Miski GO</span>
+        <span className="text-xs text-white/60 block leading-none">Repartidor</span>
       </div>
       <div className="text-center min-w-0 px-2">
-        <p className="text-sm font-semibold text-gray-800 truncate">{title}</p>
-        {subtitle && <p className="text-xs text-gray-400 truncate">{subtitle}</p>}
+        <p className="text-sm font-bold text-white truncate">{title}</p>
+        {subtitle && (
+          <p className="text-xs truncate">
+            <span className="bg-miski-lime text-miski-forest font-semibold rounded-full px-2 py-0.5 text-[10px]">
+              {subtitle}
+            </span>
+          </p>
+        )}
       </div>
       <button
         onClick={handleSignOut}
-        className="text-xs text-gray-400 hover:text-gray-700 whitespace-nowrap py-1 px-2 rounded-lg hover:bg-gray-50 transition-colors"
+        className="text-xs text-white/70 hover:text-white whitespace-nowrap py-1 px-2 rounded-lg hover:bg-white/10 transition-colors"
       >
         Salir
       </button>

@@ -24,10 +24,14 @@ export function OperatorSidebar() {
   }
 
   return (
-    <aside className="w-56 shrink-0 h-screen bg-white border-r border-gray-200 flex flex-col">
-      <div className="px-5 py-4 border-b border-gray-200">
-        <span className="text-base font-bold text-green-700">Miski GO</span>
-        <p className="text-xs text-gray-400 mt-0.5">Operaciones</p>
+    <aside className="w-56 shrink-0 h-screen bg-miski-forest flex flex-col">
+      <div className="px-5 py-4 border-b border-white/10">
+        <span className="text-base font-bold tracking-wide text-white">Miski GO</span>
+        <p className="mt-0.5">
+          <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold bg-miski-lime/15 text-miski-lime tracking-wide">
+            Operador
+          </span>
+        </p>
       </div>
 
       <nav className="flex-1 px-2 py-3 space-y-0.5">
@@ -37,10 +41,10 @@ export function OperatorSidebar() {
             <Link
               key={href}
               href={href}
-              className={`block px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+              className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
                 isActive
-                  ? 'bg-green-50 text-green-700'
-                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                  ? 'bg-miski-lime text-miski-forest font-medium'
+                  : 'text-white/65 hover:bg-white/10 hover:text-white'
               }`}
             >
               {label}
@@ -49,10 +53,10 @@ export function OperatorSidebar() {
         })}
       </nav>
 
-      <div className="px-2 py-3 border-t border-gray-200">
+      <div className="px-2 py-3 border-t border-white/10">
         <button
           onClick={handleSignOut}
-          className="w-full text-left px-3 py-2 rounded-lg text-sm text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors"
+          className="w-full text-left px-3 py-2 rounded-lg text-sm text-white/40 hover:bg-white/10 hover:text-white/80 transition-colors"
         >
           Cerrar sesión
         </button>

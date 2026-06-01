@@ -24,8 +24,8 @@ export default async function SettingsPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-1">Parámetros del sistema</h1>
-      <p className="text-sm text-gray-500 mb-6">
+      <h1 className="text-2xl font-bold text-miski-forest mb-1">Parámetros del sistema</h1>
+      <p className="text-sm text-miski-olive mb-6">
         Cambios en precios de categoría afectan los precios sugeridos de las próximas publicaciones.
         Los pedidos existentes conservan sus precios congelados.
       </p>

@@ -38,8 +38,8 @@ export default async function OperatorWalletPage() {
   return (
     <div className="max-w-2xl">
       <div className="mb-6">
-        <h1 className="text-xl font-bold text-gray-900">Recargas de billetera</h1>
-        <p className="text-sm text-gray-500 mt-1">
+        <h1 className="text-2xl font-bold text-miski-forest">Recargas de billetera</h1>
+        <p className="text-sm text-miski-olive mt-1">
           {pending.length > 0
             ? `${pending.length} recarga${pending.length > 1 ? 's' : ''} pendiente${pending.length > 1 ? 's' : ''} de revisión`
             : 'No hay recargas pendientes'}

@@ -33,16 +33,16 @@ export function SalesChart({ data, isWeekComparison }: Props) {
   const interval = data.length > 14 ? Math.floor(data.length / 7) : 0
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-5">
-      <h3 className="text-sm font-semibold text-gray-700 mb-4">
+    <div className="bg-white rounded-xl border border-miski-sage/40 shadow-sm p-5">
+      <h3 className="text-lg font-semibold text-miski-forest mb-4">
         Ventas diarias (S/)
         {isWeekComparison && (
-          <span className="ml-2 text-xs font-normal text-gray-400">— semana actual vs anterior</span>
+          <span className="ml-2 text-xs font-normal text-miski-olive">— semana actual vs anterior</span>
         )}
       </h3>
 
       {data.length === 0 ? (
-        <p className="text-xs text-gray-400 text-center py-12">Sin ventas en el período</p>
+        <p className="text-xs text-miski-olive text-center py-12">Sin ventas en el período</p>
       ) : (
         <ResponsiveContainer width="100%" height={240}>
           <LineChart data={formatted} margin={{ top: 5, right: 20, bottom: 5, left: 10 }}>
@@ -63,7 +63,7 @@ export function SalesChart({ data, isWeekComparison }: Props) {
               type="monotone"
               dataKey="current"
               name="Esta semana"
-              stroke="#16a34a"
+              stroke="#BED348"
               strokeWidth={2}
               dot={{ r: 3 }}
               activeDot={{ r: 5 }}
@@ -74,7 +74,7 @@ export function SalesChart({ data, isWeekComparison }: Props) {
                 type="monotone"
                 dataKey="previous"
                 name="Sem. anterior"
-                stroke="#9ca3af"
+                stroke="#469C53"
                 strokeWidth={2}
                 strokeDasharray="5 3"
                 dot={{ r: 3 }}

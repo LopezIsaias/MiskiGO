@@ -8,15 +8,15 @@ interface CardProps {
 
 function Card({ label, value, accent }: CardProps) {
   const valueClass =
-    accent === 'green'  ? 'text-green-700' :
-    accent === 'red'    ? 'text-red-600'   :
-    accent === 'yellow' ? 'text-yellow-600' :
-    'text-gray-900'
+    accent === 'green'  ? 'text-miski-forest font-bold' :
+    accent === 'red'    ? 'text-red-600 font-bold'      :
+    accent === 'yellow' ? 'text-miski-gold font-bold'   :
+    'text-miski-forest font-bold'
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-5">
-      <p className="text-xs text-gray-500 font-medium">{label}</p>
-      <p className={`text-2xl font-bold mt-1 ${valueClass}`}>{value}</p>
+    <div className="bg-white rounded-xl border border-miski-sage/40 shadow-sm p-5">
+      <p className="text-miski-olive text-xs uppercase tracking-wide font-medium">{label}</p>
+      <p className={`text-2xl mt-1 ${valueClass}`}>{value}</p>
     </div>
   )
 }

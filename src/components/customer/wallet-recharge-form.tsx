@@ -88,13 +88,13 @@ export function WalletRechargeForm() {
 
   if (success) {
     return (
-      <div className="bg-green-50 border border-green-200 rounded-xl p-6 text-center space-y-2">
-        <p className="text-green-800 font-semibold text-sm">¡Recarga enviada correctamente!</p>
-        <p className="text-sm text-green-700">
+      <div className="bg-miski-lime/15 border border-miski-green/30 rounded-xl p-6 text-center space-y-2">
+        <p className="text-miski-forest font-semibold text-sm">¡Recarga enviada correctamente!</p>
+        <p className="text-sm text-miski-forest/80">
           Tu comprobante está en revisión. El tiempo estimado de validación es de{' '}
           <strong>1 a 3 horas en horario laboral</strong>.
         </p>
-        <p className="text-xs text-green-600 mt-1">
+        <p className="text-xs text-miski-olive mt-1">
           Te notificaremos cuando tu saldo sea actualizado.
         </p>
       </div>
@@ -102,12 +102,12 @@ export function WalletRechargeForm() {
   }
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-5">
-      <h2 className="text-sm font-semibold text-gray-700">Recargar billetera</h2>
+    <div className="bg-white rounded-xl border border-miski-sage/40 p-5 space-y-5">
+      <h2 className="text-sm font-semibold text-miski-forest">Recargar billetera</h2>
 
       {/* Amount presets + custom */}
       <div>
-        <p className="text-xs font-semibold text-gray-600 mb-2">Monto (S/)</p>
+        <p className="block text-xs font-semibold text-miski-forest/70 uppercase tracking-wider mb-1.5">Monto (S/)</p>
         <div className="flex gap-2 flex-wrap mb-2">
           {PRESET_AMOUNTS.map(p => (
             <button
@@ -116,8 +116,8 @@ export function WalletRechargeForm() {
               onClick={() => setAmount(String(p))}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
                 amount === String(p)
-                  ? 'bg-green-600 text-white border-green-600'
-                  : 'bg-white text-gray-600 border-gray-300 hover:border-gray-400'
+                  ? 'border-miski-lime bg-miski-lime/10 text-miski-forest'
+                  : 'bg-white text-gray-600 border-miski-sage hover:border-miski-sage/80'
               }`}
             >
               {formatCurrency(p)}
@@ -131,13 +131,13 @@ export function WalletRechargeForm() {
           value={amount}
           onChange={e => setAmount(e.target.value)}
           placeholder="Otro monto"
-          className="w-40 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-400"
+          className="w-40 border border-miski-sage rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-miski-lime/50 focus:border-miski-green transition-colors placeholder:text-gray-300 text-gray-800"
         />
       </div>
 
       {/* Method */}
       <div>
-        <p className="text-xs font-semibold text-gray-600 mb-2">Método de pago</p>
+        <p className="block text-xs font-semibold text-miski-forest/70 uppercase tracking-wider mb-1.5">Método de pago</p>
         <div className="flex gap-2">
           {(['yape', 'transfer'] as const).map(m => (
             <button
@@ -146,8 +146,8 @@ export function WalletRechargeForm() {
               onClick={() => setMethod(m)}
               className={`px-4 py-2 rounded-lg text-xs font-semibold border transition-colors ${
                 method === m
-                  ? 'bg-green-600 text-white border-green-600'
-                  : 'bg-white text-gray-600 border-gray-300 hover:border-gray-400'
+                  ? 'border-miski-lime bg-miski-lime/10 text-miski-forest'
+                  : 'bg-white text-gray-600 border-miski-sage hover:border-miski-sage/80'
               }`}
             >
               {m === 'yape' ? 'Yape' : 'Transferencia'}
@@ -158,7 +158,7 @@ export function WalletRechargeForm() {
 
       {/* Proof upload */}
       <div>
-        <p className="text-xs font-semibold text-gray-600 mb-2">Comprobante de pago</p>
+        <p className="block text-xs font-semibold text-miski-forest/70 uppercase tracking-wider mb-1.5">Comprobante de pago</p>
         <input
           ref={inputRef}
           type="file"
@@ -172,7 +172,7 @@ export function WalletRechargeForm() {
             <img
               src={proofPreview}
               alt="Comprobante"
-              className="w-32 h-32 object-cover rounded-lg border border-gray-200"
+              className="w-32 h-32 object-cover rounded-lg border border-miski-sage/40"
             />
             <button
               type="button"
@@ -186,7 +186,7 @@ export function WalletRechargeForm() {
           <button
             type="button"
             onClick={() => inputRef.current?.click()}
-            className="border-2 border-dashed border-gray-300 rounded-lg px-6 py-4 text-sm text-gray-400 hover:border-green-400 hover:text-green-600 transition-colors"
+            className="border-2 border-dashed border-miski-sage rounded-lg px-6 py-4 text-sm text-gray-400 hover:border-miski-green hover:text-miski-forest transition-colors"
           >
             Subir comprobante
           </button>
@@ -201,7 +201,7 @@ export function WalletRechargeForm() {
         type="button"
         onClick={() => void handleSubmit()}
         disabled={!canSubmit}
-        className="px-5 py-2 rounded-lg text-sm font-semibold text-white bg-green-600 hover:bg-green-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+        className="px-5 py-2.5 rounded-lg text-sm font-semibold text-white bg-miski-forest hover:bg-miski-green transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {uploading ? 'Subiendo comprobante…' : saving ? 'Registrando…' : 'Confirmar recarga'}
       </button>

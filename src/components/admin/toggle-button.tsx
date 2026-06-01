@@ -32,10 +32,10 @@ export function ToggleButton({ id, isActive, endpoint }: ToggleButtonProps) {
   return (
     <button
       onClick={toggle}
-      className={`px-2 py-0.5 rounded-full text-xs font-medium transition-colors ${
+      className={`px-2 py-0.5 rounded-full text-xs font-semibold transition-colors ${
         active
-          ? 'bg-green-100 text-green-700 hover:bg-green-200'
-          : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+          ? 'bg-miski-lime text-miski-forest hover:bg-miski-lime/80'
+          : 'bg-miski-sage/50 text-miski-forest/60 hover:bg-miski-sage/70'
       }`}
     >
       {active ? 'Activa' : 'Inactiva'}

@@ -11,7 +11,7 @@ export default async function NewProductPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Nuevo producto</h1>
+      <h1 className="text-2xl font-bold text-miski-forest mb-6">Nuevo producto</h1>
       <ProductForm categories={categories ?? []} />
     </div>
   )

@@ -44,19 +44,19 @@ export default async function UsersPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-xl font-bold text-gray-900">Usuarios</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Todos los usuarios del sistema</p>
+          <h1 className="text-xl font-bold text-miski-forest">Usuarios</h1>
+          <p className="text-sm text-miski-olive mt-0.5">Todos los usuarios del sistema</p>
         </div>
         <Link
           href="/admin/users/new"
-          className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-700 transition-colors"
+          className="bg-miski-forest text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-miski-green transition-all"
         >
           + Nuevo usuario
         </Link>
       </div>
 
       {users.length === 0 ? (
-        <div className="text-center py-12 text-gray-400 text-sm">
+        <div className="text-center py-12 text-miski-olive text-sm">
           No hay operadores ni repartidores creados.
         </div>
       ) : (
@@ -120,7 +120,7 @@ export default async function UsersPage() {
                     {u.role !== 'superadmin' && (
                       <Link
                         href={`/admin/users/${u.id}/edit`}
-                        className="text-green-600 hover:text-green-700 font-medium text-xs"
+                        className="text-miski-green hover:text-miski-forest font-medium text-xs"
                       >
                         Editar
                       </Link>

@@ -20,7 +20,7 @@ export default async function EditCategoryPage({ params }: Props) {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Editar categoría</h1>
+      <h1 className="text-2xl font-bold text-miski-forest mb-6">Editar categoría</h1>
       <CategoryForm category={category} />
     </div>
   )

@@ -126,8 +126,8 @@ export default async function AuditPage({
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-gray-900">Log de auditoría</h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <h1 className="text-xl font-bold text-miski-forest">Log de auditoría</h1>
+          <p className="text-sm text-miski-olive mt-1">
             {total > 0
               ? `${total.toLocaleString('es-PE')} registro${total !== 1 ? 's' : ''}${totalPages > 1 ? ` · Página ${page} de ${totalPages}` : ''}`
               : 'Sin registros para los filtros seleccionados'}
@@ -135,7 +135,7 @@ export default async function AuditPage({
         </div>
         <a
           href={exportUrl}
-          className="shrink-0 px-4 py-2 rounded-lg text-xs font-semibold text-green-700 border border-green-300 hover:bg-green-50 transition-colors"
+          className="shrink-0 px-4 py-2 rounded-lg text-xs font-semibold text-miski-forest border border-miski-green hover:bg-miski-cream transition-colors"
         >
           Exportar CSV
         </a>
@@ -170,7 +170,7 @@ export default async function AuditPage({
               href={pageUrl(p)}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                 p === page
-                  ? 'bg-green-600 text-white'
+                  ? 'bg-miski-forest text-white'
                   : 'border border-gray-300 hover:bg-gray-50 text-gray-700'
               }`}
             >

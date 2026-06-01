@@ -14,7 +14,9 @@ interface CategoryFormProps {
 }
 
 const inputCls =
-  'w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500'
+  'w-full border border-miski-sage rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-miski-lime/50 focus:border-miski-green transition-colors placeholder:text-gray-300 text-gray-800'
+
+const labelCls = 'block text-xs font-semibold text-miski-forest/70 uppercase tracking-wider mb-1.5'
 
 export function CategoryForm({ category }: CategoryFormProps) {
   const router = useRouter()
@@ -65,14 +67,14 @@ export function CategoryForm({ category }: CategoryFormProps) {
       )}
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Nombre</label>
+        <label className={labelCls}>Nombre</label>
         <input {...register('name')} className={inputCls} placeholder="ej. Frutas frescas" />
         {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>}
       </div>
 
       <div className="grid grid-cols-3 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Costo operativo %</label>
+          <label className={labelCls}>Costo operativo %</label>
           <input
             type="number"
             step="0.1"
@@ -87,7 +89,7 @@ export function CategoryForm({ category }: CategoryFormProps) {
           )}
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Margen sugerido %</label>
+          <label className={labelCls}>Margen sugerido %</label>
           <input
             type="number"
             step="0.1"
@@ -102,7 +104,7 @@ export function CategoryForm({ category }: CategoryFormProps) {
           )}
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Merma estimada %</label>
+          <label className={labelCls}>Merma estimada %</label>
           <input
             type="number"
             step="0.1"
@@ -123,7 +125,7 @@ export function CategoryForm({ category }: CategoryFormProps) {
           type="checkbox"
           id="cat_is_active"
           {...register('is_active')}
-          className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+          className="rounded border-miski-sage text-miski-green focus:ring-miski-lime"
         />
         <label htmlFor="cat_is_active" className="text-sm text-gray-700">
           Activa
@@ -134,14 +136,14 @@ export function CategoryForm({ category }: CategoryFormProps) {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="bg-green-600 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-50 transition-colors"
+          className="bg-miski-forest text-white hover:bg-miski-green rounded-lg px-4 py-2.5 text-sm font-semibold transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isSubmitting ? 'Guardando...' : isEdit ? 'Guardar cambios' : 'Crear categoría'}
         </button>
         <button
           type="button"
           onClick={() => router.push('/admin/categories')}
-          className="bg-gray-100 text-gray-700 px-5 py-2 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors"
+          className="border border-miski-sage text-miski-forest hover:bg-miski-sage/30 rounded-lg px-4 py-2.5 text-sm font-medium transition-colors"
         >
           Cancelar
         </button>

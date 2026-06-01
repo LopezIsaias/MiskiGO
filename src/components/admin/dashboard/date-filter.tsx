@@ -44,6 +44,9 @@ const PRESETS: { key: Preset; label: string }[] = [
   { key: 'custom',    label: 'Personalizado' },
 ]
 
+const inputCls =
+  'border border-miski-sage rounded-lg px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-miski-lime/50 focus:border-miski-green transition-colors text-gray-800'
+
 interface Props { preset: string; from: string; to: string }
 
 export function DateFilter({ preset, from, to }: Props) {
@@ -70,8 +73,8 @@ export function DateFilter({ preset, from, to }: Props) {
           onClick={() => apply(key)}
           className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
             preset === key
-              ? 'bg-green-600 text-white border-green-600'
-              : 'bg-white text-gray-600 border-gray-300 hover:border-green-400'
+              ? 'bg-miski-forest text-white border-miski-forest'
+              : 'bg-white border-miski-sage text-miski-forest hover:bg-miski-cream/50'
           }`}
         >
           {label}
@@ -84,19 +87,19 @@ export function DateFilter({ preset, from, to }: Props) {
             type="date"
             value={customFrom}
             onChange={e => setCustomFrom(e.target.value)}
-            className="border border-gray-300 rounded-lg px-2 py-1 text-xs"
+            className={inputCls}
           />
-          <span className="text-xs text-gray-400">→</span>
+          <span className="text-xs text-miski-olive">→</span>
           <input
             type="date"
             value={customTo}
             onChange={e => setCustomTo(e.target.value)}
-            className="border border-gray-300 rounded-lg px-2 py-1 text-xs"
+            className={inputCls}
           />
           <button
             type="button"
             onClick={() => apply('custom')}
-            className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-green-600 text-white"
+            className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-miski-forest text-white hover:bg-miski-green transition-colors"
           >
             Aplicar
           </button>

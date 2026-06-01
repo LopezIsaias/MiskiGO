@@ -20,14 +20,16 @@ interface Props {
 }
 
 const inputCls =
-  'w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500'
+  'w-full border border-miski-sage rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-miski-lime/50 focus:border-miski-green transition-colors placeholder:text-gray-300 text-gray-800'
+
+const labelCls = 'block text-xs font-semibold text-miski-forest/70 uppercase tracking-wider mb-1.5'
 
 function Field({ label, error, children }: { label: string; error?: string; children: ReactNode }) {
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
+      <label className={labelCls}>{label}</label>
       {children}
-      {error && <p className="text-red-500 text-xs mt-1">{error}</p>}
+      {error && <p className="text-red-400 text-xs mt-1">{error}</p>}
     </div>
   )
 }
@@ -80,11 +82,11 @@ export function RegisterForm({ regions }: Props) {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       {serverError && (
-        <div className="bg-red-50 text-red-600 text-sm px-4 py-3 rounded-lg">{serverError}</div>
+        <div className="bg-red-50 border border-red-100 text-red-600 text-sm px-4 py-3 rounded-lg">{serverError}</div>
       )}
 
       <div>
-        <p className="text-sm font-medium text-gray-700 mb-2">Soy...</p>
+        <p className={labelCls}>Soy...</p>
         <div className="grid grid-cols-2 gap-3">
           {(['customer', 'supplier'] as const).map(r => (
             <button
@@ -93,15 +95,15 @@ export function RegisterForm({ regions }: Props) {
               onClick={() => selectRole(r)}
               className={`p-3 rounded-lg border-2 text-sm font-medium transition-colors ${
                 role === r
-                  ? 'border-green-500 bg-green-50 text-green-700'
-                  : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                  ? 'border-miski-lime bg-miski-lime/10 text-miski-forest'
+                  : 'border-miski-sage text-gray-500 hover:border-miski-sage/80'
               }`}
             >
               {r === 'customer' ? 'Cliente' : 'Proveedor'}
             </button>
           ))}
         </div>
-        {errors.role && <p className="text-red-500 text-xs mt-1">{errors.role.message}</p>}
+        {errors.role && <p className="text-red-400 text-xs mt-1">{errors.role.message}</p>}
       </div>
 
       {role && (
@@ -179,7 +181,7 @@ export function RegisterForm({ regions }: Props) {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full bg-green-600 text-white py-2.5 rounded-lg font-medium text-sm hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="w-full bg-miski-forest text-white py-2.5 rounded-lg font-semibold text-sm hover:bg-miski-green active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-150"
           >
             {isSubmitting ? 'Creando cuenta...' : 'Crear cuenta'}
           </button>

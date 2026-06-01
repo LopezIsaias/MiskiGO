@@ -12,6 +12,11 @@ interface Props {
   userName: string
 }
 
+const inputCls =
+  'w-full border border-miski-sage rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-miski-lime/50 focus:border-miski-green transition-colors placeholder:text-gray-300 text-gray-800'
+
+const labelCls = 'block text-xs font-semibold text-miski-forest/70 uppercase tracking-wider mb-1.5'
+
 export function AuditFilters({ fromDate, toDate, action, module: mod, userName }: Props) {
   const router  = useRouter()
   const formRef = useRef<HTMLFormElement>(null)
@@ -43,37 +48,37 @@ export function AuditFilters({ fromDate, toDate, action, module: mod, userName }
     <form
       ref={formRef}
       onSubmit={handleSubmit}
-      className="bg-white rounded-xl border border-gray-200 p-4 space-y-3"
+      className="bg-white rounded-xl border border-miski-sage/40 p-4 space-y-3"
     >
-      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Filtros</p>
+      <p className="text-xs font-semibold text-miski-forest/70 uppercase tracking-wider">Filtros</p>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5">
         <div>
-          <label className="block text-xs text-gray-500 mb-1">Desde</label>
+          <label className={labelCls}>Desde</label>
           <input
             type="date"
             name="from_date"
             defaultValue={fromDate}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-400"
+            className={inputCls}
           />
         </div>
 
         <div>
-          <label className="block text-xs text-gray-500 mb-1">Hasta</label>
+          <label className={labelCls}>Hasta</label>
           <input
             type="date"
             name="to_date"
             defaultValue={toDate}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-400"
+            className={inputCls}
           />
         </div>
 
         <div>
-          <label className="block text-xs text-gray-500 mb-1">Acción</label>
+          <label className={labelCls}>Acción</label>
           <select
             name="action"
             defaultValue={action}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-400"
+            className={inputCls}
           >
             <option value="">Todas</option>
             {Object.values(AUDIT_ACTIONS).map(a => (
@@ -83,11 +88,11 @@ export function AuditFilters({ fromDate, toDate, action, module: mod, userName }
         </div>
 
         <div>
-          <label className="block text-xs text-gray-500 mb-1">Módulo</label>
+          <label className={labelCls}>Módulo</label>
           <select
             name="module"
             defaultValue={mod}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-400"
+            className={inputCls}
           >
             <option value="">Todos</option>
             {Object.values(AUDIT_MODULES).map(m => (
@@ -97,13 +102,13 @@ export function AuditFilters({ fromDate, toDate, action, module: mod, userName }
         </div>
 
         <div>
-          <label className="block text-xs text-gray-500 mb-1">Usuario</label>
+          <label className={labelCls}>Usuario</label>
           <input
             type="text"
             name="user_name"
             defaultValue={userName}
             placeholder="Nombre…"
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-400"
+            className={inputCls}
           />
         </div>
       </div>
@@ -111,14 +116,14 @@ export function AuditFilters({ fromDate, toDate, action, module: mod, userName }
       <div className="flex gap-2">
         <button
           type="submit"
-          className="px-4 py-2 rounded-lg text-xs font-semibold text-white bg-green-600 hover:bg-green-700 transition-colors"
+          className="bg-miski-forest text-white hover:bg-miski-green rounded-lg px-4 py-2.5 text-sm font-semibold transition-all active:scale-[0.98]"
         >
           Filtrar
         </button>
         <button
           type="button"
           onClick={handleClear}
-          className="px-4 py-2 rounded-lg text-xs font-semibold text-gray-600 border border-gray-300 hover:bg-gray-50 transition-colors"
+          className="border border-miski-sage text-miski-forest hover:bg-miski-sage/30 rounded-lg px-4 py-2.5 text-sm font-medium transition-colors"
         >
           Limpiar
         </button>

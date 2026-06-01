@@ -32,10 +32,10 @@ const STATUS_LABEL: Record<string, string> = {
 }
 
 const STATUS_COLOR: Record<string, string> = {
-  pending:             'bg-yellow-100 text-yellow-800',
-  approved:            'bg-green-100 text-green-800',
-  partially_approved:  'bg-blue-100 text-blue-800',
-  rejected:            'bg-red-100 text-red-800',
+  pending:             'bg-miski-gold-light/40 text-amber-800',
+  approved:            'bg-miski-lime/20 text-miski-forest',
+  partially_approved:  'bg-blue-100 text-blue-700',
+  rejected:            'bg-red-100 text-red-700',
 }
 
 const RESOLUTION_LABEL: Record<string, string> = {
@@ -134,11 +134,11 @@ function ClaimCard({ claim }: CardProps) {
   const orderId = claim.order?.id.slice(0, 8).toUpperCase() ?? '—'
 
   return (
-    <div className={`bg-white rounded-xl border overflow-hidden ${
-      isPending ? 'border-yellow-200' : 'border-gray-200'
+    <div className={`bg-white rounded-xl border overflow-hidden shadow-sm ${
+      isPending ? 'border-l-4 border-miski-gold' : 'border-miski-sage/40'
     }`}>
       {/* Header */}
-      <div className="px-5 py-4 flex items-start gap-4 border-b border-gray-100">
+      <div className="px-5 py-4 flex items-start gap-4 border-b border-miski-sage/20">
         {/* Photos */}
         <div className="shrink-0 flex gap-2">
           <div className="flex flex-col items-center gap-1">
@@ -147,7 +147,7 @@ function ClaimCard({ claim }: CardProps) {
               <img
                 src={claim.photo_url}
                 alt="Foto del cliente"
-                className="w-20 h-20 object-cover rounded-lg border border-gray-200 hover:opacity-80 transition-opacity"
+                className="w-20 h-20 object-cover rounded-lg border border-miski-sage/40 hover:opacity-80 transition-opacity"
               />
             </a>
             <span className="text-[10px] text-gray-400 font-medium">Cliente</span>
@@ -160,11 +160,11 @@ function ClaimCard({ claim }: CardProps) {
                 <img
                   src={claim.reception_photo_url}
                   alt="Foto en recepción"
-                  className="w-20 h-20 object-cover rounded-lg border border-blue-200 hover:opacity-80 transition-opacity"
+                  className="w-20 h-20 object-cover rounded-lg border border-miski-green/30 hover:opacity-80 transition-opacity"
                 />
               </a>
             ) : (
-              <div className="w-20 h-20 rounded-lg border border-dashed border-gray-200 bg-gray-50 flex items-center justify-center">
+              <div className="w-20 h-20 rounded-lg border border-dashed border-miski-sage/40 bg-miski-cream/30 flex items-center justify-center">
                 <span className="text-[9px] text-gray-400 text-center leading-tight px-1">
                   Sin reporte de recepción
                 </span>
@@ -182,13 +182,13 @@ function ClaimCard({ claim }: CardProps) {
             </span>
             <span className="text-xs text-gray-400">{formatDateTime(claim.created_at)}</span>
           </div>
-          <p className="text-sm font-semibold text-gray-900">
+          <p className="text-sm font-semibold text-miski-forest">
             {claim.customer?.full_name ?? '—'} · Pedido #{orderId}
           </p>
-          <p className="text-xs text-gray-500 mt-0.5">
+          <p className="text-xs text-miski-olive mt-0.5">
             {claim.product?.name ?? '—'} · {claim.claimed_quantity} {claim.product?.unit}
           </p>
-          <p className="text-xs text-gray-600 mt-1.5 bg-gray-50 rounded-lg px-3 py-2 italic">
+          <p className="text-xs text-gray-600 mt-1.5 bg-miski-cream/30 rounded-lg px-3 py-2 italic">
             &ldquo;{claim.reason}&rdquo;
           </p>
           {!claim.reception_photo_url && (
@@ -220,7 +220,7 @@ function ClaimCard({ claim }: CardProps) {
                 <img
                   src={claim.resolution_proof_url}
                   alt="Comprobante de resolución"
-                  className="w-24 h-16 object-cover rounded-lg border border-gray-200 hover:opacity-80 transition-opacity"
+                  className="w-24 h-16 object-cover rounded-lg border border-miski-sage/40 hover:opacity-80 transition-opacity"
                 />
               </a>
             </div>
@@ -230,10 +230,10 @@ function ClaimCard({ claim }: CardProps) {
 
       {/* Resolve form — pending only */}
       {isPending && !resolved && (
-        <div className="px-5 py-4 space-y-4 bg-gray-50 border-t border-gray-100">
+        <div className="px-5 py-4 space-y-4 bg-miski-cream/20 border-t border-miski-sage/20">
           {/* Verdict */}
           <div>
-            <p className="text-xs font-semibold text-gray-600 mb-2">Decisión</p>
+            <p className="text-xs font-semibold text-miski-forest/70 uppercase tracking-wider mb-2">Decisión</p>
             <div className="flex gap-2 flex-wrap">
               {(['approved', 'partially_approved', 'rejected'] as Verdict[]).map(v => (
                 <button
@@ -243,11 +243,11 @@ function ClaimCard({ claim }: CardProps) {
                   className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
                     verdict === v
                       ? v === 'rejected'
-                        ? 'bg-red-600 text-white border-red-600'
+                        ? 'bg-red-500 text-white border-red-500'
                         : v === 'approved'
-                          ? 'bg-green-600 text-white border-green-600'
-                          : 'bg-blue-600 text-white border-blue-600'
-                      : 'bg-white text-gray-600 border-gray-300 hover:border-gray-400'
+                          ? 'bg-miski-forest text-white border-miski-forest'
+                          : 'bg-miski-green text-white border-miski-green'
+                      : 'border border-miski-sage text-miski-forest hover:bg-miski-sage/30'
                   }`}
                 >
                   {v === 'approved' ? 'Aprobar' : v === 'partially_approved' ? 'Aprobar parcialmente' : 'Rechazar'}
@@ -259,7 +259,7 @@ function ClaimCard({ claim }: CardProps) {
           {/* Resolution type — only if not rejected */}
           {needsType && (
             <div>
-              <p className="text-xs font-semibold text-gray-600 mb-2">Tipo de resolución</p>
+              <p className="text-xs font-semibold text-miski-forest/70 uppercase tracking-wider mb-2">Tipo de resolución</p>
               <div className="space-y-1.5">
                 {(['wallet_credit', 'external_refund', 'reprogrammed'] as const).map(rt => (
                   <label key={rt} className="flex items-center gap-2 cursor-pointer">
@@ -280,7 +280,7 @@ function ClaimCard({ claim }: CardProps) {
           {/* Amount — only for wallet_credit or external_refund */}
           {needsAmount && (
             <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1">
+              <label className="block text-xs font-semibold text-miski-forest/70 uppercase tracking-wider mb-1.5">
                 Monto a {resolutionType === 'wallet_credit' ? 'acreditar' : 'reembolsar'} (S/)
               </label>
               <input
@@ -290,7 +290,7 @@ function ClaimCard({ claim }: CardProps) {
                 value={resolutionAmount}
                 onChange={e => setResolutionAmount(e.target.value)}
                 placeholder="0.00"
-                className="w-40 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-400"
+                className="w-40 border border-miski-sage rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-miski-lime/50 focus:border-miski-green transition-colors placeholder:text-gray-300 text-gray-800"
               />
               {resolutionType === 'wallet_credit' && (
                 <p className="text-xs text-gray-400 mt-1">
@@ -314,7 +314,7 @@ function ClaimCard({ claim }: CardProps) {
               {proofPreview ? (
                 <div className="relative w-32">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={proofPreview} alt="Comprobante" className="w-32 h-24 object-cover rounded-lg border border-gray-200" />
+                  <img src={proofPreview} alt="Comprobante" className="w-32 h-24 object-cover rounded-lg border border-miski-sage/40" />
                   {uploadingProof && (
                     <div className="absolute inset-0 bg-white/70 flex items-center justify-center rounded-lg">
                       <span className="text-xs text-gray-500">Subiendo…</span>
@@ -326,14 +326,14 @@ function ClaimCard({ claim }: CardProps) {
                   <button
                     type="button"
                     onClick={() => { setProofPreview(null); setProofUrl(null) }}
-                    className="absolute -top-1.5 -right-1.5 bg-white border border-gray-200 rounded-full w-5 h-5 text-xs flex items-center justify-center text-gray-500"
+                    className="absolute -top-1.5 -right-1.5 bg-white border border-miski-sage/40 rounded-full w-5 h-5 text-xs flex items-center justify-center text-miski-olive"
                   >✕</button>
                 </div>
               ) : (
                 <button
                   type="button"
                   onClick={() => proofInputRef.current?.click()}
-                  className="h-16 w-48 rounded-lg border-2 border-dashed border-gray-300 text-xs text-gray-400 hover:border-green-400 hover:text-green-600 transition-colors"
+                  className="h-16 w-48 rounded-lg border-2 border-dashed border-miski-sage text-xs text-miski-olive hover:border-miski-green hover:text-miski-green transition-colors"
                 >
                   + Subir comprobante
                 </button>
@@ -363,7 +363,7 @@ function ClaimCard({ claim }: CardProps) {
             type="button"
             onClick={() => void handleResolve()}
             disabled={saving || !canSubmit}
-            className="px-5 py-2 rounded-lg text-sm font-semibold text-white bg-green-600 hover:bg-green-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            className="px-5 py-2 rounded-lg text-sm font-semibold text-white bg-miski-forest hover:bg-miski-green disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-[0.98]"
           >
             {saving ? 'Guardando…' : 'Confirmar resolución'}
           </button>
@@ -371,8 +371,8 @@ function ClaimCard({ claim }: CardProps) {
       )}
 
       {resolved && (
-        <div className="px-5 py-3 bg-green-50 border-t border-green-200">
-          <p className="text-xs text-green-800 font-medium">Reclamo resuelto correctamente.</p>
+        <div className="px-5 py-3 bg-miski-lime/10 border-t border-miski-green/30">
+          <p className="text-xs text-miski-forest font-medium">Reclamo resuelto correctamente.</p>
         </div>
       )}
     </div>
@@ -390,11 +390,11 @@ export function ClaimsBoard({ pending, resolved }: Props) {
   return (
     <div className="space-y-8">
       <section>
-        <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
+        <h2 className="text-sm font-semibold text-miski-forest/60 uppercase tracking-wide mb-3">
           Pendientes ({pending.length})
         </h2>
         {pending.length === 0 ? (
-          <p className="text-sm text-gray-400 bg-white rounded-xl border border-gray-200 p-6 text-center">
+          <p className="text-sm text-miski-olive bg-white rounded-xl border border-miski-sage/40 shadow-sm p-6 text-center">
             No hay reclamos pendientes.
           </p>
         ) : (
@@ -406,7 +406,7 @@ export function ClaimsBoard({ pending, resolved }: Props) {
 
       {resolved.length > 0 && (
         <section>
-          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
+          <h2 className="text-sm font-semibold text-miski-forest/60 uppercase tracking-wide mb-3">
             Resueltos ({resolved.length})
           </h2>
           <div className="space-y-3">

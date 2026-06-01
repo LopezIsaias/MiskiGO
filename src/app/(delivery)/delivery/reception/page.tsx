@@ -53,7 +53,7 @@ export default async function ReceptionPage() {
         <MobileHeader title="Recepción" />
         <DeliveryNav />
         <div className="p-6 text-center">
-          <p className="text-gray-500 text-sm mt-8">No hay ciclos activos con pedidos asignados.</p>
+          <p className="text-miski-olive text-sm mt-8">No hay ciclos activos con pedidos asignados.</p>
         </div>
       </div>
     )
@@ -146,8 +146,8 @@ export default async function ReceptionPage() {
     <div>
       <MobileHeader title="Recepción" subtitle={cycleLabel} />
       <DeliveryNav />
-      <div className="px-4 py-3 bg-white border-b border-gray-100">
-        <p className="text-xs text-gray-500">
+      <div className="px-4 py-3 bg-white border-b border-miski-sage/20">
+        <p className="text-xs text-miski-olive">
           {pendingCount === 0
             ? 'Todos los proveedores registrados ✓'
             : `${pendingCount} proveedor${pendingCount > 1 ? 'es' : ''} pendiente${pendingCount > 1 ? 's' : ''}`}
@@ -155,7 +155,7 @@ export default async function ReceptionPage() {
       </div>
       {suppliers.length === 0 ? (
         <div className="p-6 text-center">
-          <p className="text-gray-400 text-sm mt-4">
+          <p className="text-miski-olive text-sm mt-4">
             No hay asignaciones confirmadas para este ciclo.
           </p>
         </div>

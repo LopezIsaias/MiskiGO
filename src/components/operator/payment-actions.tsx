@@ -112,13 +112,13 @@ export function PaymentActions({
     <div className="space-y-6">
       {/* Action area */}
       {isPending && (
-        <section className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-          <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
-            <h2 className="text-sm font-semibold text-gray-700">Validación de pago</h2>
+        <section className="bg-white rounded-xl border border-miski-sage/40 shadow-sm overflow-hidden">
+          <div className="px-4 py-3 border-b border-miski-sage/20 bg-miski-forest/5">
+            <h2 className="text-sm font-semibold text-miski-forest">Validación de pago</h2>
           </div>
           <div className="p-4 space-y-4">
             {state === 'approved' && (
-              <div className="bg-green-50 border border-green-200 rounded-lg px-4 py-3 text-sm text-green-800 font-medium">
+              <div className="bg-miski-lime/10 border border-miski-green rounded-lg px-4 py-3 text-sm text-miski-forest font-medium">
                 Pago aprobado correctamente. El pedido está confirmado y bloqueado.
               </div>
             )}
@@ -137,7 +137,7 @@ export function PaymentActions({
             {!actionDone && (
               <div className="space-y-3">
                 <form onSubmit={handleReject} className="space-y-2">
-                  <label className="block text-xs font-medium text-gray-600">
+                  <label className="block text-xs font-semibold text-miski-forest/70 uppercase tracking-wider mb-1.5">
                     Motivo de rechazo (requerido para rechazar)
                   </label>
                   <input
@@ -145,14 +145,14 @@ export function PaymentActions({
                     value={rejectReason}
                     onChange={e => setRejectReason(e.target.value)}
                     placeholder="Ej: imagen ilegible, monto incorrecto, comprobante falso..."
-                    className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-400 focus:border-transparent"
+                    className="w-full border border-miski-sage rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-miski-lime/50 focus:border-miski-green transition-colors placeholder:text-gray-300 text-gray-800"
                     disabled={isLoading}
                   />
                   <div className="flex gap-3 pt-1">
                     <button
                       type="submit"
                       disabled={isLoading || !rejectReason.trim()}
-                      className="flex-1 border border-red-300 text-red-600 hover:bg-red-50 text-sm font-medium py-2.5 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                      className="flex-1 bg-red-500 text-white hover:bg-red-600 text-sm font-semibold py-2.5 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {state === 'rejecting' ? 'Rechazando...' : 'Rechazar pago'}
                     </button>
@@ -160,7 +160,7 @@ export function PaymentActions({
                       type="button"
                       onClick={handleApprove}
                       disabled={isLoading}
-                      className="flex-1 bg-green-600 hover:bg-green-700 text-white text-sm font-medium py-2.5 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                      className="flex-1 bg-miski-forest text-white hover:bg-miski-green text-sm font-semibold py-2.5 rounded-lg transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {state === 'approving' ? 'Aprobando...' : 'Aprobar pago'}
                     </button>
@@ -173,13 +173,13 @@ export function PaymentActions({
       )}
 
       {/* WhatsApp notification */}
-      <section className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <div className="px-4 py-3 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-gray-700">Notificar por WhatsApp</h2>
+      <section className="bg-white rounded-xl border border-miski-sage/40 shadow-sm overflow-hidden">
+        <div className="px-4 py-3 border-b border-miski-sage/20 bg-miski-forest/5 flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-miski-forest">Notificar por WhatsApp</h2>
           {customerPhone && (
-            <span className="text-xs text-gray-500">
+            <span className="text-xs text-miski-olive">
               Número:&nbsp;
-              <span className="font-mono font-medium text-gray-800 select-all">{customerPhone}</span>
+              <span className="font-mono font-medium text-miski-forest select-all">{customerPhone}</span>
             </span>
           )}
         </div>
@@ -191,13 +191,13 @@ export function PaymentActions({
           )}
 
           {/* Approval message */}
-          <div className={`rounded-lg border p-3 space-y-2 ${state === 'approved' ? 'border-green-300 bg-green-50' : 'border-gray-200'}`}>
-            <p className="text-xs font-semibold text-gray-600">Mensaje de aprobación</p>
+          <div className={`rounded-lg border p-3 space-y-2 ${state === 'approved' ? 'border-miski-green bg-miski-lime/10' : 'border-miski-sage/40'}`}>
+            <p className="text-xs font-semibold text-miski-forest">Mensaje de aprobación</p>
             <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{approveMsg}</p>
             <div className="flex gap-2 pt-1">
               <button
                 onClick={() => copyText(approveMsg, 'approve')}
-                className="text-xs text-gray-500 hover:text-gray-700 border border-gray-200 rounded px-2 py-1 transition-colors"
+                className="text-xs border border-miski-sage text-miski-forest hover:bg-miski-sage/30 rounded px-2 py-1 transition-colors"
               >
                 {copiedKey === 'approve' ? '¡Copiado!' : 'Copiar'}
               </button>
@@ -206,7 +206,7 @@ export function PaymentActions({
                   href={`https://wa.me/${waNumber}?text=${encodeURIComponent(approveMsg)}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-xs text-green-600 hover:text-green-800 border border-green-200 rounded px-2 py-1 transition-colors"
+                  className="text-xs text-miski-green hover:text-miski-forest border border-miski-green/30 rounded px-2 py-1 transition-colors"
                 >
                   Abrir en WhatsApp
                 </a>
@@ -215,13 +215,13 @@ export function PaymentActions({
           </div>
 
           {/* Rejection message */}
-          <div className={`rounded-lg border p-3 space-y-2 ${state === 'rejected' ? 'border-red-300 bg-red-50' : 'border-gray-200'}`}>
-            <p className="text-xs font-semibold text-gray-600">Mensaje de rechazo</p>
+          <div className={`rounded-lg border p-3 space-y-2 ${state === 'rejected' ? 'border-red-300 bg-red-50' : 'border-miski-sage/40'}`}>
+            <p className="text-xs font-semibold text-miski-forest">Mensaje de rechazo</p>
             <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{rejectMsg}</p>
             <div className="flex gap-2 pt-1">
               <button
                 onClick={() => copyText(rejectMsg, 'reject')}
-                className="text-xs text-gray-500 hover:text-gray-700 border border-gray-200 rounded px-2 py-1 transition-colors"
+                className="text-xs border border-miski-sage text-miski-forest hover:bg-miski-sage/30 rounded px-2 py-1 transition-colors"
               >
                 {copiedKey === 'reject' ? '¡Copiado!' : 'Copiar'}
               </button>
@@ -230,7 +230,7 @@ export function PaymentActions({
                   href={`https://wa.me/${waNumber}?text=${encodeURIComponent(rejectMsg)}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-xs text-gray-500 hover:text-gray-700 border border-gray-200 rounded px-2 py-1 transition-colors"
+                  className="text-xs border border-miski-sage text-miski-forest hover:bg-miski-sage/30 rounded px-2 py-1 transition-colors"
                 >
                   Abrir en WhatsApp
                 </a>

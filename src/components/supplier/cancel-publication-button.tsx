@@ -33,7 +33,7 @@ export function CancelPublicationButton({ id }: Props) {
       <button
         onClick={handleCancel}
         disabled={isPending}
-        className="text-red-500 hover:text-red-700 font-medium disabled:opacity-50"
+        className="bg-red-500 text-white hover:bg-red-600 rounded-lg px-4 py-2 text-sm font-semibold transition-colors disabled:opacity-50"
       >
         {isPending ? '...' : 'Cancelar'}
       </button>

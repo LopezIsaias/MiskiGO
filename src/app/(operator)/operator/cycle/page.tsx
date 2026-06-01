@@ -29,16 +29,16 @@ export default async function OperatorCyclePage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-2">Ciclo de despacho</h1>
-      <p className="text-sm text-gray-500 mb-6">
+      <h1 className="text-2xl font-bold text-miski-forest mb-2">Ciclo de despacho</h1>
+      <p className="text-sm text-miski-olive mb-6">
         Controla el estado del ciclo activo. Los cambios quedan registrados en el log de auditoría.
       </p>
 
       {!cycles || cycles.length === 0 ? (
-        <p className="text-sm text-gray-500">No hay ciclos activos en este momento.</p>
+        <p className="text-sm text-miski-olive">No hay ciclos activos en este momento.</p>
       ) : (
         <div className="space-y-4 max-w-lg">
-          <div className="text-xs text-gray-400 mb-1 px-1">
+          <div className="text-xs text-miski-olive mb-1 px-1">
             Transiciones permitidas: Abierto → Cerrado → En progreso → Completado
           </div>
           {cycles.map(cycle => (

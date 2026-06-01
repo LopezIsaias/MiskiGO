@@ -62,7 +62,7 @@ function ProductCard({ product }: ProductCardProps) {
   const availableDisplay = Math.floor(product.totalAvailable).toLocaleString('es-PE')
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-5 flex flex-col gap-3">
+    <div className="bg-white rounded-xl border border-miski-sage/40 shadow-sm hover:shadow-md transition-shadow p-5 flex flex-col gap-3">
       {product.imageUrl ? (
         <div className="relative w-full h-36 rounded-lg overflow-hidden">
           <Image
@@ -74,18 +74,18 @@ function ProductCard({ product }: ProductCardProps) {
           />
         </div>
       ) : (
-        <div className="w-full h-36 bg-green-50 rounded-lg flex items-center justify-center">
-          <span className="text-4xl font-light text-green-300">
+        <div className="w-full h-36 bg-miski-cream rounded-lg flex items-center justify-center">
+          <span className="text-4xl font-light text-miski-olive">
             {product.name.charAt(0).toUpperCase()}
           </span>
         </div>
       )}
 
       <div>
-        <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">
+        <span className="bg-miski-lime/15 text-miski-forest text-xs font-medium px-2 py-0.5 rounded-full">
           {product.categoryName}
-        </p>
-        <h3 className="text-base font-bold text-gray-900 mt-0.5">{product.name}</h3>
+        </span>
+        <h3 className="text-base font-semibold text-miski-forest mt-1.5">{product.name}</h3>
         {product.description && (
           <p className="text-xs text-gray-500 mt-1 line-clamp-2">{product.description}</p>
         )}
@@ -95,7 +95,7 @@ function ProductCard({ product }: ProductCardProps) {
         <span className="text-gray-500">
           Disponible: {availableDisplay} {unitLabel}
         </span>
-        <span className="font-semibold text-green-700">
+        <span className="font-bold text-miski-forest">
           {formatCurrency(product.estimatedPrice)}/{unitLabel}
         </span>
       </div>
@@ -110,14 +110,14 @@ function ProductCard({ product }: ProductCardProps) {
           step={1}
           value={qty}
           onChange={e => handleQtyChange(e.target.value)}
-          className="w-20 text-sm border border-gray-300 rounded-lg px-2 py-1.5 text-center focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+          className="w-20 text-sm border border-miski-sage rounded-lg px-2 py-1.5 text-center focus:outline-none focus:ring-2 focus:ring-miski-lime/50 focus:border-miski-green transition-colors text-gray-800"
         />
         <button
           onClick={handleAdd}
-          className={`flex-1 text-sm font-medium py-1.5 rounded-lg transition-colors ${
+          className={`flex-1 text-sm font-semibold py-1.5 rounded-lg transition-all active:scale-[0.98] ${
             added
-              ? 'bg-green-100 text-green-700 cursor-default'
-              : 'bg-green-600 text-white hover:bg-green-700 active:bg-green-800'
+              ? 'bg-miski-lime/20 text-miski-forest cursor-default'
+              : 'bg-miski-forest text-white hover:bg-miski-green'
           }`}
         >
           {added ? 'Agregado al carrito' : 'Agregar'}
@@ -153,7 +153,7 @@ export function CatalogGrid({ products }: CatalogGridProps) {
     <div className="space-y-8">
       {Object.entries(byCategory).map(([category, items]) => (
         <section key={category}>
-          <h2 className="text-base font-semibold text-gray-700 mb-4 pb-2 border-b border-gray-100">
+          <h2 className="text-base font-semibold text-miski-forest mb-4 pb-2 border-b border-miski-sage/30">
             {category}
           </h2>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">

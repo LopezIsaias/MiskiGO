@@ -92,8 +92,8 @@ export default async function DeliveriesPage() {
   return (
     <div className="max-w-2xl space-y-6">
       <div>
-        <h1 className="text-xl font-bold text-gray-900">Repartidores activos</h1>
-        <p className="text-sm text-gray-500 mt-1">
+        <h1 className="text-2xl font-bold text-miski-forest">Repartidores activos</h1>
+        <p className="text-sm text-miski-olive mt-1">
           {cycle
             ? `Ciclo del ${cycle.dispatch_date} — ${deliveryPeople.length} repartidor${deliveryPeople.length !== 1 ? 'es' : ''}`
             : 'No hay ciclo activo en este momento'}

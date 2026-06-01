@@ -39,8 +39,8 @@ export default async function AdminWalletPage() {
   return (
     <div className="max-w-2xl">
       <div className="mb-6">
-        <h1 className="text-xl font-bold text-gray-900">Aprobación de créditos</h1>
-        <p className="text-sm text-gray-500 mt-1">
+        <h1 className="text-xl font-bold text-miski-forest">Aprobación de créditos</h1>
+        <p className="text-sm text-miski-olive mt-1">
           {pending.length > 0
             ? `${pending.length} crédito${pending.length > 1 ? 's' : ''} pendiente${pending.length > 1 ? 's' : ''} de aprobación`
             : 'No hay créditos pendientes'}

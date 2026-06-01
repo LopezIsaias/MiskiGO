@@ -131,14 +131,14 @@ export default async function CatalogPage() {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Catálogo</h1>
-        <p className="text-sm text-gray-500 mt-1">
+        <h1 className="text-2xl font-bold text-miski-forest">Catálogo</h1>
+        <p className="text-sm text-miski-olive mt-1">
           Productos frescos disponibles para el próximo despacho.
         </p>
       </div>
 
       {nearestCutoff && (
-        <div className="mb-6 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-sm text-amber-800">
+        <div className="mb-6 bg-miski-gold-light/20 border border-miski-gold/40 rounded-xl px-4 py-3 text-sm text-amber-800">
           Cierre de pedidos: <span className="font-semibold">{getCutoffBannerLabel(nearestCutoff)}</span>
         </div>
       )}

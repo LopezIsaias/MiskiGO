@@ -115,12 +115,12 @@ export function CheckoutForm({ walletBalance, userId }: Props) {
     const confirmed = result.status === 'confirmed'
     return (
       <div className="max-w-lg mx-auto text-center py-12">
-        <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${confirmed ? 'bg-green-100' : 'bg-amber-100'}`}>
-          <span className={`text-3xl font-light ${confirmed ? 'text-green-600' : 'text-amber-600'}`}>
+        <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${confirmed ? 'bg-miski-lime/20' : 'bg-miski-gold-light/40'}`}>
+          <span className={`text-3xl font-light ${confirmed ? 'text-miski-forest' : 'text-amber-700'}`}>
             {confirmed ? '✓' : '⏳'}
           </span>
         </div>
-        <h2 className="text-xl font-bold text-gray-900 mb-2">
+        <h2 className="text-xl font-bold text-miski-forest mb-2">
           {confirmed ? 'Pedido confirmado' : 'Comprobante recibido'}
         </h2>
         {confirmed ? (
@@ -141,7 +141,7 @@ export function CheckoutForm({ walletBalance, userId }: Props) {
         <p className="text-xs text-gray-400 mb-6">N.° de pedido: {result.orderId}</p>
         <button
           onClick={() => router.push('/customer/catalog')}
-          className="bg-green-600 text-white px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-green-700 transition-colors"
+          className="bg-miski-forest text-white px-6 py-2.5 rounded-lg text-sm font-semibold hover:bg-miski-green transition-all active:scale-[0.98]"
         >
           Volver al catálogo
         </button>
@@ -157,55 +157,55 @@ export function CheckoutForm({ walletBalance, userId }: Props) {
   return (
     <form onSubmit={handleSubmit} className="max-w-2xl space-y-6">
       {/* Order summary */}
-      <section className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
-          <h2 className="text-sm font-semibold text-gray-700">Resumen del pedido</h2>
+      <section className="bg-white rounded-xl border border-miski-sage/40 overflow-hidden">
+        <div className="px-4 py-3 border-b border-miski-sage/20 bg-miski-forest/5">
+          <h2 className="text-sm font-semibold text-miski-forest">Resumen del pedido</h2>
         </div>
-        <div className="divide-y divide-gray-100">
+        <div className="divide-y divide-miski-sage/20">
           {items.map(item => (
             <div key={item.productId} className="px-4 py-3 flex items-center justify-between text-sm">
               <div>
-                <span className="font-medium text-gray-900">{item.name}</span>
+                <span className="font-medium text-miski-forest">{item.name}</span>
                 <span className="text-gray-400 ml-2">
                   {item.quantity} {UNIT_LABEL[item.unit] ?? item.unit}
                 </span>
                 <p className="text-xs text-gray-400 mt-0.5">{item.deliveryLabel}</p>
               </div>
-              <span className="font-medium text-gray-900">
+              <span className="font-medium text-miski-forest">
                 {formatCurrency(item.estimatedPrice * item.quantity)}
               </span>
             </div>
           ))}
         </div>
-        <div className="px-4 py-3 border-t border-gray-200 flex justify-between text-sm font-semibold">
-          <span className="text-gray-700">Total</span>
-          <span className="text-gray-900">{formatCurrency(subtotal)}</span>
+        <div className="px-4 py-3 border-t border-miski-sage/20 flex justify-between text-sm font-semibold">
+          <span className="text-miski-olive">Total</span>
+          <span className="text-miski-forest">{formatCurrency(subtotal)}</span>
         </div>
       </section>
 
       {/* Delivery address */}
       <section className="space-y-3">
-        <h2 className="text-sm font-semibold text-gray-700">Dirección de entrega</h2>
+        <h2 className="text-sm font-semibold text-miski-forest">Dirección de entrega</h2>
         <input
           type="text"
           value={address}
           onChange={e => setAddress(e.target.value)}
           placeholder="Jr. Los Cedros 123, Tarapoto"
           required
-          className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+          className="w-full border border-miski-sage rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-miski-lime/50 focus:border-miski-green transition-colors placeholder:text-gray-300 text-gray-800"
         />
         <input
           type="text"
           value={deliveryNotes}
           onChange={e => setDeliveryNotes(e.target.value)}
           placeholder="Referencias (opcional): portón azul, segundo piso..."
-          className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+          className="w-full border border-miski-sage rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-miski-lime/50 focus:border-miski-green transition-colors placeholder:text-gray-300 text-gray-800"
         />
       </section>
 
       {/* Payment method */}
       <section className="space-y-3">
-        <h2 className="text-sm font-semibold text-gray-700">Método de pago</h2>
+        <h2 className="text-sm font-semibold text-miski-forest">Método de pago</h2>
         <div className="grid grid-cols-3 gap-3">
           {(['yape', 'transfer', 'wallet'] as PaymentMethod[]).map(method => {
             const labels: Record<PaymentMethod, string> = {
@@ -220,10 +220,10 @@ export function CheckoutForm({ walletBalance, userId }: Props) {
                 onClick={() => { setPaymentMethod(method); setUseWallet(false); setProofUrl(null); setProofFile(null) }}
                 className={`py-2.5 rounded-lg text-sm font-medium border transition-colors ${
                   paymentMethod === method
-                    ? 'bg-green-600 text-white border-green-600'
+                    ? 'border-miski-lime bg-miski-lime/10 text-miski-forest'
                     : isDisabled
                       ? 'bg-gray-50 text-gray-300 border-gray-200 cursor-not-allowed'
-                      : 'bg-white text-gray-700 border-gray-300 hover:border-green-400'
+                      : 'border-miski-sage hover:border-miski-sage/80 bg-white text-gray-700'
                 }`}
               >
                 {labels[method]}
@@ -244,11 +244,11 @@ export function CheckoutForm({ walletBalance, userId }: Props) {
               type="checkbox"
               checked={useWallet}
               onChange={e => setUseWallet(e.target.checked)}
-              className="w-4 h-4 text-green-600 rounded border-gray-300"
+              className="w-4 h-4 text-miski-green rounded border-miski-sage"
             />
             Usar saldo de billetera ({formatCurrency(walletBalance)})
             {useWallet && walletApplied > 0 && (
-              <span className="text-green-600 font-medium">
+              <span className="text-miski-green font-medium">
                 — descuenta {formatCurrency(walletApplied)}
               </span>
             )}
@@ -279,13 +279,13 @@ export function CheckoutForm({ walletBalance, userId }: Props) {
             {remainder < subtotal && <span className="text-gray-400 font-normal ml-1">(por {formatCurrency(remainder)})</span>}
           </h2>
           <label className={`flex flex-col items-center justify-center w-full h-28 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${
-            proofUrl ? 'border-green-400 bg-green-50' : 'border-gray-300 hover:border-green-400 hover:bg-gray-50'
+            proofUrl ? 'border-miski-green bg-miski-lime/10' : 'border-miski-sage hover:border-miski-green hover:bg-miski-cream/30'
           }`}>
             <input type="file" accept="image/jpeg,image/png,image/webp,application/pdf" onChange={handleFileChange} className="hidden" />
             {uploading ? (
               <p className="text-sm text-gray-500">Subiendo...</p>
             ) : proofUrl ? (
-              <p className="text-sm text-green-700 font-medium">Comprobante cargado</p>
+              <p className="text-sm text-miski-forest font-medium">Comprobante cargado</p>
             ) : (
               <>
                 <p className="text-sm text-gray-500">Haz clic para subir captura o PDF</p>
@@ -306,7 +306,7 @@ export function CheckoutForm({ walletBalance, userId }: Props) {
           onChange={e => setCustomerNote(e.target.value)}
           placeholder="Nota al vendedor (opcional)"
           rows={2}
-          className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
+          className="w-full border border-miski-sage rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-miski-lime/50 focus:border-miski-green transition-colors placeholder:text-gray-300 text-gray-800 resize-none"
         />
       </section>
 
@@ -319,7 +319,7 @@ export function CheckoutForm({ walletBalance, userId }: Props) {
       <button
         type="submit"
         disabled={submitting || uploading || (paymentMethod === 'wallet' && walletBalance < subtotal)}
-        className="w-full bg-green-600 text-white py-3 rounded-lg font-medium hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full bg-miski-forest text-white py-3 rounded-lg text-sm font-semibold hover:bg-miski-green transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {submitting ? 'Procesando...' : `Confirmar pedido — ${formatCurrency(subtotal)}`}
       </button>

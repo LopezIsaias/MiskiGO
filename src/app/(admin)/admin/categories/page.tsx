@@ -12,17 +12,17 @@ export default async function CategoriesPage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Categorías</h1>
+        <h1 className="text-2xl font-bold text-miski-forest">Categorías</h1>
         <Link
           href="/admin/categories/new"
-          className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-700 transition-colors"
+          className="bg-miski-forest text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-miski-green transition-all"
         >
           Nueva categoría
         </Link>
       </div>
 
       {!categories?.length ? (
-        <p className="text-gray-500 text-sm">No hay categorías aún.</p>
+        <p className="text-miski-olive text-sm">No hay categorías aún.</p>
       ) : (
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
           <table className="w-full text-sm">
@@ -57,7 +57,7 @@ export default async function CategoriesPage() {
                   <td className="px-4 py-3 text-right">
                     <Link
                       href={`/admin/categories/${cat.id}/edit`}
-                      className="text-green-600 hover:text-green-800 font-medium"
+                      className="text-miski-green hover:text-miski-forest font-medium"
                     >
                       Editar
                     </Link>

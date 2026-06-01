@@ -30,7 +30,7 @@ export default async function EditPublicationPage({ params }: Props) {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Editar publicación</h1>
+      <h1 className="text-2xl font-bold text-miski-forest mb-6">Editar publicación</h1>
       <PublicationForm
         products={[]}
         regions={[]}

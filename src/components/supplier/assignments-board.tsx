@@ -65,38 +65,38 @@ function AssignmentCard({ assignment: a }: CardProps) {
     return (
       <div className={`rounded-xl border p-4 ${
         doneAction === 'confirmed'
-          ? 'border-green-200 bg-green-50'
+          ? 'border-miski-green/30 bg-miski-green/10'
           : 'border-red-200 bg-red-50'
       }`}>
         <p className={`text-sm font-semibold ${
-          doneAction === 'confirmed' ? 'text-green-700' : 'text-red-600'
+          doneAction === 'confirmed' ? 'text-miski-forest' : 'text-red-600'
         }`}>
           {doneAction === 'confirmed' ? '✓ Confirmado correctamente' : '✕ Rechazo registrado'}
         </p>
-        <p className="text-xs text-gray-500 mt-0.5">{product?.name ?? '—'}</p>
+        <p className="text-xs text-miski-olive mt-0.5">{product?.name ?? '—'}</p>
       </div>
     )
   }
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
+    <div className="bg-white rounded-xl border border-miski-sage/40 shadow-sm p-5 space-y-3">
       <div className="flex items-start justify-between gap-2">
         <div>
           <p className="text-sm font-semibold text-gray-800">{product?.name ?? '—'}</p>
-          <p className="text-xs text-gray-500 mt-0.5">
+          <p className="text-xs text-miski-olive mt-0.5">
             {a.assigned_quantity} {product?.unit} · {formatCurrency(a.supplier_price_frozen)} por unidad
           </p>
         </div>
         {cycleDate && (
           <div className="text-right shrink-0">
-            <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wide">Entrega</p>
-            <p className="text-xs font-semibold text-gray-700">{formatDate(cycleDate + 'T12:00:00')}</p>
+            <p className="text-[10px] text-miski-olive/70 font-medium uppercase tracking-wide">Entrega</p>
+            <p className="text-xs font-semibold text-miski-forest">{formatDate(cycleDate + 'T12:00:00')}</p>
           </div>
         )}
       </div>
 
       {order && (
-        <p className="text-[11px] text-gray-400">
+        <p className="text-[11px] text-miski-olive/60">
           Pedido #{order.id.slice(0, 8).toUpperCase()}
         </p>
       )}
@@ -118,7 +118,7 @@ function AssignmentCard({ assignment: a }: CardProps) {
             type="button"
             onClick={() => handleAction('confirm')}
             disabled={saving}
-            className="flex-1 py-2.5 rounded-xl text-xs font-semibold text-white bg-green-600 hover:bg-green-700 disabled:opacity-50 transition-colors"
+            className="flex-1 py-2.5 rounded-xl text-xs font-semibold text-white bg-miski-forest hover:bg-miski-green disabled:opacity-50 transition-colors"
           >
             {saving ? 'Guardando…' : 'Confirmar'}
           </button>
@@ -131,13 +131,13 @@ function AssignmentCard({ assignment: a }: CardProps) {
             onChange={e => setReason(e.target.value)}
             placeholder="Motivo por el que no puedes cumplir (obligatorio)…"
             autoFocus
-            className="w-full text-sm border border-gray-300 rounded-xl px-3 py-2 focus:outline-none focus:border-red-400 resize-none"
+            className="w-full text-sm border border-miski-sage rounded-xl px-3 py-2 focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-200 resize-none text-gray-800 placeholder:text-gray-300"
           />
           <div className="flex gap-2">
             <button
               type="button"
               onClick={() => { setShowReject(false); setReason(''); setError('') }}
-              className="flex-1 py-2.5 rounded-xl text-xs font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors"
+              className="flex-1 py-2.5 rounded-xl text-xs font-medium border border-miski-sage text-miski-forest hover:bg-miski-sage/30 transition-colors"
             >
               Cancelar
             </button>
@@ -161,8 +161,8 @@ interface Props { assignments: AssignmentRow[] }
 export function AssignmentsBoard({ assignments }: Props) {
   if (assignments.length === 0) {
     return (
-      <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
-        <p className="text-sm text-gray-400">No tienes pedidos pendientes de confirmación.</p>
+      <div className="bg-white rounded-xl border border-miski-sage/40 shadow-sm p-8 text-center">
+        <p className="text-sm text-miski-olive">No tienes pedidos pendientes de confirmación.</p>
       </div>
     )
   }

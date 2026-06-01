@@ -3,10 +3,10 @@ import Link from 'next/link'
 import { CancelPublicationButton } from '@/components/supplier/cancel-publication-button'
 
 const STATUS_STYLES: Record<string, string> = {
-  active:    'bg-green-100 text-green-700',
-  reserved:  'bg-blue-100 text-blue-700',
-  fulfilled: 'bg-gray-100 text-gray-600',
-  expired:   'bg-red-100 text-red-600',
+  active:    'bg-miski-lime/20 text-miski-forest',
+  reserved:  'bg-miski-gold-light/40 text-amber-800',
+  fulfilled: 'bg-miski-green/15 text-miski-forest',
+  expired:   'bg-gray-100 text-gray-500',
 }
 
 const STATUS_LABEL: Record<string, string> = {
@@ -40,10 +40,10 @@ export default async function PublicationsPage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Mis publicaciones</h1>
+        <h1 className="text-2xl font-bold text-miski-forest">Mis publicaciones</h1>
         <Link
           href="/supplier/publications/new"
-          className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-700 transition-colors"
+          className="bg-miski-forest text-white hover:bg-miski-green rounded-lg px-4 py-2.5 text-sm font-semibold transition-all active:scale-[0.98]"
         >
           Nueva publicación
         </Link>
@@ -51,29 +51,29 @@ export default async function PublicationsPage() {
 
       {!publications?.length ? (
         <div className="text-center py-16">
-          <p className="text-gray-500 text-sm mb-4">Aún no tienes publicaciones.</p>
+          <p className="text-miski-olive text-sm mb-4">Aún no tienes publicaciones.</p>
           <Link
             href="/supplier/publications/new"
-            className="bg-green-600 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-green-700 transition-colors"
+            className="bg-miski-forest text-white hover:bg-miski-green rounded-lg px-5 py-2.5 text-sm font-semibold transition-all active:scale-[0.98]"
           >
             Publicar disponibilidad
           </Link>
         </div>
       ) : (
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className="overflow-hidden rounded-xl border border-miski-sage/40 bg-white">
           <table className="w-full text-sm">
-            <thead className="bg-gray-50 border-b border-gray-200">
+            <thead className="bg-miski-forest/5">
               <tr>
-                <th className="text-left px-4 py-3 font-medium text-gray-600">Producto</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-600">Región</th>
-                <th className="text-right px-4 py-3 font-medium text-gray-600">Cantidad</th>
-                <th className="text-right px-4 py-3 font-medium text-gray-600">Precio mín.</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-600">Vence</th>
-                <th className="text-center px-4 py-3 font-medium text-gray-600">Estado</th>
+                <th className="text-left px-4 py-3 text-miski-forest/60 text-xs font-semibold uppercase tracking-wider">Producto</th>
+                <th className="text-left px-4 py-3 text-miski-forest/60 text-xs font-semibold uppercase tracking-wider">Región</th>
+                <th className="text-right px-4 py-3 text-miski-forest/60 text-xs font-semibold uppercase tracking-wider">Cantidad</th>
+                <th className="text-right px-4 py-3 text-miski-forest/60 text-xs font-semibold uppercase tracking-wider">Precio mín.</th>
+                <th className="text-left px-4 py-3 text-miski-forest/60 text-xs font-semibold uppercase tracking-wider">Vence</th>
+                <th className="text-center px-4 py-3 text-miski-forest/60 text-xs font-semibold uppercase tracking-wider">Estado</th>
                 <th className="px-4 py-3" />
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody>
               {publications.map(pub => {
                 const product = pub.product as { name: string; unit: string } | null
                 const region = pub.region as { name: string; city: string } | null
@@ -81,23 +81,23 @@ export default async function PublicationsPage() {
                 const isActive = pub.status === 'active'
 
                 return (
-                  <tr key={pub.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 font-medium text-gray-900">
+                  <tr key={pub.id} className="hover:bg-miski-cream/30">
+                    <td className="px-4 py-3 border-b border-miski-sage/20 font-medium text-gray-700">
                       {product?.name ?? '—'}
-                      <span className="ml-1 text-xs text-gray-400">
+                      <span className="ml-1 text-xs text-miski-olive">
                         ({UNIT_LABEL[product?.unit ?? ''] ?? product?.unit})
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-gray-600">
+                    <td className="px-4 py-3 border-b border-miski-sage/20 text-gray-700 text-sm">
                       {region ? `${region.name} — ${region.city}` : '—'}
                     </td>
-                    <td className="px-4 py-3 text-right text-gray-700">
+                    <td className="px-4 py-3 border-b border-miski-sage/20 text-right text-gray-700 text-sm">
                       {pub.available_quantity.toLocaleString('es-PE')}
                     </td>
-                    <td className="px-4 py-3 text-right text-gray-700">
+                    <td className="px-4 py-3 border-b border-miski-sage/20 text-right text-gray-700 text-sm">
                       S/ {pub.minimum_price.toFixed(2)}
                     </td>
-                    <td className="px-4 py-3 text-gray-600 whitespace-nowrap">
+                    <td className="px-4 py-3 border-b border-miski-sage/20 text-gray-700 text-sm whitespace-nowrap">
                       {expiresDate.toLocaleDateString('es-PE', {
                         day: '2-digit',
                         month: '2-digit',
@@ -105,20 +105,20 @@ export default async function PublicationsPage() {
                         timeZone: 'America/Lima',
                       })}
                     </td>
-                    <td className="px-4 py-3 text-center">
+                    <td className="px-4 py-3 border-b border-miski-sage/20 text-center">
                       <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${STATUS_STYLES[pub.status] ?? 'bg-gray-100 text-gray-600'}`}
+                        className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${STATUS_STYLES[pub.status] ?? 'bg-gray-100 text-gray-500'}`}
                       >
                         {STATUS_LABEL[pub.status] ?? pub.status}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-right">
+                    <td className="px-4 py-3 border-b border-miski-sage/20 text-right">
                       <div className="flex justify-end gap-3">
                         {isActive && (
                           <>
                             <Link
                               href={`/supplier/publications/${pub.id}/edit`}
-                              className="text-green-600 hover:text-green-800 font-medium"
+                              className="text-miski-green hover:text-miski-forest text-sm font-medium"
                             >
                               Editar
                             </Link>

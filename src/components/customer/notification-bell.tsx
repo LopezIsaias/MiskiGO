@@ -60,10 +60,10 @@ export function NotificationBell() {
       <button
         type="button"
         onClick={() => void handleToggle()}
-        className="relative flex items-center justify-center w-8 h-8 rounded-full hover:bg-gray-100 transition-colors"
+        className="relative flex items-center justify-center w-8 h-8 rounded-full hover:bg-white/10 transition-colors"
         aria-label="Notificaciones"
       >
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5 text-gray-600">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5 text-white/65">
           <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
         </svg>
         {data.unreadCount > 0 && (
@@ -76,18 +76,18 @@ export function NotificationBell() {
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute left-0 top-10 z-50 w-80 bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-            <div className="px-4 py-3 border-b border-gray-100">
-              <p className="text-sm font-semibold text-gray-800">Notificaciones</p>
+          <div className="absolute left-0 top-10 z-50 w-80 bg-white rounded-xl shadow-lg border border-miski-sage/40 overflow-hidden">
+            <div className="px-4 py-3 border-b border-miski-sage/20">
+              <p className="text-sm font-semibold text-miski-forest">Notificaciones</p>
             </div>
-            <div className="max-h-80 overflow-y-auto divide-y divide-gray-50">
+            <div className="max-h-80 overflow-y-auto divide-y divide-miski-sage/20">
               {data.notifications.length === 0 ? (
                 <p className="text-sm text-gray-400 text-center py-6">Sin notificaciones</p>
               ) : (
                 data.notifications.map(n => (
-                  <div key={n.id} className={`px-4 py-3 ${!n.read_at ? 'bg-green-50' : ''}`}>
+                  <div key={n.id} className={`px-4 py-3 ${!n.read_at ? 'bg-miski-lime/10' : ''}`}>
                     {n.title && (
-                      <p className="text-xs font-semibold text-gray-800 mb-0.5">{n.title}</p>
+                      <p className="text-xs font-semibold text-miski-forest mb-0.5">{n.title}</p>
                     )}
                     <p className="text-xs text-gray-600 leading-relaxed line-clamp-3">{n.body}</p>
                     <p className="text-xs text-gray-400 mt-1">{timeAgo(n.created_at)}</p>

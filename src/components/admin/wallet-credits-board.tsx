@@ -65,30 +65,30 @@ function CreditCard({ credit }: CardProps) {
 
   if (done) {
     return (
-      <div className="bg-gray-50 rounded-xl border border-gray-200 px-5 py-3">
-        <p className="text-xs text-gray-400">Crédito procesado.</p>
+      <div className="bg-miski-sage/10 rounded-xl border border-miski-sage/40 px-5 py-3">
+        <p className="text-xs text-miski-olive">Crédito procesado.</p>
       </div>
     )
   }
 
   return (
-    <div className="bg-white rounded-xl border border-blue-200 p-5 space-y-3">
+    <div className="bg-white rounded-xl border border-miski-sage/40 shadow-sm p-5 space-y-3">
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-gray-900">{credit.customer?.full_name ?? '—'}</p>
-          <p className="text-xs text-gray-500 mt-0.5">
+          <p className="text-sm font-semibold text-miski-forest">{credit.customer?.full_name ?? '—'}</p>
+          <p className="text-xs text-miski-olive mt-0.5">
             {TYPE_LABEL[credit.type] ?? credit.type} · {formatDateTime(credit.created_at)}
           </p>
           {orderId && (
-            <p className="text-xs text-gray-400 mt-0.5">Pedido #{orderId}</p>
+            <p className="text-xs text-miski-olive/70 mt-0.5">Pedido #{orderId}</p>
           )}
           {credit.notes && (
-            <p className="text-xs text-gray-500 mt-1.5 bg-gray-50 rounded-lg px-3 py-2 italic">
+            <p className="text-xs text-miski-olive mt-1.5 bg-miski-cream/50 rounded-lg px-3 py-2 italic">
               {credit.notes}
             </p>
           )}
         </div>
-        <span className="shrink-0 text-xl font-bold text-blue-700">{formatCurrency(credit.amount)}</span>
+        <span className="shrink-0 text-xl font-bold text-miski-forest">{formatCurrency(credit.amount)}</span>
       </div>
 
       {!rejecting ? (
@@ -97,7 +97,7 @@ function CreditCard({ credit }: CardProps) {
             type="button"
             onClick={() => void handle('approve')}
             disabled={saving}
-            className="px-4 py-2 rounded-lg text-xs font-semibold text-white bg-green-600 hover:bg-green-700 disabled:opacity-40 transition-colors"
+            className="bg-miski-forest text-white hover:bg-miski-green rounded-lg px-4 py-2.5 text-sm font-semibold transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {saving ? 'Procesando…' : 'Aprobar crédito'}
           </button>
@@ -105,7 +105,7 @@ function CreditCard({ credit }: CardProps) {
             type="button"
             onClick={() => setRejecting(true)}
             disabled={saving}
-            className="px-4 py-2 rounded-lg text-xs font-semibold text-gray-600 border border-gray-300 hover:border-red-300 hover:text-red-600 transition-colors"
+            className="border border-miski-sage text-miski-forest hover:bg-red-50 hover:border-red-300 hover:text-red-600 rounded-lg px-4 py-2.5 text-sm font-medium transition-colors"
           >
             Rechazar
           </button>
@@ -117,21 +117,21 @@ function CreditCard({ credit }: CardProps) {
             value={rejectionReason}
             onChange={e => setRejectionReason(e.target.value)}
             placeholder="Motivo del rechazo…"
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:border-red-400"
+            className="w-full border border-miski-sage rounded-lg px-3 py-2.5 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-miski-lime/50 focus:border-miski-green transition-colors placeholder:text-gray-300 text-gray-800"
           />
           <div className="flex gap-2">
             <button
               type="button"
               onClick={() => void handle('reject')}
               disabled={saving}
-              className="px-4 py-2 rounded-lg text-xs font-semibold text-white bg-red-600 hover:bg-red-700 disabled:opacity-40 transition-colors"
+              className="bg-red-500 text-white hover:bg-red-600 rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors disabled:opacity-50"
             >
               {saving ? 'Procesando…' : 'Confirmar rechazo'}
             </button>
             <button
               type="button"
               onClick={() => { setRejecting(false); setError('') }}
-              className="px-4 py-2 rounded-lg text-xs font-semibold text-gray-500 border border-gray-300 hover:bg-gray-50"
+              className="border border-miski-sage text-miski-forest hover:bg-miski-sage/30 rounded-lg px-4 py-2.5 text-sm font-medium transition-colors"
             >
               Cancelar
             </button>
@@ -154,7 +154,7 @@ export function WalletCreditsBoard({ pending }: Props) {
   return (
     <div className="space-y-4">
       {pending.length === 0 ? (
-        <p className="text-sm text-gray-400 bg-white rounded-xl border border-gray-200 p-6 text-center">
+        <p className="text-sm text-miski-olive bg-white rounded-xl border border-miski-sage/40 p-6 text-center">
           No hay créditos pendientes de aprobación.
         </p>
       ) : (
