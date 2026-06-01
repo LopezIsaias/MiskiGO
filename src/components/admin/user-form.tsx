@@ -149,7 +149,12 @@ function CreateUserForm() {
       <div className="grid grid-cols-2 gap-4">
         <div className="col-span-2">
           <label className="block text-sm font-medium text-gray-700 mb-1">Nombre completo</label>
-          <input {...register('full_name')} className={inputCls} placeholder="ej. Juan Pérez Torres" />
+          <input
+            {...register('full_name')}
+            className={inputCls}
+            placeholder="ej. Juan Pérez Torres"
+            onInput={(e) => { e.currentTarget.value = e.currentTarget.value.replace(/[0-9]/g, '') }}
+          />
           {errors.full_name && <p className="text-red-500 text-xs mt-1">{errors.full_name.message}</p>}
         </div>
 
@@ -171,7 +176,13 @@ function CreateUserForm() {
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
-          <input {...register('phone')} className={inputCls} placeholder="987654321" />
+          <input
+            {...register('phone')}
+            className={inputCls}
+            placeholder="987654321"
+            inputMode="numeric"
+            onInput={(e) => { e.currentTarget.value = e.currentTarget.value.replace(/\D/g, '') }}
+          />
           {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone.message}</p>}
         </div>
 
@@ -305,7 +316,11 @@ function EditUserForm({ user }: { user: User }) {
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Nombre completo</label>
-          <input {...register('full_name')} className={inputCls} />
+          <input
+            {...register('full_name')}
+            className={inputCls}
+            onInput={(e) => { e.currentTarget.value = e.currentTarget.value.replace(/[0-9]/g, '') }}
+          />
           {errors.full_name && <p className="text-red-500 text-xs mt-1">{errors.full_name.message}</p>}
         </div>
 
@@ -316,7 +331,12 @@ function EditUserForm({ user }: { user: User }) {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
-            <input {...register('phone')} className={inputCls} />
+            <input
+              {...register('phone')}
+              className={inputCls}
+              inputMode="numeric"
+              onInput={(e) => { e.currentTarget.value = e.currentTarget.value.replace(/\D/g, '') }}
+            />
             {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone.message}</p>}
           </div>
         </div>

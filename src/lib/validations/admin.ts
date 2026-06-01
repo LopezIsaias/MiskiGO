@@ -34,10 +34,18 @@ export const productSchema = z.object({
 export type ProductInput = z.infer<typeof productSchema>
 
 export const createUserSchema = z.object({
-  full_name: z.string().min(2, 'Mínimo 2 caracteres').max(120, 'Máximo 120 caracteres'),
+  full_name: z
+    .string()
+    .min(2, 'Mínimo 2 caracteres')
+    .max(120, 'Máximo 120 caracteres')
+    .regex(/^[^\d]+$/, 'El nombre no debe contener números'),
   dni: z.string().regex(/^\d{8}$/, 'El DNI debe tener exactamente 8 dígitos numéricos'),
   email: z.string().email('Email inválido'),
-  phone: z.string().min(9, 'Mínimo 9 caracteres').optional().or(z.literal('')),
+  phone: z
+    .string()
+    .min(9, 'Mínimo 9 dígitos')
+    .max(15, 'Máximo 15 dígitos')
+    .regex(/^\d+$/, 'Solo números, sin espacios ni caracteres especiales'),
   role: z.enum(['operator', 'delivery'], { message: 'Selecciona un rol válido' }),
   password: z.string().min(8, 'Mínimo 8 caracteres'),
 })
@@ -45,8 +53,16 @@ export const createUserSchema = z.object({
 export type CreateUserInput = z.infer<typeof createUserSchema>
 
 export const updateUserSchema = z.object({
-  full_name: z.string().min(2, 'Mínimo 2 caracteres').max(120, 'Máximo 120 caracteres'),
-  phone: z.string().min(9, 'Mínimo 9 caracteres').optional().or(z.literal('')),
+  full_name: z
+    .string()
+    .min(2, 'Mínimo 2 caracteres')
+    .max(120, 'Máximo 120 caracteres')
+    .regex(/^[^\d]+$/, 'El nombre no debe contener números'),
+  phone: z
+    .string()
+    .min(9, 'Mínimo 9 dígitos')
+    .max(15, 'Máximo 15 dígitos')
+    .regex(/^\d+$/, 'Solo números, sin espacios ni caracteres especiales'),
   email: z.string().email('Email inválido').optional().or(z.literal('')),
 })
 

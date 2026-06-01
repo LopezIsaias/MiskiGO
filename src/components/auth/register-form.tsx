@@ -107,15 +107,26 @@ export function RegisterForm({ regions }: Props) {
       {role && (
         <>
           <Field label="Nombre completo" error={errors.full_name?.message}>
-            <input {...register('full_name')} placeholder="Juan Pérez" className={inputCls} />
+            <input
+              {...register('full_name')}
+              placeholder="Juan Pérez"
+              className={inputCls}
+              onInput={(e) => { e.currentTarget.value = e.currentTarget.value.replace(/[0-9]/g, '') }}
+            />
           </Field>
 
           <Field label="Email" error={errors.email?.message}>
             <input type="email" {...register('email')} placeholder="tu@email.com" className={inputCls} />
           </Field>
 
-          <Field label="Teléfono (opcional)" error={errors.phone?.message}>
-            <input {...register('phone')} placeholder="987 654 321" className={inputCls} />
+          <Field label="Teléfono" error={errors.phone?.message}>
+            <input
+              {...register('phone')}
+              placeholder="987654321"
+              className={inputCls}
+              inputMode="numeric"
+              onInput={(e) => { e.currentTarget.value = e.currentTarget.value.replace(/\D/g, '') }}
+            />
           </Field>
 
           <div className="grid grid-cols-2 gap-3">
@@ -124,7 +135,14 @@ export function RegisterForm({ regions }: Props) {
             </Field>
             {role === 'supplier' && (
               <Field label="RUC (opcional)" error={errors.ruc?.message}>
-                <input {...register('ruc')} placeholder="20123456789" maxLength={11} className={inputCls} />
+                <input
+                  {...register('ruc')}
+                  placeholder="20123456789"
+                  maxLength={11}
+                  className={inputCls}
+                  inputMode="numeric"
+                  onInput={(e) => { e.currentTarget.value = e.currentTarget.value.replace(/\D/g, '') }}
+                />
               </Field>
             )}
           </div>
