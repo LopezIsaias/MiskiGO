@@ -6,7 +6,9 @@ export const metadata: Metadata = { title: 'Iniciar sesión' }
 
 export default function LoginPage() {
   return (
-    <div className="bg-white rounded-2xl shadow-sm p-8">
+    <div className="bg-white rounded-2xl shadow-sm px-8 pt-8 pb-8">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/logo.jpeg" alt="Miski GO" className="h-36 mx-auto mb-6 object-contain" />
       <h2 className="text-xl font-semibold text-gray-800 mb-6">Iniciar sesión</h2>
       <LoginForm />
       <p className="text-center text-sm text-gray-500 mt-6">
