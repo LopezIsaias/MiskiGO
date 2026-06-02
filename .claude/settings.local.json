@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(npx supabase *)",
-      "Bash(git commit -m ' *)"
+      "Bash(git commit -m ' *)",
+      "PowerShell(npm run *)"
     ]
   }
 }

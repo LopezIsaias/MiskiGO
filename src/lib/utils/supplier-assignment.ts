@@ -38,6 +38,21 @@ type ExtraAssignmentPlan = {
   origAvailableQty: number  // used to compute newQty at apply time
 }
 
+/**
+ * Orden de asignación de proveedores (CLAUDE.md §4):
+ *   1. minimum_price ASC
+ *   2. published_at ASC (FIFO) en empate de precio
+ *   3. reputation_score DESC en empate de precio Y fecha
+ */
+export function comparePublicationsForAssignment(
+  a: Pick<PublicationWithRep, 'minimum_price' | 'published_at' | 'supplier'>,
+  b: Pick<PublicationWithRep, 'minimum_price' | 'published_at' | 'supplier'>,
+): number {
+  if (a.minimum_price !== b.minimum_price) return a.minimum_price - b.minimum_price
+  if (a.published_at !== b.published_at) return a.published_at < b.published_at ? -1 : 1
+  return (b.supplier?.reputation_score ?? 0) - (a.supplier?.reputation_score ?? 0)
+}
+
 export interface AssignmentResult {
   allAssigned: boolean
   assignedItems: number
@@ -109,11 +124,8 @@ export async function runSupplierAssignment(params: AssignmentParams): Promise<A
         .order('minimum_price', { ascending: true })
         .order('published_at', { ascending: true })
 
-      const activePubs = ((rawPubs ?? []) as unknown as PublicationWithRep[]).sort((a, b) => {
-        if (a.minimum_price !== b.minimum_price) return a.minimum_price - b.minimum_price
-        if (a.published_at !== b.published_at) return a.published_at < b.published_at ? -1 : 1
-        return (b.supplier?.reputation_score ?? 0) - (a.supplier?.reputation_score ?? 0)
-      })
+      const activePubs = ((rawPubs ?? []) as unknown as PublicationWithRep[])
+        .sort(comparePublicationsForAssignment)
 
       const alreadyUsed = new Set(pendingAsgs.map(a => a.publication_id))
 

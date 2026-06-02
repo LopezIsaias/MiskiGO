@@ -2,13 +2,7 @@ import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { AUDIT_ACTIONS, AUDIT_MODULES } from '@/lib/constants'
-
-const VALID_TRANSITIONS: Record<string, string> = {
-  open:        'closed',
-  closed:      'in_progress',
-  in_progress: 'completed',
-}
+import { AUDIT_ACTIONS, AUDIT_MODULES, nextCycleStatus } from '@/lib/constants'
 
 const bodySchema = z.object({
   newStatus: z.enum(['closed', 'in_progress', 'completed']),
@@ -55,7 +49,7 @@ export async function PATCH(
 
   if (!cycle) return NextResponse.json({ error: 'Ciclo no encontrado' }, { status: 404 })
 
-  const expectedNew = VALID_TRANSITIONS[cycle.status]
+  const expectedNew = nextCycleStatus(cycle.status)
   if (expectedNew !== newStatus) {
     return NextResponse.json({
       error: `Transición no permitida: ${cycle.status} → ${newStatus}`,

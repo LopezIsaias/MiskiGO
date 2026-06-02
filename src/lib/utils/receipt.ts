@@ -5,6 +5,16 @@ const SERIES: Record<string, string> = {
   factura: 'F001',
 }
 
+// Serie del comprobante según tipo. 'X001' como fallback defensivo.
+export function seriesForReceiptType(type: string): string {
+  return SERIES[type] ?? 'X001'
+}
+
+// Número formateado: SERIE-00000123 (correlativo a 8 dígitos).
+export function formatReceiptNumber(series: string, correlative: number): string {
+  return `${series}-${String(correlative).padStart(8, '0')}`
+}
+
 export interface EmitReceiptResult {
   emitted: boolean
   number?: string
@@ -41,7 +51,7 @@ export async function emitReceiptForOrder(orderId: string): Promise<EmitReceiptR
 
   if (existing) return { emitted: false, number: existing.number, reason: 'already_emitted' }
 
-  const series = SERIES[order.receipt_type] ?? 'X001'
+  const series = seriesForReceiptType(order.receipt_type)
 
   const { data: correlative, error: rpcErr } = await adminClient
     .rpc('next_receipt_correlative', { p_series: series })
@@ -51,7 +61,7 @@ export async function emitReceiptForOrder(orderId: string): Promise<EmitReceiptR
     return { emitted: false, reason: 'numbering_failed' }
   }
 
-  const number = `${series}-${String(correlative).padStart(8, '0')}`
+  const number = formatReceiptNumber(series, correlative)
 
   const { error: insertErr } = await adminClient.from('receipts').insert({
     order_id:      orderId,

@@ -1,5 +1,25 @@
 # CHANGELOG — Miski GO
 
+## [2026-06-02] — Suite de pruebas automatizadas (Vitest) por rol
+
+### Añadido
+- `vitest` (dev dependency) + `vitest.config.ts` (alias `@`, entorno node) + scripts `test` / `test:watch`
+- `tests/pricing.test.ts` — `calculateSalePrice` (fórmula, proveedor más caro, denominador inválido), fechas de despacho, ventana de reclamo 2h, corte
+- `tests/customer-checkout.test.ts` — `checkoutSchema`: boleta exige DNI 8 díg., factura exige RUC 11 díg., carrito vacío, métodos de pago
+- `tests/auth-register.test.ts` — `registerSchema`/`registerApiSchema`/`loginSchema`: DNI/RUC, nombre sin números, contraseñas, teléfono
+- `tests/supplier.test.ts` — `publicationSchema` + `comparePublicationsForAssignment` (precio ASC → FIFO → reputación DESC)
+- `tests/operator-cycle.test.ts` — `nextCycleStatus` (open→closed→in_progress→completed, sin saltos)
+- `tests/admin.test.ts` — `systemParamsSchema`, `categorySchema`, `createUserSchema`
+- `tests/receipt.test.ts` — `seriesForReceiptType`, `formatReceiptNumber` (numeración SERIE-00000000)
+- `tests/utils-format.test.ts` — `formatCurrency`, `toSlug`, `toWANumber`
+- **65 tests, 8 archivos, todos en verde**
+
+### Modificado (refactors puros para testabilidad, sin cambio de comportamiento)
+- `src/lib/constants/index.ts` — `CYCLE_TRANSITIONS` + `nextCycleStatus()` centralizados
+- `src/app/api/operator/cycle/[id]/status/route.ts` — usa `nextCycleStatus` en vez de mapa local
+- `src/lib/utils/receipt.ts` — extraídos `seriesForReceiptType()` y `formatReceiptNumber()`
+- `src/lib/utils/supplier-assignment.ts` — extraído `comparePublicationsForAssignment()`
+
 ## [2026-06-01] — Comprobantes de pago (boleta/factura)
 
 ### Añadido

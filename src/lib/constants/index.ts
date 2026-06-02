@@ -40,6 +40,18 @@ export const DISPATCH_DAY_FRIDAY = 5
 export const CLAIM_WINDOW_HOURS = 2
 export const CUTOFF_HOUR = 12  // mediodía hora Lima
 
+// Transiciones permitidas del ciclo de despacho: open → closed → in_progress → completed
+export const CYCLE_TRANSITIONS: Record<string, string> = {
+  open:        'closed',
+  closed:      'in_progress',
+  in_progress: 'completed',
+}
+
+// Devuelve el siguiente estado válido del ciclo, o null si es terminal/desconocido.
+export function nextCycleStatus(current: string): string | null {
+  return CYCLE_TRANSITIONS[current] ?? null
+}
+
 // Parámetros operativos por categoría (CLAUDE.md sección 4)
 export const CATEGORY_PARAMS = {
   fragile:  { minOpCost: 0.30, maxOpCost: 0.35, minMargin: 0.20, maxMargin: 0.25, minWaste: 0.12, maxWaste: 0.18 },

@@ -7,6 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "seed:admin": "node --env-file=.env.local scripts/create-superadmin.mjs"
   },
   "dependencies": {
@@ -32,6 +34,7 @@
     "eslint-config-next": "16.2.6",
     "supabase": "^2.104.0",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.1.8"
   }
 }
