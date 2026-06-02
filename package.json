@@ -9,6 +9,11 @@
     "lint": "eslint",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:integration": "vitest run --config vitest.integration.config.ts",
+    "db:start": "supabase start",
+    "db:stop": "supabase stop",
+    "db:reset": "supabase db reset",
+    "db:env": "node scripts/gen-test-env.mjs",
     "seed:admin": "node --env-file=.env.local scripts/create-superadmin.mjs"
   },
   "dependencies": {

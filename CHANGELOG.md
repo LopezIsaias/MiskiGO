@@ -1,5 +1,23 @@
 # CHANGELOG — Miski GO
 
+## [2026-06-02] — Tests de integración contra Supabase local
+
+### Añadido
+- `vitest.integration.config.ts` — config dedicada (carga `.env.test.local`, corre secuencial, timeout 30s)
+- `tests/integration/helpers.ts` — clientes service-role/anon, guarda anti-producción (`assertLocal`), creación de usuarios auth + perfil, fixtures (región/ciclo/pedido), `INTEGRATION_ENABLED` para autosaltar sin credenciales
+- `tests/integration/triggers.test.ts` — `lock_order_on_payment`, `set_claim_window` (2h), inmutabilidad de `audit_log`/`receipts`, protección de saldo congelado en `wallet_transactions` (valida migración 028)
+- `tests/integration/receipts-rpc.test.ts` — `next_receipt_correlative` secuencial/atómico bajo concurrencia, unicidad de `number` y 1:1 `order_id`
+- `tests/integration/rls.test.ts` — aislamiento por usuario (un cliente solo ve/edita lo suyo), trigger `handle_new_auth_user`
+- `tests/integration/README.md` — instrucciones de ejecución
+- `scripts/gen-test-env.mjs` — genera `.env.test.local` desde `supabase status`
+- Scripts npm: `test:integration`, `db:start`, `db:stop`, `db:reset`, `db:env`
+
+### Modificado
+- `vitest.config.ts` — unit tests limitados a `tests/*.test.ts` (integración separada)
+
+### Notas
+- Requiere Docker + `npm run db:start`. Sin `.env.test.local`, las suites se saltan (no rompen `npm test` ni CI). 15 casos de integración listos, pendientes de ejecutar contra una instancia local con Docker.
+
 ## [2026-06-02] — Suite de pruebas automatizadas (Vitest) por rol
 
 ### Añadido

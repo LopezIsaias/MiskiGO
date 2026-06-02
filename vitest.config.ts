@@ -9,7 +9,8 @@ export default defineConfig({
   },
   test: {
     environment: 'node',
-    include: ['src/**/*.test.ts', 'tests/**/*.test.ts'],
+    // Solo unit tests. La integración vive en tests/integration y corre con su propia config.
+    include: ['src/**/*.test.ts', 'tests/*.test.ts'],
     globals: true,
   },
 })
