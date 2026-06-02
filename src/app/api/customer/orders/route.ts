@@ -5,6 +5,7 @@ import { checkoutSchema } from '@/lib/validations/customer'
 import { calculateSalePrice } from '@/lib/utils'
 import { AUDIT_ACTIONS, AUDIT_MODULES } from '@/lib/constants'
 import { runSupplierAssignment } from '@/lib/utils/supplier-assignment'
+import { getReservedByOthers } from '@/lib/utils/stock-reservations'
 
 type PubRow = {
   product_id: string
@@ -45,7 +46,7 @@ export async function POST(request: Request) {
     }
 
     const {
-      items, delivery_address, delivery_notes, customer_note,
+      items, delivery_address, delivery_lat, delivery_lng, delivery_notes, customer_note,
       payment_method, use_wallet, proof_url,
       receipt_type, receipt_document, receipt_name,
     } = parsed.data
@@ -102,10 +103,15 @@ export async function POST(request: Request) {
       }
     }
 
+    // Reservas activas de otros clientes (excluye las propias, que se consumen en este pedido)
+    const adminClient = createAdminClient()
+    const reservedByOthers = await getReservedByOthers(adminClient, productIds, user.id)
+
     for (const item of items) {
       const agg = byProduct.get(item.productId)
       if (!agg) return NextResponse.json({ error: `Producto no disponible` }, { status: 400 })
-      if (item.quantity > Math.floor(agg.totalAvailable)) {
+      const available = agg.totalAvailable - (reservedByOthers.get(item.productId) ?? 0)
+      if (item.quantity > Math.floor(available)) {
         return NextResponse.json({ error: `Stock insuficiente` }, { status: 400 })
       }
     }
@@ -137,7 +143,6 @@ export async function POST(request: Request) {
     const total = subtotal  // delivery_fee = 0 en MVP
 
     // Get or create dispatch cycle
-    const adminClient = createAdminClient()
     const dispatchDate = new Date(new Date(minCutoff).getTime() + 24 * 60 * 60 * 1000)
     const dispatchDateStr = dispatchDate.toISOString().split('T')[0]
 
@@ -209,6 +214,8 @@ export async function POST(request: Request) {
         payment_method,
         payment_proof_url: effectiveProofUrl,
         delivery_address,
+        delivery_lat: delivery_lat ?? null,
+        delivery_lng: delivery_lng ?? null,
         delivery_notes: delivery_notes ?? null,
         customer_note: customer_note ?? null,
         delivery_confirmation_code: confirmationCode as never,
@@ -243,6 +250,14 @@ export async function POST(request: Request) {
       await adminClient.from('orders').delete().eq('id', order.id)
       return NextResponse.json({ error: 'Error al registrar ítems del pedido' }, { status: 500 })
     }
+
+    // Consumir las reservas propias de estos productos (ya se materializaron en el pedido)
+    await adminClient
+      .from('stock_reservations')
+      .update({ status: 'consumed', updated_at: new Date().toISOString() })
+      .eq('customer_id', user.id)
+      .eq('status', 'active')
+      .in('product_id', productIds)
 
     // Map product_id → order_item_id for assignment creation
     const itemIdByProduct = new Map<string, string>()

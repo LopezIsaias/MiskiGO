@@ -34,12 +34,15 @@ const STOP_STATUS_COLOR: Record<string, string> = {
 
 interface Props {
   initialData: DeliveryPersonRow[]
+  realtime?:   boolean
 }
 
-export function DeliveriesBoard({ initialData }: Props) {
+export function DeliveriesBoard({ initialData, realtime = true }: Props) {
   const [data, setData] = useState<DeliveryPersonRow[]>(initialData)
 
   useEffect(() => {
+    if (!realtime) return
+
     const supabase = createClient()
 
     const channel = supabase
@@ -77,7 +80,7 @@ export function DeliveriesBoard({ initialData }: Props) {
       .subscribe()
 
     return () => { void supabase.removeChannel(channel) }
-  }, [])
+  }, [realtime])
 
   if (data.length === 0) {
     return (

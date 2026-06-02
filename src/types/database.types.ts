@@ -90,6 +90,7 @@ export type Database = {
           reason: string
           resolution_amount: number | null
           resolution_type: string | null
+          resolution_proof_url: string | null
           resolved_at: string | null
           resolved_by: string | null
           status: string
@@ -106,6 +107,7 @@ export type Database = {
           reason: string
           resolution_amount?: number | null
           resolution_type?: string | null
+          resolution_proof_url?: string | null
           resolved_at?: string | null
           resolved_by?: string | null
           status?: string
@@ -122,6 +124,7 @@ export type Database = {
           reason?: string
           resolution_amount?: number | null
           resolution_type?: string | null
+          resolution_proof_url?: string | null
           resolved_at?: string | null
           resolved_by?: string | null
           status?: string
@@ -471,6 +474,8 @@ export type Database = {
       }
       orders: {
         Row: {
+          cancellation_requested_at: string | null
+          cancellation_reason: string | null
           claim_window_expires_at: string | null
           created_at: string
           customer_id: string
@@ -478,6 +483,8 @@ export type Database = {
           delivered_at: string | null
           delivery_address: string
           delivery_fee: number
+          delivery_lat: number | null
+          delivery_lng: number | null
           delivery_notes: string | null
           dispatch_cycle_id: string
           grouped_delivery_id: string | null
@@ -498,6 +505,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          cancellation_requested_at?: string | null
+          cancellation_reason?: string | null
           claim_window_expires_at?: string | null
           created_at?: string
           customer_id: string
@@ -505,6 +514,8 @@ export type Database = {
           delivered_at?: string | null
           delivery_address: string
           delivery_fee?: number
+          delivery_lat?: number | null
+          delivery_lng?: number | null
           delivery_notes?: string | null
           dispatch_cycle_id: string
           grouped_delivery_id?: string | null
@@ -525,6 +536,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          cancellation_requested_at?: string | null
+          cancellation_reason?: string | null
           claim_window_expires_at?: string | null
           created_at?: string
           customer_id?: string
@@ -532,6 +545,8 @@ export type Database = {
           delivered_at?: string | null
           delivery_address?: string
           delivery_fee?: number
+          delivery_lat?: number | null
+          delivery_lng?: number | null
           delivery_notes?: string | null
           dispatch_cycle_id?: string
           grouped_delivery_id?: string | null
@@ -1252,6 +1267,54 @@ export type Database = {
           last_number?: number
         }
         Relationships: []
+      }
+      stock_reservations: {
+        Row: {
+          id: string
+          customer_id: string
+          product_id: string
+          quantity: number
+          expires_at: string
+          status: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          customer_id: string
+          product_id: string
+          quantity: number
+          expires_at: string
+          status?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          customer_id?: string
+          product_id?: string
+          quantity?: number
+          expires_at?: string
+          status?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_reservations_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_reservations_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

@@ -111,6 +111,7 @@ in_transit → delivered → [claim_window_open] → completed
 2. **Después de aprobación de pago:** pedido BLOQUEADO e inmutable (`is_locked = true`)
 3. **Después del corte:** todos los pedidos son inmutables sin excepción
 4. **Pedidos múltiples en el mismo ciclo:** permitidos. Se agrupan con `grouped_delivery_id` y se entregan juntos como una sola parada
+5. **Solicitud de cancelación post-pago (cliente):** mientras el pedido esté en estado `confirmed` y aún no `assigned`, el cliente puede **solicitar** la cancelación (registra `orders.cancellation_requested_at` + `cancellation_reason`; NO cancela por sí sola). El `operator`/`superadmin` revisa y ejecuta la cancelación: libera el stock reservado, pasa el pedido a `cancelled` y queda en `audit_log` (`order_cancelled_post_payment`). **El reembolso es MANUAL** (módulo de billetera o medio original); el sistema no mueve dinero automáticamente en este flujo. Una vez `assigned`, ya no se puede solicitar.
 
 ### Ventana de reclamo post-entrega
 - Se abre cuando el repartidor marca el pedido como entregado
@@ -276,13 +277,31 @@ payment_approved_by     uuid REFERENCES users(id)
 is_locked               boolean DEFAULT false  -- true desde aprobación de pago
 locked_at               timestamptz
 delivery_address        text NOT NULL
+delivery_lat            numeric(10,7)  -- migración 032 — pin exacto para la ruta (opcional)
+delivery_lng            numeric(10,7)  -- migración 032
 delivery_notes          text
 customer_note           text
 delivered_at            timestamptz
 claim_window_expires_at timestamptz  -- delivered_at + 2 horas
+cancellation_requested_at timestamptz  -- migración 030 — solicitud de cancelación del cliente
+cancellation_reason     text           -- migración 030
 created_at              timestamptz DEFAULT now()
 updated_at              timestamptz DEFAULT now()
 ```
+
+### Tabla: stock_reservations (migración 031 — reserva temporal anti-sobreventa)
+```sql
+id              uuid PRIMARY KEY DEFAULT gen_random_uuid()
+customer_id     uuid REFERENCES users(id) NOT NULL
+product_id      uuid REFERENCES products(id) NOT NULL
+quantity        numeric(10,3) NOT NULL CHECK (quantity > 0)
+expires_at      timestamptz NOT NULL  -- now() + RESERVATION_TTL_MINUTES (30 min)
+status          text NOT NULL DEFAULT 'active' CHECK (status IN ('active','consumed','released','expired'))
+created_at      timestamptz NOT NULL DEFAULT now()
+updated_at      timestamptz NOT NULL DEFAULT now()
+-- UNIQUE (customer_id, product_id) WHERE status='active'
+```
+Al agregar al carrito se crea/actualiza una reserva activa. La disponibilidad en catálogo y la validación en checkout descuentan las reservas activas y NO vencidas de **otros** clientes (`expires_at > now()`). Al confirmar el pedido, las reservas propias pasan a `consumed`. Las vencidas se ignoran por filtro; no requieren limpieza para ser correctas.
 
 ### Tabla: order_items
 ```sql
@@ -664,10 +683,11 @@ Construir estrictamente en este orden. No avanzar al siguiente paso sin que el a
 > Esta sección debe actualizarse al final de cada sesión por cualquier agente (Claude Code, Gemini, etc.).
 > Todo agente que trabaje en este proyecto debe leer este archivo completo y respetar todas las decisiones documentadas aquí antes de proponer o aplicar cambios.
 
-**Último agente:** Claude Code (claude-sonnet-4-6)
-**Fecha:** 2026-05-19
-**Pasos completados:** 1 al 20 — MVP completo
-**Último commit:** 3b21bce
-**Próximo paso:** MVP finalizado. Siguientes acciones posibles: aplicar migración `npx supabase db push`, hacer deploy a Vercel, o iniciar Fase 2 (WhatsApp API, pasarela de pagos, multi-región)
-**Bugs pendientes:** Ninguno
-**Decisiones pendientes:** Ninguna
+**Último agente:** Claude Code (claude-opus-4-8)
+**Fecha:** 2026-06-02
+**Pasos completados:** 1 al 20 — MVP completo + mejoras perfil cliente/operador/repartidor (ver CHANGELOG 2026-06-02)
+**Último commit:** 1ee0b9b (commit de esta sesión en curso)
+**Migraciones aplicadas:** `030`, `031`, `032` ya en remoto vía `db push`.
+**Próximo paso:** Probar en la app los flujos nuevos; luego deploy. Para coords precisas en ruta, habilitar "Maps Static API" en Google Cloud.
+**Bugs pendientes:** Ninguno conocido
+**Decisiones pendientes:** Ninguna. Nota: §4 actualizado — el cliente ahora puede SOLICITAR cancelación post-pago en estado `confirmed`; operador/superadmin ejecuta; reembolso MANUAL.

@@ -32,6 +32,8 @@ type RawOrder = {
   payment_method: string | null
   created_at: string
   delivery_address: string
+  cancellation_requested_at: string | null
+  cancellation_reason: string | null
   customer: { full_name: string; phone: string | null } | null
   dispatch_cycle: { dispatch_date: string } | null
   order_items: RawItem[]
@@ -61,6 +63,7 @@ export default async function OperatorOrdersPage() {
       .from('orders')
       .select(`
         id, status, total_amount, payment_method, created_at, delivery_address,
+        cancellation_requested_at, cancellation_reason,
         customer:users!customer_id(full_name, phone),
         dispatch_cycle:dispatch_cycles!dispatch_cycle_id(dispatch_date),
         order_items(
@@ -88,6 +91,8 @@ export default async function OperatorOrdersPage() {
         : '',
       customerName: raw.customer?.full_name ?? '—',
       customerPhone: raw.customer?.phone ?? null,
+      cancellationRequestedAt: raw.cancellation_requested_at,
+      cancellationReason: raw.cancellation_reason,
       items: raw.order_items.map((item): OrderItem => ({
         id: item.id,
         productId: item.product_id,

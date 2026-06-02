@@ -4,7 +4,8 @@
       "Bash(npx supabase *)",
       "Bash(git commit -m ' *)",
       "PowerShell(npm run *)",
-      "PowerShell(git *)"
+      "PowerShell(git *)",
+      "Bash(npm test *)"
     ]
   }
 }

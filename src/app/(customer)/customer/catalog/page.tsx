@@ -1,5 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { calculateSalePrice } from '@/lib/utils'
+import { getReservedByOthers } from '@/lib/utils/stock-reservations'
 import { CatalogGrid, type CatalogProduct } from '@/components/customer/catalog-grid'
 
 type RawPublication = {
@@ -47,6 +49,7 @@ function getCutoffBannerLabel(expiresAtIso: string): string {
 
 export default async function CatalogPage() {
   const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
 
   const { data: rawPubs } = await supabase
     .from('supplier_publications')
@@ -95,9 +98,18 @@ export default async function CatalogPage() {
     }
   }
 
+  // Descontar stock reservado por otros clientes (carritos en curso, no vencidos)
+  const reservedByOthers = await getReservedByOthers(
+    createAdminClient(),
+    [...byProduct.keys()],
+    user?.id,
+  )
+
   const catalog: CatalogProduct[] = []
-  for (const [, item] of byProduct) {
-    if (item.totalQty <= 0) continue
+  for (const [productId, item] of byProduct) {
+    const effectiveQty = Math.round((item.totalQty - (reservedByOthers.get(productId) ?? 0)) * 1000) / 1000
+    if (effectiveQty <= 0) continue
+    item.totalQty = effectiveQty
     const { operational_cost_pct, suggested_margin_pct } = item.product.category!
     let estimatedPrice: number
     try {

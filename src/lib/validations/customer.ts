@@ -9,6 +9,8 @@ export const checkoutSchema = z
   .object({
     items: z.array(checkoutItemSchema).min(1, 'El carrito está vacío'),
     delivery_address: z.string().min(5, 'Ingresa una dirección de entrega válida'),
+    delivery_lat: z.number().min(-90).max(90).optional(),
+    delivery_lng: z.number().min(-180).max(180).optional(),
     delivery_notes: z.string().optional(),
     customer_note: z.string().optional(),
     payment_method: z.enum(['yape', 'transfer', 'wallet']),

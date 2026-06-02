@@ -5,6 +5,8 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import Link from 'next/link'
 import { formatDate, formatCurrency } from '@/lib/utils'
 import { DeliveryClaimBanner } from '@/components/customer/delivery-claim-banner'
+import { OrderStatusBar } from '@/components/customer/order-status-bar'
+import { CancelOrderButton } from '@/components/customer/cancel-order-button'
 
 export const metadata: Metadata = { title: 'Mis pedidos' }
 
@@ -43,6 +45,7 @@ type RawOrder = {
   claim_window_expires_at:  string | null
   created_at:               string
   delivery_confirmation_code: string | null
+  cancellation_requested_at: string | null
   receipt: { number: string; type: string } | { number: string; type: string }[] | null
   items: {
     quantity:          number
@@ -62,7 +65,7 @@ export default async function OrdersPage() {
     .select(`
       id, status, total_amount, delivery_address,
       delivered_at, claim_window_expires_at, created_at,
-      delivery_confirmation_code,
+      delivery_confirmation_code, cancellation_requested_at,
       receipt:receipts!order_id(number, type),
       items:order_items!order_id(
         quantity, unit_price_frozen,
@@ -112,6 +115,17 @@ export default async function OrdersPage() {
                 <span className="text-sm font-bold text-miski-forest">{formatCurrency(order.total_amount)}</span>
               </div>
 
+              {/* Barra de estado del pedido */}
+              <OrderStatusBar status={order.status} />
+
+              {/* Cancelación: solo mientras esté 'confirmed' y aún no 'assigned' (CLAUDE.md §4: aprobación manual) */}
+              {order.status === 'confirmed' && (
+                <CancelOrderButton
+                  orderId={order.id}
+                  alreadyRequested={order.cancellation_requested_at !== null}
+                />
+              )}
+
               {/* Comprobante emitido */}
               {(() => {
                 const receipt = Array.isArray(order.receipt) ? order.receipt[0] : order.receipt
@@ -132,8 +146,8 @@ export default async function OrdersPage() {
                 )
               })()}
 
-              {/* Confirmation code — visible when order is active and en route */}
-              {['assigned', 'in_transit'].includes(order.status) && order.delivery_confirmation_code && (
+              {/* Confirmation code — visible desde que el pedido se confirma */}
+              {['confirmed', 'assigned', 'in_transit'].includes(order.status) && order.delivery_confirmation_code && (
                 <div className="mt-3 bg-blue-50 border border-blue-200 rounded-xl px-4 py-3">
                   <p className="text-xs text-blue-600 font-semibold mb-1">Código de confirmación de entrega</p>
                   <p className="text-3xl font-bold text-blue-800 tracking-[0.3em]">

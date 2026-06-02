@@ -40,6 +40,9 @@ export const DISPATCH_DAY_FRIDAY = 5
 export const CLAIM_WINDOW_HOURS = 2
 export const CUTOFF_HOUR = 12  // mediodía hora Lima
 
+// Vigencia de una reserva de stock al agregar al carrito (minutos)
+export const RESERVATION_TTL_MINUTES = 30
+
 // Transiciones permitidas del ciclo de despacho: open → closed → in_progress → completed
 export const CYCLE_TRANSITIONS: Record<string, string> = {
   open:        'closed',
@@ -87,6 +90,7 @@ export const AUDIT_ACTIONS = {
   BAD_PRODUCT_REPORTED:       'bad_product_reported',
   ROLE_CONVERTED:             'role_converted',
   ORDER_CANCELLED_POST_PAYMENT: 'order_cancelled_post_payment',
+  ORDER_CANCELLATION_REQUESTED: 'order_cancellation_requested',
   USER_CREATED:               'user_created',
   PASSWORD_RESET:             'password_reset',
   SUPPLIER_ASSIGNED:          'supplier_assigned',

@@ -13,6 +13,8 @@ type RawOrder = {
   id: string
   status: string
   delivery_address: string
+  delivery_lat: number | null
+  delivery_lng: number | null
   customer_note: string | null
   delivery_notes: string | null
   delivered_at: string | null
@@ -33,20 +35,28 @@ type DirectionsJson = {
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
+// Punto de mapa por pedido: coordenadas exactas (pin) si existen, si no la
+// dirección de texto geocodificable.
+function toMapPoint(o: { delivery_address: string; delivery_lat: number | null; delivery_lng: number | null }): string {
+  if (o.delivery_lat !== null && o.delivery_lng !== null) {
+    return `${o.delivery_lat},${o.delivery_lng}`
+  }
+  return `${o.delivery_address}, San Martín, Perú`
+}
+
 async function optimizeWaypointOrder(
-  addresses: string[],
+  points: string[],
   apiKey: string,
 ): Promise<number[]> {
-  const n = addresses.length
+  const n = points.length
   const identity = Array.from({ length: n }, (_, i) => i)
   if (n <= 2) return identity
 
-  const suffix = ', San Martín, Perú'
   const params = new URLSearchParams({
-    origin:     addresses[0] + suffix,
-    destination: addresses[n - 1] + suffix,
-    waypoints:  `optimize:true|${addresses.slice(1, n - 1).map(a => a + suffix).join('|')}`,
-    key:        apiKey,
+    origin:      points[0],
+    destination: points[n - 1],
+    waypoints:   `optimize:true|${points.slice(1, n - 1).join('|')}`,
+    key:         apiKey,
   })
 
   try {
@@ -64,22 +74,21 @@ async function optimizeWaypointOrder(
   }
 }
 
-function buildStaticMapUrl(addresses: string[], apiKey: string): string {
+function buildStaticMapUrl(points: string[], apiKey: string): string {
   const params = new URLSearchParams({ size: '600x240', scale: '2', key: apiKey })
-  addresses.forEach((addr, i) => {
-    params.append('markers', `color:0x16a34a|label:${i + 1}|${addr}, San Martín, Perú`)
+  points.forEach((p, i) => {
+    params.append('markers', `color:0x16a34a|label:${i + 1}|${p}`)
   })
   return `https://maps.googleapis.com/maps/api/staticmap?${params.toString()}`
 }
 
-function buildGoogleMapsUrl(addresses: string[]): string {
-  if (addresses.length === 0) return 'https://maps.google.com'
-  const suffix = ', San Martín, Perú'
-  const enc = (a: string) => encodeURIComponent(a + suffix)
-  if (addresses.length === 1) return `https://maps.google.com/?q=${enc(addresses[0])}`
-  const origin = enc(addresses[0])
-  const dest   = enc(addresses[addresses.length - 1])
-  const wps    = addresses.slice(1, -1).map(enc).join('|')
+function buildGoogleMapsUrl(points: string[]): string {
+  if (points.length === 0) return 'https://maps.google.com'
+  const enc = (p: string) => encodeURIComponent(p)
+  if (points.length === 1) return `https://maps.google.com/?q=${enc(points[0])}`
+  const origin = enc(points[0])
+  const dest   = enc(points[points.length - 1])
+  const wps    = points.slice(1, -1).map(enc).join('|')
   return `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${dest}${wps ? `&waypoints=${wps}` : ''}&travelmode=driving`
 }
 
@@ -157,7 +166,7 @@ export default async function DeliveryRoutePage() {
   const ordersQuery = adminClient
     .from('orders')
     .select(`
-      id, status, delivery_address, customer_note, delivery_notes,
+      id, status, delivery_address, delivery_lat, delivery_lng, customer_note, delivery_notes,
       delivered_at, claim_window_expires_at,
       delivery_confirmation_code, delivery_attempts,
       customer:users!customer_id(full_name),
@@ -192,17 +201,17 @@ export default async function DeliveryRoutePage() {
 
   // Optimize route with Directions API (server-side)
   const mapsKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY ?? ''
-  const addresses = orders.map(o => o.delivery_address)
+  const points = orders.map(toMapPoint)
   const optimizedIdx = mapsKey
-    ? await optimizeWaypointOrder(addresses, mapsKey)
-    : addresses.map((_, i) => i)
+    ? await optimizeWaypointOrder(points, mapsKey)
+    : points.map((_, i) => i)
 
   const orderedOrders = optimizedIdx.map(i => orders[i])
 
-  // Build map URLs
-  const orderedAddresses = orderedOrders.map(o => o.delivery_address)
-  const staticMapUrl  = mapsKey ? buildStaticMapUrl(orderedAddresses, mapsKey) : null
-  const googleMapsUrl = buildGoogleMapsUrl(orderedAddresses)
+  // Build map URLs (coords exactas si existen, si no la dirección)
+  const orderedPoints = orderedOrders.map(toMapPoint)
+  const staticMapUrl  = mapsKey ? buildStaticMapUrl(orderedPoints, mapsKey) : null
+  const googleMapsUrl = buildGoogleMapsUrl(orderedPoints)
 
   // Build typed stops
   const stops: StopData[] = orderedOrders.map((o, idx) => {

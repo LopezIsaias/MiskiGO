@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import Link from 'next/link'
 import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
@@ -21,7 +22,18 @@ type RawStop = {
   status:     string
 }
 
-export default async function DeliveriesPage() {
+const CYCLE_STATUS_LABEL: Record<string, string> = {
+  open:        'Abierto',
+  closed:      'Cerrado',
+  in_progress: 'En progreso',
+  completed:   'Completado',
+}
+
+export default async function DeliveriesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ cycle?: string }>
+}) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
@@ -38,15 +50,19 @@ export default async function DeliveriesPage() {
 
   const adminClient = createAdminClient()
 
-  // Active cycle
+  // Ciclos recientes (cualquier estado) para el selector de historial
   const { data: cycles } = await adminClient
     .from('dispatch_cycles')
-    .select('id, dispatch_date')
-    .in('status', ['open', 'closed', 'in_progress'])
+    .select('id, dispatch_date, status')
     .order('dispatch_date', { ascending: false })
-    .limit(1)
+    .limit(10)
 
-  const cycle = cycles?.[0] ?? null
+  const cycleList = cycles ?? []
+  const { cycle: requestedCycleId } = await searchParams
+
+  // Por defecto el más reciente (aunque esté completado); o el solicitado en la URL
+  const cycle =
+    cycleList.find(c => c.id === requestedCycleId) ?? cycleList[0] ?? null
 
   let deliveryPeople: DeliveryPersonRow[] = []
 
@@ -89,6 +105,8 @@ export default async function DeliveriesPage() {
     }))
   }
 
+  const isHistoric = cycle?.status === 'completed'
+
   return (
     <div className="max-w-2xl space-y-6">
       <div>
@@ -96,11 +114,39 @@ export default async function DeliveriesPage() {
         <p className="text-sm text-miski-olive mt-1">
           {cycle
             ? `Ciclo del ${cycle.dispatch_date} — ${deliveryPeople.length} repartidor${deliveryPeople.length !== 1 ? 'es' : ''}`
-            : 'No hay ciclo activo en este momento'}
+            : 'No hay ciclos registrados todavía'}
         </p>
       </div>
 
-      <DeliveriesBoard initialData={deliveryPeople} />
+      {/* Selector de ciclos (historial) */}
+      {cycleList.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {cycleList.map(c => {
+            const active = c.id === cycle?.id
+            return (
+              <Link
+                key={c.id}
+                href={`/operator/deliveries?cycle=${c.id}`}
+                className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
+                  active
+                    ? 'bg-miski-green text-white border-miski-green'
+                    : 'bg-white text-miski-olive border-miski-sage/40 hover:border-miski-green'
+                }`}
+              >
+                {c.dispatch_date} · {CYCLE_STATUS_LABEL[c.status] ?? c.status}
+              </Link>
+            )
+          })}
+        </div>
+      )}
+
+      {/* key fuerza remontaje al cambiar de ciclo (re-inicializa el estado local).
+          La suscripción en tiempo real solo aplica al ciclo activo, no al histórico. */}
+      <DeliveriesBoard
+        key={cycle?.id ?? 'none'}
+        initialData={deliveryPeople}
+        realtime={!isHistoric}
+      />
     </div>
   )
 }

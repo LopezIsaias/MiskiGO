@@ -32,24 +32,50 @@ interface ProductCardProps {
 function ProductCard({ product }: ProductCardProps) {
   const [qty, setQty] = useState(1)
   const [added, setAdded] = useState(false)
+  const [reserving, setReserving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const addItem = useCartStore(s => s.addItem)
+  const existingInCart = useCartStore(
+    s => s.items.find(i => i.productId === product.id)?.quantity ?? 0
+  )
 
-  function handleAdd() {
-    addItem(
-      {
-        productId: product.id,
-        name: product.name,
-        unit: product.unit,
-        imageUrl: product.imageUrl,
-        maxQuantity: product.totalAvailable,
-        nearestCutoff: product.nearestCutoff,
-        deliveryLabel: product.deliveryLabel,
-        estimatedPrice: product.estimatedPrice,
-      },
-      qty,
-    )
-    setAdded(true)
-    setTimeout(() => setAdded(false), 2000)
+  async function handleAdd() {
+    setError(null)
+    const desiredTotal = Math.min(existingInCart + qty, Math.floor(product.totalAvailable))
+    setReserving(true)
+    try {
+      // Reserva temporal en servidor para evitar sobreventa entre clientes
+      const res = await fetch('/api/customer/cart/reserve', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productId: product.id, quantity: desiredTotal }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        const avail = typeof data.available === 'number' ? data.available : 0
+        setError(avail > 0 ? `Solo quedan ${avail} disponibles` : 'Sin stock disponible')
+        return
+      }
+      addItem(
+        {
+          productId: product.id,
+          name: product.name,
+          unit: product.unit,
+          imageUrl: product.imageUrl,
+          maxQuantity: product.totalAvailable,
+          nearestCutoff: product.nearestCutoff,
+          deliveryLabel: product.deliveryLabel,
+          estimatedPrice: product.estimatedPrice,
+        },
+        qty,
+      )
+      setAdded(true)
+      setTimeout(() => setAdded(false), 2000)
+    } catch {
+      setError('Error de conexión. Intenta nuevamente.')
+    } finally {
+      setReserving(false)
+    }
   }
 
   function handleQtyChange(value: string) {
@@ -114,15 +140,17 @@ function ProductCard({ product }: ProductCardProps) {
         />
         <button
           onClick={handleAdd}
-          className={`flex-1 text-sm font-semibold py-1.5 rounded-lg transition-all active:scale-[0.98] ${
+          disabled={reserving}
+          className={`flex-1 text-sm font-semibold py-1.5 rounded-lg transition-all active:scale-[0.98] disabled:opacity-60 ${
             added
               ? 'bg-miski-lime/20 text-miski-forest cursor-default'
               : 'bg-miski-forest text-white hover:bg-miski-green'
           }`}
         >
-          {added ? 'Agregado al carrito' : 'Agregar'}
+          {reserving ? 'Reservando…' : added ? 'Agregado al carrito' : 'Agregar'}
         </button>
       </div>
+      {error && <p className="text-xs text-red-600">{error}</p>}
     </div>
   )
 }

@@ -33,6 +33,9 @@ export function CheckoutForm({ walletBalance, userId, fullName, dni, ruc }: Prop
   const { items, clearCart } = useCartStore()
 
   const [address, setAddress] = useState('')
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null)
+  const [locating, setLocating] = useState(false)
+  const [locationError, setLocationError] = useState<string | null>(null)
   const [deliveryNotes, setDeliveryNotes] = useState('')
   const [customerNote, setCustomerNote] = useState('')
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('yape')
@@ -45,6 +48,7 @@ export function CheckoutForm({ walletBalance, userId, fullName, dni, ruc }: Prop
   const [proofFile, setProofFile] = useState<File | null>(null)
   const [proofUrl, setProofUrl] = useState<string | null>(null)
   const [uploading, setUploading] = useState(false)
+  const [dragging, setDragging] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [result, setResult] = useState<OrderResult | null>(null)
@@ -56,9 +60,16 @@ export function CheckoutForm({ walletBalance, userId, fullName, dni, ruc }: Prop
   const remainder = Math.max(0, Math.round((subtotal - walletApplied) * 100) / 100)
   const needsProof = paymentMethod !== 'wallet' && remainder > 0
 
-  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
+  const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf']
+  const MAX_PROOF_BYTES = 5 * 1024 * 1024
+
+  async function uploadProof(file: File) {
+    if (!ACCEPTED_TYPES.includes(file.type)) {
+      setError('Formato no válido. Usa JPG, PNG, WEBP o PDF.'); return
+    }
+    if (file.size > MAX_PROOF_BYTES) {
+      setError('El archivo supera los 5 MB.'); return
+    }
     setProofFile(file)
     setProofUrl(null)
     setUploading(true)
@@ -79,6 +90,40 @@ export function CheckoutForm({ walletBalance, userId, fullName, dni, ruc }: Prop
     } finally {
       setUploading(false)
     }
+  }
+
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (file) void uploadProof(file)
+  }
+
+  function handleDrop(e: React.DragEvent<HTMLLabelElement>) {
+    e.preventDefault()
+    setDragging(false)
+    const file = e.dataTransfer.files?.[0]
+    if (file) void uploadProof(file)
+  }
+
+  function captureLocation() {
+    setLocationError(null)
+    if (!('geolocation' in navigator)) {
+      setLocationError('Tu navegador no permite ubicación.'); return
+    }
+    setLocating(true)
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        setCoords({
+          lat: Math.round(pos.coords.latitude * 1e7) / 1e7,
+          lng: Math.round(pos.coords.longitude * 1e7) / 1e7,
+        })
+        setLocating(false)
+      },
+      () => {
+        setLocationError('No pudimos obtener tu ubicación. Revisa los permisos.')
+        setLocating(false)
+      },
+      { enableHighAccuracy: true, timeout: 10000 },
+    )
   }
 
   function handleReceiptTypeChange(type: ReceiptType) {
@@ -122,6 +167,8 @@ export function CheckoutForm({ walletBalance, userId, fullName, dni, ruc }: Prop
         body: JSON.stringify({
           items: items.map(i => ({ productId: i.productId, quantity: i.quantity })),
           delivery_address: address.trim(),
+          delivery_lat: coords?.lat,
+          delivery_lng: coords?.lng,
           delivery_notes: deliveryNotes.trim() || undefined,
           customer_note: customerNote.trim() || undefined,
           payment_method: paymentMethod,
@@ -236,6 +283,30 @@ export function CheckoutForm({ walletBalance, userId, fullName, dni, ruc }: Prop
           placeholder="Referencias (opcional): portón azul, segundo piso..."
           className="w-full border border-miski-sage rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-miski-lime/50 focus:border-miski-green transition-colors placeholder:text-gray-300 text-gray-800"
         />
+
+        {/* Ubicación exacta (pin para el repartidor) */}
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={captureLocation}
+            disabled={locating}
+            className={`text-xs font-semibold rounded-lg px-3 py-2 border transition-colors disabled:opacity-50 ${
+              coords
+                ? 'border-miski-green bg-miski-lime/10 text-miski-forest'
+                : 'border-miski-sage text-miski-forest hover:bg-miski-cream/40'
+            }`}
+          >
+            {locating ? 'Obteniendo ubicación…' : coords ? '✓ Ubicación guardada' : '📍 Usar mi ubicación actual'}
+          </button>
+          {coords && (
+            <span className="text-xs text-gray-400">
+              {coords.lat.toFixed(5)}, {coords.lng.toFixed(5)}
+            </span>
+          )}
+        </div>
+        {locationError
+          ? <p className="text-xs text-amber-700">{locationError}</p>
+          : <p className="text-xs text-gray-400">Opcional: ayuda al repartidor a ubicarte con un pin exacto.</p>}
       </section>
 
       {/* Comprobante: boleta / factura */}
@@ -364,18 +435,29 @@ export function CheckoutForm({ walletBalance, userId, fullName, dni, ruc }: Prop
             Comprobante de pago
             {remainder < subtotal && <span className="text-gray-400 font-normal ml-1">(por {formatCurrency(remainder)})</span>}
           </h2>
-          <label className={`flex flex-col items-center justify-center w-full h-28 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${
-            proofUrl ? 'border-miski-green bg-miski-lime/10' : 'border-miski-sage hover:border-miski-green hover:bg-miski-cream/30'
-          }`}>
+          <label
+            onDragOver={e => { e.preventDefault(); setDragging(true) }}
+            onDragLeave={e => { e.preventDefault(); setDragging(false) }}
+            onDrop={handleDrop}
+            className={`flex flex-col items-center justify-center w-full h-28 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${
+              dragging
+                ? 'border-miski-green bg-miski-lime/20'
+                : proofUrl
+                  ? 'border-miski-green bg-miski-lime/10'
+                  : 'border-miski-sage hover:border-miski-green hover:bg-miski-cream/30'
+            }`}
+          >
             <input type="file" accept="image/jpeg,image/png,image/webp,application/pdf" onChange={handleFileChange} className="hidden" />
             {uploading ? (
               <p className="text-sm text-gray-500">Subiendo...</p>
+            ) : dragging ? (
+              <p className="text-sm text-miski-forest font-medium">Suelta el archivo aquí</p>
             ) : proofUrl ? (
               <p className="text-sm text-miski-forest font-medium">Comprobante cargado</p>
             ) : (
               <>
-                <p className="text-sm text-gray-500">Haz clic para subir captura o PDF</p>
-                <p className="text-xs text-gray-400 mt-1">JPG, PNG, PDF — máx. 5 MB</p>
+                <p className="text-sm text-gray-500">Arrastra el comprobante aquí o haz clic para subir</p>
+                <p className="text-xs text-gray-400 mt-1">JPG, PNG, WEBP, PDF — máx. 5 MB</p>
               </>
             )}
           </label>

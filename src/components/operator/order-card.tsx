@@ -37,6 +37,8 @@ export interface Order {
   deliveryDate: string
   customerName: string
   customerPhone: string | null
+  cancellationRequestedAt: string | null
+  cancellationReason: string | null
   items: OrderItem[]
 }
 
@@ -154,12 +156,61 @@ function ManualAssignPanel({ orderId, item }: { orderId: string; item: OrderItem
   )
 }
 
+// ── Cancellation request panel ────────────────────────────────────────────────
+
+function CancelRequestPanel({ orderId, reason }: { orderId: string; reason: string | null }) {
+  const router = useRouter()
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+
+  async function doCancel() {
+    setLoading(true)
+    setError('')
+    try {
+      const res = await fetch(`/api/operator/orders/${orderId}/cancel`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason: reason?.trim() || 'Solicitud del cliente' }),
+      })
+      if (!res.ok) {
+        const d = await res.json()
+        setError(typeof d.error === 'string' ? d.error : 'Error al cancelar')
+      } else {
+        router.refresh()
+      }
+    } catch {
+      setError('Error de conexión')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="p-4 bg-red-50/60">
+      <p className="text-xs font-semibold text-red-700">El cliente solicitó cancelar este pedido</p>
+      {reason && <p className="text-xs text-gray-600 mt-1">Motivo: {reason}</p>}
+      <p className="text-xs text-gray-500 mt-1">
+        Al cancelar se libera el stock reservado. El reembolso se procesa manualmente (billetera o medio original).
+      </p>
+      {error && <p className="text-xs text-red-600 mt-1">{error}</p>}
+      <button
+        onClick={doCancel}
+        disabled={loading}
+        className="mt-2 text-xs font-semibold bg-red-600 text-white rounded px-3 py-1.5 hover:bg-red-700 disabled:opacity-50"
+      >
+        {loading ? 'Cancelando…' : 'Cancelar pedido y liberar stock'}
+      </button>
+    </div>
+  )
+}
+
 // ── Order card ────────────────────────────────────────────────────────────────
 
 export function OrderCard({ order }: { order: Order }) {
   const hasFailed = order.items.some(i => i.itemStatus === 'failed')
+  const cancellationRequested = order.cancellationRequestedAt !== null
   const [expanded, setExpanded] = useState(
-    order.status === 'payment_submitted' || hasFailed,
+    order.status === 'payment_submitted' || hasFailed || cancellationRequested,
   )
   const [copiedKey, setCopiedKey] = useState<string | null>(null)
 
@@ -211,6 +262,9 @@ export function OrderCard({ order }: { order: Order }) {
             {hasFailed && (
               <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-miski-gold-light/40 text-amber-800">⚠ Stock</span>
             )}
+            {cancellationRequested && (
+              <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-red-100 text-red-700">Cancelación solicitada</span>
+            )}
           </div>
           <div className="flex items-center gap-3 mt-0.5 text-xs text-gray-500">
             <span className="font-bold text-miski-forest">{formatCurrency(order.totalAmount)}</span>
@@ -228,6 +282,9 @@ export function OrderCard({ order }: { order: Order }) {
 
       {expanded && (
         <div className="border-t border-miski-sage/20 divide-y divide-miski-sage/20">
+          {cancellationRequested && (
+            <CancelRequestPanel orderId={order.id} reason={order.cancellationReason} />
+          )}
           {/* Items table */}
           <div className="p-4">
             <table className="w-full text-xs">

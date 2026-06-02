@@ -1,5 +1,67 @@
 # CHANGELOG — Miski GO
 
+## [2026-06-02] — Perfil repartidor: mapa por coordenadas + recibo de entrega
+
+### Añadido
+- `supabase/migrations/20260602000032_order_delivery_coords.sql` — `orders.delivery_lat`/`delivery_lng`
+- Checkout: botón "Usar mi ubicación actual" (geolocalización del navegador) que guarda coordenadas exactas en el pedido (`checkout-form.tsx`)
+- Ruta del repartidor: recibo de entrega tras confirmar el código (bottom-sheet con pedido, cliente, dirección, hora, ventana de reclamo y productos entregados) — `delivery-route-board.tsx`
+
+### Modificado
+- `src/app/(delivery)/delivery/route/page.tsx` — el mapa estático, la URL de Google Maps y la optimización de waypoints usan `lat,lng` cuando existen (pines exactos); fallback a dirección de texto. Helper `toMapPoint`
+- `src/lib/validations/customer.ts` + `src/app/api/customer/orders/route.ts` — checkout acepta y persiste `delivery_lat`/`delivery_lng`
+- `src/types/database.types.ts` — columnas de coordenadas en `orders`
+- `CLAUDE.md` §5
+
+### Notas
+- Migración `032` aplicada vía `db push`. Mapa estático requiere "Maps Static API" habilitada en Google Cloud para la key.
+- Lint 0 warnings, `tsc` limpio, 65 unit tests en verde.
+
+## [2026-06-02] — Perfil cliente: módulo de historial de reclamos
+
+### Añadido
+- `src/app/(customer)/customer/claims/page.tsx` — módulo "Mis reclamos": estado, motivo, resolución (tipo/monto/fecha) y enlace "Ver comprobante de devolución" (`resolution_proof_url`)
+- Entrada de navegación "Mis reclamos" en `src/components/customer/sidebar.tsx`
+
+### Modificado
+- `src/types/database.types.ts` — agregada `resolution_proof_url` a `claims` (columna ya existía en BD vía migración 027)
+
+## [2026-06-02] — Mejoras perfil cliente: estado de pedido, drag-drop, cancelación y reserva de stock
+
+### Añadido
+- `src/components/customer/order-status-bar.tsx` — barra de progreso del pedido (pending_payment → completed); casos especiales para cancelled/failed/in_storage
+- `src/components/customer/cancel-order-button.tsx` — el cliente solicita cancelación mientras el pedido esté `confirmed`
+- `src/app/api/customer/orders/[id]/cancel-request/route.ts` — registra `cancellation_requested_at`/`cancellation_reason`, audita y notifica a operadores. No cancela por sí solo
+- `src/app/api/operator/orders/[id]/cancel/route.ts` — operador/superadmin ejecuta la cancelación: libera stock reservado, pasa a `cancelled`, audita (`order_cancelled_post_payment`), notifica al cliente. Reembolso MANUAL (no mueve dinero)
+- `src/app/api/customer/cart/reserve/route.ts` — reserva temporal de stock al agregar al carrito (TTL 30 min)
+- `src/lib/utils/stock-reservations.ts` — `getReservedByOthers()` suma reservas activas/no vencidas por producto
+- `supabase/migrations/20260602000030_order_cancellation_request.sql` — columnas de cancelación en `orders`
+- `supabase/migrations/20260602000031_stock_reservations.sql` — tabla `stock_reservations` + RLS + índices
+- Constante `RESERVATION_TTL_MINUTES` y acción de auditoría `ORDER_CANCELLATION_REQUESTED`
+
+### Modificado
+- `src/app/(customer)/customer/orders/page.tsx` — barra de estado por pedido; código de confirmación visible desde `confirmed` (antes solo `assigned`/`in_transit`); botón de cancelación
+- `src/components/customer/checkout-form.tsx` — comprobante de pago por **arrastrar y soltar** (drag-drop) además del clic; validación de tipo/tamaño; `uploadProof(file)` reutilizable
+- `src/app/(customer)/customer/catalog/page.tsx` + `catalog-grid.tsx` — la disponibilidad descuenta reservas de otros clientes; "Agregar" reserva en servidor antes de añadir al carrito
+- `src/app/api/customer/orders/route.ts` — checkout valida contra reservas de otros y consume las propias al confirmar
+- `src/app/(operator)/operator/orders/page.tsx` + `order-card.tsx` — badge y panel de "Cancelación solicitada" con acción de cancelar y liberar stock
+- `src/types/database.types.ts` — tabla `stock_reservations` y columnas de cancelación en `orders`
+- `CLAUDE.md` §4 (política de cancelación post-pago), §5 (esquema)
+
+### Notas
+- Migraciones `030`/`031` pendientes de aplicar: usar `npx supabase db push` (NO destructivo). `db:reset` borra datos.
+- Lint 0 warnings, `tsc --noEmit` limpio, 65 unit tests en verde.
+
+## [2026-06-02] — Precarga de monto de reembolso en claims
+
+### Modificado
+- `src/components/operator/claims-board.tsx` — al elegir `wallet_credit` o `external_refund`, el monto se precarga con `order.total_amount` (editable para reembolsos parciales); nueva función `selectResolutionType` y nota de UI bajo el input
+- `src/app/(operator)/operator/claims/page.tsx` — la query y el tipo `RawClaim` incluyen `order.total_amount`
+
+### Archivos afectados
+- src/components/operator/claims-board.tsx
+- src/app/(operator)/operator/claims/page.tsx
+
 ## [2026-06-02] — Fix harness de integración + cobertura RLS por rol
 
 ### Corregido

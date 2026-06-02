@@ -181,6 +181,9 @@ export function DeliveryRouteBoard({
   const [enteredCode, setEnteredCode] = useState('')
   const [codeError,   setCodeError]   = useState('')
 
+  // ── Delivery receipt (recibo tras confirmar) ──
+  const [receipt, setReceipt] = useState<{ stop: StopData; deliveredAt: string; claimWindowExpiresAt: string; code: string } | null>(null)
+
   // ── Incident modal ──
   const [incidentOrderId,    setIncidentOrderId]    = useState<string | null>(null)
   const [incidentReason,     setIncidentReason]     = useState('')
@@ -249,11 +252,21 @@ export function DeliveryRouteBoard({
       if (!res.ok) throw new Error()
 
       const data = await res.json() as { deliveredAt: string; claimWindowExpiresAt: string }
+      const deliveredStop = stops.find(s => s.orderId === orderId)
       setStops(prev => prev.map(s =>
         s.orderId === orderId
           ? { ...s, orderStatus: 'delivered', stopStatus: 'delivered', deliveredAt: data.deliveredAt, claimWindowExpiresAt: data.claimWindowExpiresAt }
           : s
       ))
+      // Recibo de entrega con el detalle de lo entregado
+      if (deliveredStop) {
+        setReceipt({
+          stop: deliveredStop,
+          deliveredAt: data.deliveredAt,
+          claimWindowExpiresAt: data.claimWindowExpiresAt,
+          code: enteredCode,
+        })
+      }
       setCodeOrderId(null)
       setEnteredCode('')
       setCodeError('')
@@ -472,6 +485,70 @@ export function DeliveryRouteBoard({
                 {delivering === codeOrderId ? 'Verificando…' : 'Confirmar entrega'}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Delivery receipt bottom-sheet ── */}
+      {receipt && (
+        <div
+          className="fixed inset-0 bg-black/50 flex items-end z-50"
+          onClick={() => setReceipt(null)}
+        >
+          <div
+            className="bg-white w-full rounded-t-2xl p-5 space-y-4 max-h-[90vh] overflow-y-auto"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="text-center">
+              <div className="w-12 h-12 rounded-full bg-miski-lime/20 flex items-center justify-center mx-auto mb-2">
+                <span className="text-2xl text-miski-forest">✓</span>
+              </div>
+              <h3 className="text-base font-semibold text-miski-forest">Entrega confirmada</h3>
+              <p className="text-xs text-miski-olive mt-0.5">Código verificado correctamente</p>
+            </div>
+
+            <div className="rounded-xl border border-miski-sage/40 divide-y divide-miski-sage/20 text-sm">
+              <div className="flex justify-between px-4 py-2.5">
+                <span className="text-miski-olive text-xs">Pedido</span>
+                <span className="font-mono text-miski-forest">#{receipt.stop.orderId.slice(0, 8).toUpperCase()}</span>
+              </div>
+              <div className="flex justify-between px-4 py-2.5">
+                <span className="text-miski-olive text-xs">Cliente</span>
+                <span className="text-miski-forest font-medium">{receipt.stop.customerName}</span>
+              </div>
+              <div className="flex justify-between px-4 py-2.5">
+                <span className="text-miski-olive text-xs">Dirección</span>
+                <span className="text-gray-600 text-xs text-right max-w-[60%]">{receipt.stop.deliveryAddress}</span>
+              </div>
+              <div className="flex justify-between px-4 py-2.5">
+                <span className="text-miski-olive text-xs">Entregado</span>
+                <span className="text-miski-forest">{formatTime(receipt.deliveredAt)}</span>
+              </div>
+              <div className="flex justify-between px-4 py-2.5">
+                <span className="text-miski-olive text-xs">Ventana de reclamo</span>
+                <span className="text-miski-forest">hasta {formatTime(receipt.claimWindowExpiresAt)}</span>
+              </div>
+            </div>
+
+            <div>
+              <p className="text-xs font-semibold text-miski-forest/70 uppercase tracking-wider mb-1.5">Productos entregados</p>
+              <div className="rounded-xl border border-miski-sage/40 divide-y divide-miski-sage/20">
+                {receipt.stop.items.map((item, i) => (
+                  <div key={i} className="flex justify-between px-4 py-2 text-xs">
+                    <span className="text-gray-700">{item.productName}</span>
+                    <span className="font-semibold text-miski-forest">{item.quantity} {item.unit}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setReceipt(null)}
+              className="w-full bg-miski-forest text-white font-semibold rounded-xl py-3 text-sm active:scale-[0.98] transition-all"
+            >
+              Listo
+            </button>
           </div>
         </div>
       )}
