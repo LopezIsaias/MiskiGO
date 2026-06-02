@@ -19,7 +19,7 @@ export interface ClaimRow {
   resolved_at:          string | null
   reception_photo_url:  string | null
   customer:             { full_name: string; phone: string | null } | null
-  order:                { id: string; delivery_address: string } | null
+  order:                { id: string; delivery_address: string; total_amount: number } | null
   product:              { name: string; unit: string } | null
   resolver:             { full_name: string } | null
 }
@@ -69,6 +69,15 @@ function ClaimCard({ claim }: CardProps) {
   const needsType   = verdict === 'approved' || verdict === 'partially_approved'
   const needsAmount = resolutionType === 'wallet_credit' || resolutionType === 'external_refund'
   const needsProof  = resolutionType === 'wallet_credit' || resolutionType === 'external_refund'
+
+  // Al elegir un tipo de reembolso, el monto se precarga con el total del pedido
+  // (editable). El operador puede ajustarlo para reembolsos parciales.
+  function selectResolutionType(rt: 'wallet_credit' | 'external_refund' | 'reprogrammed') {
+    setResolutionType(rt)
+    if ((rt === 'wallet_credit' || rt === 'external_refund') && resolutionAmount === '') {
+      setResolutionAmount(String(claim.order?.total_amount ?? ''))
+    }
+  }
 
   const canSubmit =
     verdict !== null &&
@@ -267,7 +276,7 @@ function ClaimCard({ claim }: CardProps) {
                       type="radio"
                       name={`rt-${claim.id}`}
                       checked={resolutionType === rt}
-                      onChange={() => setResolutionType(rt)}
+                      onChange={() => selectResolutionType(rt)}
                       className="accent-green-600"
                     />
                     <span className="text-xs text-gray-700">{RESOLUTION_LABEL[rt]}</span>
@@ -292,6 +301,11 @@ function ClaimCard({ claim }: CardProps) {
                 placeholder="0.00"
                 className="w-40 border border-miski-sage rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-miski-lime/50 focus:border-miski-green transition-colors placeholder:text-gray-300 text-gray-800"
               />
+              {claim.order && (
+                <p className="text-xs text-gray-400 mt-1">
+                  Precargado con el total del pedido ({formatCurrency(claim.order.total_amount)}). Edítalo para reembolsos parciales.
+                </p>
+              )}
               {resolutionType === 'wallet_credit' && (
                 <p className="text-xs text-gray-400 mt-1">
                   El saldo se acreditará automáticamente al confirmar.

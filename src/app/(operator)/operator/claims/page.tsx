@@ -21,7 +21,7 @@ type RawClaim = {
   is_justified:         boolean | null
   resolved_at:          string | null
   customer:  { full_name: string; phone: string | null } | null
-  order:     { id: string; delivery_address: string; dispatch_cycle_id: string } | null
+  order:     { id: string; delivery_address: string; dispatch_cycle_id: string; total_amount: number } | null
   product:   { name: string; unit: string } | null
   resolver:  { full_name: string } | null
 }
@@ -57,7 +57,7 @@ export default async function ClaimsPage() {
       product_id,
       resolution_type, resolution_amount, resolution_proof_url, is_justified, resolved_at,
       customer:users!customer_id(full_name, phone),
-      order:orders!order_id(id, delivery_address, dispatch_cycle_id),
+      order:orders!order_id(id, delivery_address, dispatch_cycle_id, total_amount),
       product:products!product_id(name, unit),
       resolver:users!resolved_by(full_name)
     `)

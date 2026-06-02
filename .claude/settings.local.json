@@ -3,7 +3,8 @@
     "allow": [
       "Bash(npx supabase *)",
       "Bash(git commit -m ' *)",
-      "PowerShell(npm run *)"
+      "PowerShell(npm run *)",
+      "PowerShell(git *)"
     ]
   }
 }
