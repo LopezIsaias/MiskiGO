@@ -1,5 +1,16 @@
 # CHANGELOG — Miski GO
 
+## [2026-06-02] — Ruta del repartidor gobernada por recepción
+
+### Modificado
+- `src/app/(delivery)/delivery/route/page.tsx` — un pedido es entregable solo cuando todas sus asignaciones confirmadas (`supplier_id::product_id`) figuran en `reception_records` del ciclo. Separa recibidos (entregables) de pendientes de recepción; el mapa optimiza y marca pines solo de los recibidos (coords `delivery_lat/lng` o dirección como fallback). Helper `isReceptionComplete`
+- `src/components/delivery/delivery-route-board.tsx` — `receptionComplete` por parada; acciones de entrega/incidencia solo para pedidos recibidos; aviso "Esperando recepción" en los pendientes
+
+### Notas
+- Flujo: marcar recepción en pestaña Recepción → esos pedidos pasan a entregables en Ruta con sus pines en el mapa.
+- Optimización de orden de paradas (Directions API legacy) sigue deshabilitada; paradas en orden de creación. Mapa y pines OK.
+- Lint 0 warnings, `tsc` limpio, 65 unit tests en verde.
+
 ## [2026-06-02] — Perfil repartidor: mapa por coordenadas + recibo de entrega
 
 ### Añadido

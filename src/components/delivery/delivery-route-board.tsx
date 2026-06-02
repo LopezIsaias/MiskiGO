@@ -27,6 +27,7 @@ export interface StopData {
   claimWindowExpiresAt:     string | null
   deliveryConfirmationCode: string | null
   deliveryAttempts:         number
+  receptionComplete:        boolean
   items:                    StopItem[]
 }
 
@@ -54,8 +55,10 @@ function StopCard({ stop, index, routeStarted, isDelivering, onDeliver, onIncide
   const isInStorage  = stop.orderStatus === 'in_storage'
   const isFailed     = stop.stopStatus  === 'failed'
   const isPending    = !isDelivered && !isInStorage && !isFailed
+  const deliverable  = isPending && stop.receptionComplete
+  const awaitingReception = isPending && !stop.receptionComplete
 
-  const [expanded, setExpanded] = useState(isPending)
+  const [expanded, setExpanded] = useState(deliverable)
 
   const borderColor = isDelivered  ? 'border-l-4 border-miski-green bg-white'
     : isInStorage   ? 'border-l-4 border-miski-gold bg-white'
@@ -99,6 +102,9 @@ function StopCard({ stop, index, routeStarted, isDelivering, onDeliver, onIncide
           {isPending && stop.deliveryAttempts > 0 && (
             <p className="text-xs text-amber-600 mt-0.5">Intento {stop.deliveryAttempts}/2 fallido</p>
           )}
+          {awaitingReception && (
+            <p className="text-xs text-gray-400 mt-0.5">Esperando recepción de productos</p>
+          )}
         </div>
         <span className="text-xs text-miski-sage shrink-0 mt-1">{expanded ? '▲' : '▼'}</span>
       </button>
@@ -132,7 +138,7 @@ function StopCard({ stop, index, routeStarted, isDelivering, onDeliver, onIncide
             </div>
           )}
 
-          {routeStarted && isPending && (
+          {routeStarted && deliverable && (
             <div className="flex gap-2 pt-1">
               <button
                 type="button"
@@ -152,7 +158,13 @@ function StopCard({ stop, index, routeStarted, isDelivering, onDeliver, onIncide
             </div>
           )}
 
-          {!routeStarted && isPending && (
+          {awaitingReception && (
+            <p className="text-xs text-amber-700 text-center pt-1 bg-miski-gold-light/20 border border-miski-gold/30 rounded-lg py-2">
+              Registra la recepción de estos productos antes de entregar
+            </p>
+          )}
+
+          {!routeStarted && deliverable && (
             <p className="text-xs text-miski-olive text-center pt-1">
               Inicia la ruta para registrar entregas
             </p>

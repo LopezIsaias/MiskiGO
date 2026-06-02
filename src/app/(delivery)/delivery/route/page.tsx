@@ -24,7 +24,9 @@ type RawOrder = {
   customer: { full_name: string } | null
   items: {
     quantity: number
+    product_id: string
     product: { name: string; unit: string } | null
+    order_item_assignments: { supplier_id: string; status: string }[]
   }[]
 }
 
@@ -172,7 +174,9 @@ export default async function DeliveryRoutePage() {
       customer:users!customer_id(full_name),
       items:order_items!order_id(
         quantity,
-        product:products!product_id(name, unit)
+        product_id,
+        product:products!product_id(name, unit),
+        order_item_assignments(supplier_id, status)
       )
     `)
     .eq('dispatch_cycle_id', cycleId)
@@ -199,22 +203,50 @@ export default async function DeliveryRoutePage() {
     )
   }
 
-  // Optimize route with Directions API (server-side)
+  // Recepción del ciclo: pares supplier::product ya recibidos por el repartidor
+  const { data: receptionRows } = await adminClient
+    .from('reception_records')
+    .select('supplier_id, product_id')
+    .eq('dispatch_cycle_id', cycleId)
+
+  const receivedSet = new Set(
+    (receptionRows ?? []).map(r => `${r.supplier_id}::${r.product_id}`)
+  )
+
+  // Un pedido es entregable cuando TODOS sus productos asignados (confirmados)
+  // fueron recibidos. Sin asignaciones confirmadas → aún no entregable.
+  function isReceptionComplete(o: RawOrder): boolean {
+    const pairs: string[] = []
+    for (const it of o.items) {
+      for (const a of it.order_item_assignments ?? []) {
+        if (a.status === 'confirmed') pairs.push(`${a.supplier_id}::${it.product_id}`)
+      }
+    }
+    if (pairs.length === 0) return false
+    return pairs.every(p => receivedSet.has(p))
+  }
+
+  // Pedidos entregados/almacenados ya no dependen de recepción
+  const isFinalized = (o: RawOrder) => ['delivered', 'in_storage'].includes(o.status)
+
+  const receivedOrders = orders.filter(o => isReceptionComplete(o) || isFinalized(o))
+  const pendingReceptionOrders = orders.filter(o => !isReceptionComplete(o) && !isFinalized(o))
+
+  // Optimize SOLO los pedidos entregables (recibidos) — los puntos del mapa
   const mapsKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY ?? ''
-  const points = orders.map(toMapPoint)
+  const receivedPoints = receivedOrders.map(toMapPoint)
   const optimizedIdx = mapsKey
-    ? await optimizeWaypointOrder(points, mapsKey)
-    : points.map((_, i) => i)
+    ? await optimizeWaypointOrder(receivedPoints, mapsKey)
+    : receivedPoints.map((_, i) => i)
 
-  const orderedOrders = optimizedIdx.map(i => orders[i])
+  const orderedReceived = optimizedIdx.map(i => receivedOrders[i])
 
-  // Build map URLs (coords exactas si existen, si no la dirección)
-  const orderedPoints = orderedOrders.map(toMapPoint)
-  const staticMapUrl  = mapsKey ? buildStaticMapUrl(orderedPoints, mapsKey) : null
+  // Build map URLs (coords exactas si existen, si no la dirección) — solo recibidos
+  const orderedPoints = orderedReceived.map(toMapPoint)
+  const staticMapUrl  = mapsKey && orderedPoints.length > 0 ? buildStaticMapUrl(orderedPoints, mapsKey) : null
   const googleMapsUrl = buildGoogleMapsUrl(orderedPoints)
 
-  // Build typed stops
-  const stops: StopData[] = orderedOrders.map((o, idx) => {
+  function toStop(o: RawOrder, idx: number, receptionComplete: boolean): StopData {
     const stopInfo = stopStatusMap.get(o.id)
     return {
       orderId:                    o.id,
@@ -230,6 +262,7 @@ export default async function DeliveryRoutePage() {
       claimWindowExpiresAt:       o.claim_window_expires_at,
       deliveryConfirmationCode:   o.delivery_confirmation_code,
       deliveryAttempts:           o.delivery_attempts ?? 0,
+      receptionComplete,
       items: o.items
         .filter(it => it.product)
         .map(it => ({
@@ -238,9 +271,15 @@ export default async function DeliveryRoutePage() {
           unit:        it.product!.unit,
         })),
     }
-  })
+  }
 
-  const pendingCount   = stops.filter(s => s.orderStatus !== 'delivered' && s.stopStatus !== 'failed').length
+  // Entregables (recibidos, en orden de ruta) primero; luego pendientes de recepción
+  const stops: StopData[] = [
+    ...orderedReceived.map((o, idx) => toStop(o, idx, true)),
+    ...pendingReceptionOrders.map((o, idx) => toStop(o, orderedReceived.length + idx, false)),
+  ]
+
+  const pendingCount   = stops.filter(s => s.receptionComplete && s.orderStatus !== 'delivered' && s.stopStatus !== 'failed').length
   const deliveredCount = stops.filter(s => s.orderStatus === 'delivered').length
 
   return (
