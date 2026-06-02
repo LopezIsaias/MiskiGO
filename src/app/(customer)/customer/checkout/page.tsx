@@ -9,7 +9,7 @@ export default async function CheckoutPage() {
 
   const { data: profile } = await supabase
     .from('users')
-    .select('wallet_balance')
+    .select('wallet_balance, full_name, dni, ruc')
     .eq('id', user.id)
     .maybeSingle()
 
@@ -18,7 +18,13 @@ export default async function CheckoutPage() {
   return (
     <div>
       <h1 className="text-2xl font-bold text-miski-forest mb-6">Checkout</h1>
-      <CheckoutForm walletBalance={walletBalance} userId={user.id} />
+      <CheckoutForm
+        walletBalance={walletBalance}
+        userId={user.id}
+        fullName={profile?.full_name ?? ''}
+        dni={profile?.dni ?? ''}
+        ruc={profile?.ruc ?? ''}
+      />
     </div>
   )
 }

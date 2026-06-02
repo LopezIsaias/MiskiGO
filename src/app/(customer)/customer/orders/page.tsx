@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import Link from 'next/link'
 import { formatDate, formatCurrency } from '@/lib/utils'
 import { DeliveryClaimBanner } from '@/components/customer/delivery-claim-banner'
 
@@ -42,6 +43,7 @@ type RawOrder = {
   claim_window_expires_at:  string | null
   created_at:               string
   delivery_confirmation_code: string | null
+  receipt: { number: string; type: string } | { number: string; type: string }[] | null
   items: {
     quantity:          number
     unit_price_frozen: number
@@ -61,6 +63,7 @@ export default async function OrdersPage() {
       id, status, total_amount, delivery_address,
       delivered_at, claim_window_expires_at, created_at,
       delivery_confirmation_code,
+      receipt:receipts!order_id(number, type),
       items:order_items!order_id(
         quantity, unit_price_frozen,
         product:products!product_id(name, unit)
@@ -108,6 +111,26 @@ export default async function OrdersPage() {
                 <span className="text-xs text-miski-olive">Total</span>
                 <span className="text-sm font-bold text-miski-forest">{formatCurrency(order.total_amount)}</span>
               </div>
+
+              {/* Comprobante emitido */}
+              {(() => {
+                const receipt = Array.isArray(order.receipt) ? order.receipt[0] : order.receipt
+                if (!receipt) return null
+                return (
+                  <div className="mt-3 flex items-center justify-between bg-miski-cream/40 border border-miski-sage/30 rounded-xl px-4 py-2.5">
+                    <div>
+                      <p className="text-xs text-miski-olive capitalize">{receipt.type}</p>
+                      <p className="text-sm font-semibold text-miski-forest">{receipt.number}</p>
+                    </div>
+                    <Link
+                      href={`/customer/orders/${order.id}/receipt`}
+                      className="text-xs font-semibold text-miski-green hover:text-miski-forest"
+                    >
+                      Ver comprobante
+                    </Link>
+                  </div>
+                )
+              })()}
 
               {/* Confirmation code — visible when order is active and en route */}
               {['assigned', 'in_transit'].includes(order.status) && order.delivery_confirmation_code && (

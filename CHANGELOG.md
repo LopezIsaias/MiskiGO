@@ -1,5 +1,28 @@
 # CHANGELOG — Miski GO
 
+## [2026-06-01] — Comprobantes de pago (boleta/factura)
+
+### Añadido
+- `supabase/migrations/20260601000029_receipts.sql` — columnas `receipt_type`/`receipt_document`/`receipt_name` en `orders`; tabla `receipts` (comprobante 1:1 por pedido, numeración por serie, inmutable vía triggers); tabla `receipt_counters` + función atómica `next_receipt_correlative(p_series)`; RLS: cliente ve los suyos, staff ve todos
+- `src/lib/utils/receipt.ts` — `emitReceiptForOrder(orderId)`: emisión idempotente al completar entrega; serie B001 (boleta) / F001 (factura); número `SERIE-00000123`
+- `src/app/(customer)/customer/orders/[id]/receipt/page.tsx` — comprobante imprimible (Server Component) con desglose de ítems y total
+- `src/components/customer/print-button.tsx` — botón imprimir/PDF (`window.print()`)
+
+### Modificado
+- `src/lib/validations/customer.ts` — `checkoutSchema` exige `receipt_type` (boleta/factura), `receipt_document` (DNI 8 díg. / RUC 11 díg.) y `receipt_name`; validación con `superRefine`
+- `src/components/customer/checkout-form.tsx` + `src/app/(customer)/customer/checkout/page.tsx` — selector boleta/factura en checkout con prefill desde perfil (DNI/RUC/nombre)
+- `src/app/api/customer/orders/route.ts` — guarda datos de comprobante en el pedido
+- `src/app/api/delivery/orders/[id]/deliver/route.ts` — emite el comprobante al confirmar entrega (no bloqueante)
+- `src/app/(customer)/customer/orders/page.tsx` — muestra comprobante emitido + link "Ver comprobante"
+- `src/types/database.types.ts` — tipos de `receipts`, `receipt_counters`, función RPC y columnas nuevas en `orders`
+
+### Reglas de negocio aplicadas
+- Cliente elige boleta (DNI) o factura (RUC + razón social) en checkout
+- Comprobante se emite al completar la entrega (`delivered`), no antes
+- MVP: recibo interno numerado sin desglose de IGV ni envío a SUNAT (Fase 2)
+- Emisión idempotente: un pedido nunca genera dos comprobantes
+- Pendiente: aplicar migración con `npx supabase db push`
+
 ## [2026-05-19] — Parámetros del sistema editables por superadmin (paso 20)
 
 ### Añadido

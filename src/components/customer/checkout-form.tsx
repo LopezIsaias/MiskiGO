@@ -13,9 +13,13 @@ const UNIT_LABEL: Record<string, string> = {
 interface Props {
   walletBalance: number
   userId: string
+  fullName: string
+  dni: string
+  ruc: string
 }
 
 type PaymentMethod = 'yape' | 'transfer' | 'wallet'
+type ReceiptType = 'boleta' | 'factura'
 
 interface OrderResult {
   orderId: string
@@ -24,7 +28,7 @@ interface OrderResult {
   remainder: number
 }
 
-export function CheckoutForm({ walletBalance, userId }: Props) {
+export function CheckoutForm({ walletBalance, userId, fullName, dni, ruc }: Props) {
   const router = useRouter()
   const { items, clearCart } = useCartStore()
 
@@ -32,6 +36,11 @@ export function CheckoutForm({ walletBalance, userId }: Props) {
   const [deliveryNotes, setDeliveryNotes] = useState('')
   const [customerNote, setCustomerNote] = useState('')
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('yape')
+
+  // Comprobante (boleta / factura)
+  const [receiptType, setReceiptType] = useState<ReceiptType>('boleta')
+  const [receiptDocument, setReceiptDocument] = useState(dni)
+  const [receiptName, setReceiptName] = useState(fullName)
   const [useWallet, setUseWallet] = useState(false)
   const [proofFile, setProofFile] = useState<File | null>(null)
   const [proofUrl, setProofUrl] = useState<string | null>(null)
@@ -72,6 +81,18 @@ export function CheckoutForm({ walletBalance, userId }: Props) {
     }
   }
 
+  function handleReceiptTypeChange(type: ReceiptType) {
+    setReceiptType(type)
+    setError(null)
+    if (type === 'boleta') {
+      setReceiptDocument(dni)
+      setReceiptName(fullName)
+    } else {
+      setReceiptDocument(ruc)
+      setReceiptName('')
+    }
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (items.length === 0) return
@@ -79,6 +100,17 @@ export function CheckoutForm({ walletBalance, userId }: Props) {
     if (needsProof && !proofUrl) { setError('Sube el comprobante de pago'); return }
     if (paymentMethod === 'wallet' && walletBalance < subtotal) {
       setError('Saldo de billetera insuficiente'); return
+    }
+
+    const docDigits = receiptDocument.trim()
+    if (receiptType === 'boleta' && !/^\d{8}$/.test(docDigits)) {
+      setError('Para boleta, ingresa un DNI de 8 dígitos'); return
+    }
+    if (receiptType === 'factura' && !/^\d{11}$/.test(docDigits)) {
+      setError('Para factura, ingresa un RUC de 11 dígitos'); return
+    }
+    if (receiptName.trim().length < 3) {
+      setError(receiptType === 'factura' ? 'Ingresa la razón social' : 'Ingresa el nombre para la boleta'); return
     }
 
     setSubmitting(true)
@@ -95,6 +127,9 @@ export function CheckoutForm({ walletBalance, userId }: Props) {
           payment_method: paymentMethod,
           use_wallet: useWallet,
           proof_url: proofUrl ?? undefined,
+          receipt_type: receiptType,
+          receipt_document: docDigits,
+          receipt_name: receiptName.trim(),
         }),
       })
       const data = await res.json()
@@ -201,6 +236,57 @@ export function CheckoutForm({ walletBalance, userId }: Props) {
           placeholder="Referencias (opcional): portón azul, segundo piso..."
           className="w-full border border-miski-sage rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-miski-lime/50 focus:border-miski-green transition-colors placeholder:text-gray-300 text-gray-800"
         />
+      </section>
+
+      {/* Comprobante: boleta / factura */}
+      <section className="space-y-3">
+        <h2 className="text-sm font-semibold text-miski-forest">Comprobante</h2>
+        <div className="grid grid-cols-2 gap-3">
+          {(['boleta', 'factura'] as ReceiptType[]).map(type => (
+            <button
+              key={type}
+              type="button"
+              onClick={() => handleReceiptTypeChange(type)}
+              className={`py-2.5 rounded-lg text-sm font-medium border transition-colors capitalize ${
+                receiptType === type
+                  ? 'border-miski-lime bg-miski-lime/10 text-miski-forest'
+                  : 'border-miski-sage hover:border-miski-sage/80 bg-white text-gray-700'
+              }`}
+            >
+              {type}
+            </button>
+          ))}
+        </div>
+
+        <div>
+          <label className="block text-xs text-miski-olive mb-1">
+            {receiptType === 'boleta' ? 'DNI (8 dígitos)' : 'RUC (11 dígitos)'}
+          </label>
+          <input
+            type="text"
+            inputMode="numeric"
+            value={receiptDocument}
+            onChange={e => setReceiptDocument(e.target.value.replace(/\D/g, '').slice(0, receiptType === 'boleta' ? 8 : 11))}
+            placeholder={receiptType === 'boleta' ? '12345678' : '20123456789'}
+            className="w-full border border-miski-sage rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-miski-lime/50 focus:border-miski-green transition-colors placeholder:text-gray-300 text-gray-800"
+          />
+        </div>
+
+        <div>
+          <label className="block text-xs text-miski-olive mb-1">
+            {receiptType === 'boleta' ? 'Nombre completo' : 'Razón social'}
+          </label>
+          <input
+            type="text"
+            value={receiptName}
+            onChange={e => setReceiptName(e.target.value)}
+            placeholder={receiptType === 'boleta' ? 'Juan Pérez' : 'Mi Empresa S.A.C.'}
+            className="w-full border border-miski-sage rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-miski-lime/50 focus:border-miski-green transition-colors placeholder:text-gray-300 text-gray-800"
+          />
+        </div>
+        <p className="text-xs text-gray-400">
+          El comprobante se emite al completarse la entrega de tu pedido.
+        </p>
       </section>
 
       {/* Payment method */}

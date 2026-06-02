@@ -47,6 +47,7 @@ export async function POST(request: Request) {
     const {
       items, delivery_address, delivery_notes, customer_note,
       payment_method, use_wallet, proof_url,
+      receipt_type, receipt_document, receipt_name,
     } = parsed.data
 
     // Resolve region (customer's region or first active region)
@@ -211,6 +212,9 @@ export async function POST(request: Request) {
         delivery_notes: delivery_notes ?? null,
         customer_note: customer_note ?? null,
         delivery_confirmation_code: confirmationCode as never,
+        receipt_type,
+        receipt_document,
+        receipt_name,
       })
       .select('id')
       .single()

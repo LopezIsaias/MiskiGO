@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { AUDIT_ACTIONS, AUDIT_MODULES } from '@/lib/constants'
 import { formatTime } from '@/lib/utils'
+import { emitReceiptForOrder } from '@/lib/utils/receipt'
 
 const bodySchema = z.object({
   routeId:          z.string().uuid().nullable().optional(),
@@ -85,6 +86,13 @@ export async function PATCH(
   if (deliverErr) {
     console.error('[deliver] order update failed:', deliverErr)
     return NextResponse.json({ error: 'Error al registrar la entrega' }, { status: 500 })
+  }
+
+  // Emit fiscal receipt (boleta/factura) on delivery completion. Non-blocking:
+  // a failure here is logged but does not undo the delivery.
+  const receipt = await emitReceiptForOrder(orderId)
+  if (!receipt.emitted && receipt.reason !== 'already_emitted') {
+    console.error('[deliver] receipt not emitted:', orderId, receipt.reason)
   }
 
   if (routeId) {

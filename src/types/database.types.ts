@@ -488,6 +488,9 @@ export type Database = {
           payment_approved_by: string | null
           payment_method: string | null
           payment_proof_url: string | null
+          receipt_type: string | null
+          receipt_document: string | null
+          receipt_name: string | null
           region_id: string
           status: string
           subtotal: number
@@ -512,6 +515,9 @@ export type Database = {
           payment_approved_by?: string | null
           payment_method?: string | null
           payment_proof_url?: string | null
+          receipt_type?: string | null
+          receipt_document?: string | null
+          receipt_name?: string | null
           region_id: string
           status?: string
           subtotal?: number
@@ -536,6 +542,9 @@ export type Database = {
           payment_approved_by?: string | null
           payment_method?: string | null
           payment_proof_url?: string | null
+          receipt_type?: string | null
+          receipt_document?: string | null
+          receipt_name?: string | null
           region_id?: string
           status?: string
           subtotal?: number
@@ -1166,6 +1175,84 @@ export type Database = {
           },
         ]
       }
+      receipts: {
+        Row: {
+          id: string
+          order_id: string
+          customer_id: string
+          type: string
+          series: string
+          correlative: number
+          number: string
+          document: string
+          customer_name: string
+          subtotal: number
+          total: number
+          issued_at: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          order_id: string
+          customer_id: string
+          type: string
+          series: string
+          correlative: number
+          number: string
+          document: string
+          customer_name: string
+          subtotal: number
+          total: number
+          issued_at?: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          order_id?: string
+          customer_id?: string
+          type?: string
+          series?: string
+          correlative?: number
+          number?: string
+          document?: string
+          customer_name?: string
+          subtotal?: number
+          total?: number
+          issued_at?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "receipts_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: true
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "receipts_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      receipt_counters: {
+        Row: {
+          series: string
+          last_number: number
+        }
+        Insert: {
+          series: string
+          last_number?: number
+        }
+        Update: {
+          series?: string
+          last_number?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -1173,6 +1260,7 @@ export type Database = {
     Functions: {
       get_user_region_id: { Args: never; Returns: string }
       get_user_role: { Args: never; Returns: string }
+      next_receipt_correlative: { Args: { p_series: string }; Returns: number }
     }
     Enums: {
       [_ in never]: never
