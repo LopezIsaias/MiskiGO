@@ -255,6 +255,8 @@ export function DeliveryRouteBoard({
           : s
       ))
       setCodeOrderId(null)
+      setEnteredCode('')
+      setCodeError('')
     } catch {
       setCodeError('Error de conexión. Intenta de nuevo.')
     } finally {

@@ -58,7 +58,11 @@ export async function PATCH(
     return NextResponse.json({ error: 'Pedido no encontrado o no en tránsito' }, { status: 404 })
   }
 
-  // Validate confirmation code
+  // Validate confirmation code — reject if code missing in DB
+  if (!order.delivery_confirmation_code) {
+    return NextResponse.json({ error: 'Este pedido no tiene código de verificación. Contacta al operador.' }, { status: 422 })
+  }
+
   if (order.delivery_confirmation_code !== confirmationCode) {
     await adminClient.from('audit_log').insert({
       user_id:      user.id,
@@ -72,11 +76,16 @@ export async function PATCH(
     return NextResponse.json({ error: 'Código incorrecto. Verifica con el cliente.' }, { status: 422 })
   }
 
-  await adminClient.from('orders').update({
+  const { error: deliverErr } = await adminClient.from('orders').update({
     status:                  'delivered',
     delivered_at:            nowISO,
     claim_window_expires_at: claimExpiry,
   }).eq('id', orderId)
+
+  if (deliverErr) {
+    console.error('[deliver] order update failed:', deliverErr)
+    return NextResponse.json({ error: 'Error al registrar la entrega' }, { status: 500 })
+  }
 
   if (routeId) {
     await adminClient
