@@ -79,10 +79,54 @@ export async function PATCH(
   }
 
   if (parsed.data.action === 'confirm') {
-    await adminClient
+    const { error: confirmErr } = await adminClient
       .from('order_item_assignments')
       .update({ status: 'confirmed', confirmed_at: now })
       .eq('id', assignmentId)
+
+    if (confirmErr) {
+      console.error('[supplier/assignments/confirm] update failed:', confirmErr)
+      return NextResponse.json({ error: 'Error al confirmar la asignación' }, { status: 500 })
+    }
+
+    const orderId = assignment.order_item?.order_id ?? null
+
+    if (orderId) {
+      // Check if all assignments for this order_item are now confirmed (none pending/failed that aren't failed)
+      const { data: itemAssignments } = await adminClient
+        .from('order_item_assignments')
+        .select('status')
+        .eq('order_item_id', assignment.order_item_id)
+
+      const itemDone = (itemAssignments ?? []).every(
+        a => a.status === 'confirmed' || a.status === 'failed',
+      )
+      const itemFullyCovered = (itemAssignments ?? []).some(a => a.status === 'confirmed')
+
+      if (itemDone && itemFullyCovered) {
+        await adminClient
+          .from('order_items')
+          .update({ status: 'assigned' })
+          .eq('id', assignment.order_item_id)
+      }
+
+      // Check if all order_items for this order are assigned or failed
+      const { data: allItems } = await adminClient
+        .from('order_items')
+        .select('status')
+        .eq('order_id', orderId)
+
+      const orderReady = (allItems ?? []).length > 0 &&
+        (allItems ?? []).every(i => i.status === 'assigned' || i.status === 'failed' || i.status === 'rejected')
+      const orderHasAssigned = (allItems ?? []).some(i => i.status === 'assigned')
+
+      if (orderReady && orderHasAssigned) {
+        await adminClient
+          .from('orders')
+          .update({ status: 'assigned' })
+          .eq('id', orderId)
+      }
+    }
 
     await adminClient.from('audit_log').insert({
       user_id:      user.id,
@@ -92,7 +136,7 @@ export async function PATCH(
       entity_type:  'order_item_assignment',
       entity_id:    assignmentId,
       ip_address:   ip,
-      new_value:    { status: 'confirmed', order_item_id: assignment.order_item_id },
+      new_value:    { status: 'confirmed', order_item_id: assignment.order_item_id, order_id: orderId },
     })
 
     return NextResponse.json({ success: true })

@@ -159,11 +159,8 @@ export async function runSupplierAssignment(params: AssignmentParams): Promise<A
         }
       }
 
+      // Keep existing provisional assignments as 'pending' — supplier must confirm.
       if (pendingAsgs.length > 0) {
-        await adminClient
-          .from('order_item_assignments')
-          .update({ status: 'confirmed', confirmed_at: now })
-          .in('id', pendingAsgs.map(a => a.id))
         for (const a of pendingAsgs) notifiedSuppliers.add(a.supplier_id)
       }
 
@@ -176,19 +173,13 @@ export async function runSupplierAssignment(params: AssignmentParams): Promise<A
             assigned_quantity: p.assigned_quantity,
             supplier_price_frozen: p.supplier_price_frozen,
             platform_margin_frozen: p.platform_margin_frozen,
-            status: 'confirmed',
-            confirmed_at: now,
+            status: 'pending',
           }))
         )
         for (const p of extraPlans) notifiedSuppliers.add(p.supplier_id)
       }
-
-      await adminClient.from('order_items').update({ status: 'assigned' }).eq('id', item.id)
+      // order_items and order stay at current status until suppliers confirm.
     }
-  }
-
-  if (allAssigned) {
-    await adminClient.from('orders').update({ status: 'assigned' }).eq('id', orderId)
   }
 
   // Notify each confirmed supplier once
@@ -229,7 +220,9 @@ export async function runSupplierAssignment(params: AssignmentParams): Promise<A
     entity_type: 'order',
     entity_id: orderId,
     new_value: {
-      status: allAssigned ? 'assigned' : 'confirmed',
+      // Order stays 'confirmed' — advances to 'assigned' after supplier confirmation.
+      status: 'confirmed',
+      stock_covered: allAssigned,
       total_items: orderItems.length,
       assigned_items: orderItems.length - failedItemIds.length,
       failed_items: failedItemIds.length,
