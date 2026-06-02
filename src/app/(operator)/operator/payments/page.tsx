@@ -31,27 +31,17 @@ export default async function OperatorPaymentsPage() {
     .eq('status', 'payment_submitted')
     .order('created_at', { ascending: true })
 
-  const { data: activeCycles } = await adminClient
-    .from('dispatch_cycles')
-    .select('id')
-    .in('status', ['open', 'closed', 'in_progress'])
+  const { data: confirmedData } = await adminClient
+    .from('orders')
+    .select(`
+      id, status, total_amount, payment_method, created_at,
+      customer:users!customer_id(full_name, phone)
+    `)
+    .in('status', ['confirmed', 'assigned', 'in_transit', 'delivered'])
+    .order('created_at', { ascending: false })
+    .limit(100)
 
-  const cycleIds = activeCycles?.map(c => c.id) ?? []
-
-  let rawConfirmed: unknown[] = []
-  if (cycleIds.length > 0) {
-    const { data } = await adminClient
-      .from('orders')
-      .select(`
-        id, status, total_amount, payment_method, created_at,
-        customer:users!customer_id(full_name, phone)
-      `)
-      .in('status', ['confirmed', 'assigned', 'in_transit', 'delivered'])
-      .in('dispatch_cycle_id', cycleIds)
-      .order('created_at', { ascending: false })
-      .limit(100)
-    rawConfirmed = data ?? []
-  }
+  const rawConfirmed: unknown[] = confirmedData ?? []
 
   return (
     <div>

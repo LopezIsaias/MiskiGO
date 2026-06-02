@@ -39,8 +39,9 @@ export function CycleStatusControl({ cycleId, currentStatus, dispatchDate }: Pro
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [optimisticStatus, setOptimisticStatus] = useState(currentStatus)
 
-  const nextStatus = NEXT_STATUS[currentStatus]
+  const nextStatus = NEXT_STATUS[optimisticStatus]
 
   const formattedDate = new Date(dispatchDate + 'T12:00:00').toLocaleDateString('es-PE', {
     weekday: 'long',
@@ -50,7 +51,7 @@ export function CycleStatusControl({ cycleId, currentStatus, dispatchDate }: Pro
   })
 
   async function handleTransition() {
-    if (!nextStatus) return
+    if (!nextStatus || loading) return
     setLoading(true)
     setError('')
 
@@ -67,6 +68,7 @@ export function CycleStatusControl({ cycleId, currentStatus, dispatchDate }: Pro
         return
       }
 
+      setOptimisticStatus(nextStatus)
       router.refresh()
     } catch {
       setError('Error de conexión. Intenta de nuevo.')
@@ -82,8 +84,8 @@ export function CycleStatusControl({ cycleId, currentStatus, dispatchDate }: Pro
           <p className="text-xs text-miski-olive mb-0.5">Fecha de despacho</p>
           <p className="text-sm font-bold text-miski-forest capitalize">{formattedDate}</p>
         </div>
-        <span className={`text-xs font-semibold px-3 py-1 rounded-full shrink-0 ${STATUS_COLORS[currentStatus] ?? 'bg-miski-forest/10 text-miski-forest'}`}>
-          {STATUS_LABELS[currentStatus] ?? currentStatus}
+        <span className={`text-xs font-semibold px-3 py-1 rounded-full shrink-0 ${STATUS_COLORS[optimisticStatus] ?? 'bg-miski-forest/10 text-miski-forest'}`}>
+          {STATUS_LABELS[optimisticStatus] ?? optimisticStatus}
         </span>
       </div>
 

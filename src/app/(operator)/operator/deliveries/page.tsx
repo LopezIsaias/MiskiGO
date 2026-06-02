@@ -42,7 +42,7 @@ export default async function DeliveriesPage() {
   const { data: cycles } = await adminClient
     .from('dispatch_cycles')
     .select('id, dispatch_date')
-    .in('status', ['in_progress', 'closed'])
+    .in('status', ['open', 'closed', 'in_progress'])
     .order('dispatch_date', { ascending: false })
     .limit(1)
 

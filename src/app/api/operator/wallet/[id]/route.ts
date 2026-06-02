@@ -61,14 +61,19 @@ export async function PATCH(
       .maybeSingle()
 
     const balanceBefore = Number(customer?.wallet_balance ?? 0)
-    const balanceAfter  = balanceBefore + tx.amount
+    const balanceAfter  = balanceBefore + Number(tx.amount)
 
-    await adminClient
+    const { error: balanceErr } = await adminClient
       .from('users')
-      .update({ wallet_balance: balanceAfter })
+      .update({ wallet_balance: balanceAfter, updated_at: now })
       .eq('id', tx.user_id)
 
-    await adminClient
+    if (balanceErr) {
+      console.error('[wallet/approve] balance update failed:', balanceErr)
+      return NextResponse.json({ error: 'Error al actualizar el saldo' }, { status: 500 })
+    }
+
+    const { error: txErr } = await adminClient
       .from('wallet_transactions')
       .update({
         status:         'approved',
@@ -78,6 +83,16 @@ export async function PATCH(
         balance_after:  balanceAfter,
       })
       .eq('id', txId)
+
+    if (txErr) {
+      console.error('[wallet/approve] transaction update failed:', txErr)
+      // Rollback balance
+      await adminClient
+        .from('users')
+        .update({ wallet_balance: balanceBefore, updated_at: now })
+        .eq('id', tx.user_id)
+      return NextResponse.json({ error: 'Error al aprobar la transacción' }, { status: 500 })
+    }
 
     await adminClient.from('audit_log').insert({
       user_id:      user.id,
@@ -90,7 +105,7 @@ export async function PATCH(
       new_value:    { customer_id: tx.user_id, amount: tx.amount, balance_before: balanceBefore, balance_after: balanceAfter },
     })
   } else {
-    await adminClient
+    const { error: rejectErr } = await adminClient
       .from('wallet_transactions')
       .update({
         status:      'rejected',
@@ -99,6 +114,11 @@ export async function PATCH(
         notes:       parsed.data.reason,
       })
       .eq('id', txId)
+
+    if (rejectErr) {
+      console.error('[wallet/reject] transaction update failed:', rejectErr)
+      return NextResponse.json({ error: 'Error al rechazar la transacción' }, { status: 500 })
+    }
 
     await adminClient.from('audit_log').insert({
       user_id:      user.id,

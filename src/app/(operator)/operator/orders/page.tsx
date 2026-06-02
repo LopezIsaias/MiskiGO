@@ -54,15 +54,9 @@ export default async function OperatorOrdersPage() {
 
   const adminClient = createAdminClient()
 
-  const { data: activeCycles } = await adminClient
-    .from('dispatch_cycles')
-    .select('id')
-    .in('status', ['open', 'closed', 'in_progress'])
-
-  const cycleIds = activeCycles?.map(c => c.id) ?? []
   let orders: Order[] = []
 
-  if (cycleIds.length > 0) {
+  {
     const { data: rawOrders } = await adminClient
       .from('orders')
       .select(`
@@ -78,9 +72,9 @@ export default async function OperatorOrdersPage() {
           )
         )
       `)
-      .in('dispatch_cycle_id', cycleIds)
       .in('status', ['payment_submitted', 'confirmed', 'assigned', 'in_transit', 'delivered', 'failed'])
       .order('created_at', { ascending: false })
+      .limit(200)
 
     orders = ((rawOrders ?? []) as unknown as RawOrder[]).map((raw): Order => ({
       id: raw.id,
