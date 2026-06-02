@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation'
 const TABS = [
   { label: 'Recepción', href: '/delivery/reception' },
   { label: 'Ruta',      href: '/delivery/route' },
+  { label: 'Historial', href: '/delivery/history' },
 ] as const
 
 export function DeliveryNav() {

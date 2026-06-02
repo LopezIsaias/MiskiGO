@@ -1,5 +1,16 @@
 # CHANGELOG — Miski GO
 
+## [2026-06-02] — Historial del repartidor
+
+### Añadido
+- `src/app/(delivery)/delivery/history/page.tsx` — vista de historial: lista los pedidos `delivered` de TODOS los ciclos del repartidor (no solo el `in_progress`), más recientes primero. Server component read-only. Resuelve los pedidos vía `delivery_routes` → `delivery_stops` (status `delivered`, `completed_at`) del repartidor. Muestra cliente, dirección, fecha de entrega, fecha de ciclo y productos. SIN precios ni montos (CLAUDE.md §3: el repartidor nunca ve precios)
+
+### Modificado
+- `src/components/delivery/delivery-nav.tsx` — nueva pestaña "Historial" (`/delivery/history`)
+
+### Notas
+- Lint 0 warnings.
+
 ## [2026-06-02] — Ruta del repartidor gobernada por recepción
 
 ### Modificado

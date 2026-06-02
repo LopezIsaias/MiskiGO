@@ -685,9 +685,9 @@ Construir estrictamente en este orden. No avanzar al siguiente paso sin que el a
 
 **Último agente:** Claude Code (claude-opus-4-8)
 **Fecha:** 2026-06-02
-**Pasos completados:** 1 al 20 — MVP completo + mejoras perfil cliente/operador/repartidor (ver CHANGELOG 2026-06-02)
-**Último commit:** 1ee0b9b (commit de esta sesión en curso)
+**Pasos completados:** 1 al 20 — MVP completo + mejoras perfil cliente/operador/repartidor + historial del repartidor (ver CHANGELOG 2026-06-02)
+**Último commit:** 5657731 (cambios de historial sin commitear aún)
 **Migraciones aplicadas:** `030`, `031`, `032` ya en remoto vía `db push`.
-**Próximo paso:** Probar en la app los flujos nuevos; luego deploy. Para coords precisas en ruta, habilitar "Maps Static API" en Google Cloud.
+**Próximo paso:** Commitear historial del repartidor; probar en la app los flujos nuevos; luego deploy. Para coords precisas en ruta, habilitar "Maps Static API" en Google Cloud.
 **Bugs pendientes:** Ninguno conocido
 **Decisiones pendientes:** Ninguna. Nota: §4 actualizado — el cliente ahora puede SOLICITAR cancelación post-pago en estado `confirmed`; operador/superadmin ejecuta; reembolso MANUAL.
