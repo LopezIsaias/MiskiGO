@@ -119,10 +119,7 @@ export default async function CatalogPage() {
     })
   }
 
-  catalog.sort((a, b) =>
-    a.categoryName.localeCompare(b.categoryName, 'es') ||
-    a.name.localeCompare(b.name, 'es')
-  )
+  catalog.sort((a, b) => a.name.localeCompare(b.name, 'es'))
 
   const nearestCutoff = catalog.length > 0
     ? catalog.reduce((min, p) => p.nearestCutoff < min ? p.nearestCutoff : min, catalog[0].nearestCutoff)

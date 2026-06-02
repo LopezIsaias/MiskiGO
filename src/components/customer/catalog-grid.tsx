@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import Image from 'next/image'
 import { formatCurrency } from '@/lib/utils'
 import { useCartStore } from '@/stores/cart'
@@ -131,7 +131,34 @@ interface CatalogGridProps {
   products: CatalogProduct[]
 }
 
+function normalize(text: string): string {
+  return text.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
+}
+
+const ALL_CATEGORIES = '__all__'
+
 export function CatalogGrid({ products }: CatalogGridProps) {
+  const [search, setSearch] = useState('')
+  const [activeCategory, setActiveCategory] = useState<string>(ALL_CATEGORIES)
+
+  const categories = useMemo(() => {
+    const set = new Set(products.map(p => p.categoryName))
+    return [...set].sort((a, b) => a.localeCompare(b, 'es'))
+  }, [products])
+
+  const filtered = useMemo(() => {
+    const q = normalize(search.trim())
+    return products.filter(p => {
+      if (activeCategory !== ALL_CATEGORIES && p.categoryName !== activeCategory) return false
+      if (!q) return true
+      return (
+        normalize(p.name).includes(q) ||
+        (p.description ? normalize(p.description).includes(q) : false) ||
+        normalize(p.categoryName).includes(q)
+      )
+    })
+  }, [products, search, activeCategory])
+
   if (products.length === 0) {
     return (
       <div className="text-center py-20">
@@ -143,26 +170,80 @@ export function CatalogGrid({ products }: CatalogGridProps) {
     )
   }
 
-  const byCategory = products.reduce<Record<string, CatalogProduct[]>>((acc, p) => {
-    if (!acc[p.categoryName]) acc[p.categoryName] = []
-    acc[p.categoryName].push(p)
-    return acc
-  }, {})
-
   return (
-    <div className="space-y-8">
-      {Object.entries(byCategory).map(([category, items]) => (
-        <section key={category}>
-          <h2 className="text-base font-semibold text-miski-forest mb-4 pb-2 border-b border-miski-sage/30">
-            {category}
-          </h2>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {items.map(product => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
-        </section>
-      ))}
+    <div className="space-y-5">
+      {/* Search bar */}
+      <div className="relative">
+        <svg
+          className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-miski-olive"
+          fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-4.35-4.35m1.85-4.65a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0Z" />
+        </svg>
+        <input
+          type="search"
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          placeholder="Buscar producto…"
+          className="w-full pl-10 pr-4 py-2.5 text-sm border border-miski-sage rounded-xl focus:outline-none focus:ring-2 focus:ring-miski-lime/50 focus:border-miski-green transition-colors text-gray-800 placeholder:text-gray-400"
+        />
+      </div>
+
+      {/* Category filter chips */}
+      <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-none">
+        <button
+          type="button"
+          onClick={() => setActiveCategory(ALL_CATEGORIES)}
+          className={`shrink-0 text-xs font-medium px-3.5 py-1.5 rounded-full border transition-colors ${
+            activeCategory === ALL_CATEGORIES
+              ? 'bg-miski-forest text-white border-miski-forest'
+              : 'bg-white text-miski-forest border-miski-sage hover:bg-miski-sage/20'
+          }`}
+        >
+          Todas
+        </button>
+        {categories.map(cat => (
+          <button
+            key={cat}
+            type="button"
+            onClick={() => setActiveCategory(cat)}
+            className={`shrink-0 text-xs font-medium px-3.5 py-1.5 rounded-full border transition-colors ${
+              activeCategory === cat
+                ? 'bg-miski-forest text-white border-miski-forest'
+                : 'bg-white text-miski-forest border-miski-sage hover:bg-miski-sage/20'
+            }`}
+          >
+            {cat}
+          </button>
+        ))}
+      </div>
+
+      {/* Result count */}
+      <p className="text-xs text-miski-olive">
+        {filtered.length === products.length
+          ? `${products.length} producto${products.length !== 1 ? 's' : ''}`
+          : `${filtered.length} de ${products.length} producto${products.length !== 1 ? 's' : ''}`}
+      </p>
+
+      {/* Unified product grid */}
+      {filtered.length === 0 ? (
+        <div className="text-center py-16">
+          <p className="text-gray-400 text-sm font-medium">Sin resultados para tu búsqueda.</p>
+          <button
+            type="button"
+            onClick={() => { setSearch(''); setActiveCategory(ALL_CATEGORIES) }}
+            className="text-xs text-miski-green hover:text-miski-forest font-semibold mt-2"
+          >
+            Limpiar filtros
+          </button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {filtered.map(product => (
+            <ProductCard key={product.id} product={product} />
+          ))}
+        </div>
+      )}
     </div>
   )
 }
