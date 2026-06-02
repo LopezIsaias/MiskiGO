@@ -1,30 +1,36 @@
-import { describe, it, expect, beforeAll } from 'vitest'
+import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import {
   INTEGRATION_ENABLED, serviceClient, assertReachable,
   getSeedRegionId, createCycle, createOrder,
+  createTestUser, deleteTestUser, type TestUser,
 } from './helpers'
-
-// Superadmin sembrado en la migración 015 (existe en auth.users + public.users).
-const SUPERADMIN_ID = '00000000-0000-0000-0000-000000000001'
 
 describe.skipIf(!INTEGRATION_ENABLED)('Triggers e inmutabilidad (BD real)', () => {
   let svc: SupabaseClient
   let regionId: string
+  // El superadmin sembrado en 015 se borra en 017 (se recrea vía Admin API con
+  // id aleatorio). Creamos un usuario real por suite para satisfacer las FK.
+  let actor: TestUser
 
   beforeAll(async () => {
     await assertReachable()
     svc = serviceClient()
     regionId = await getSeedRegionId(svc)
+    actor = await createTestUser(svc, { role: 'superadmin', regionId, fullName: 'Actor Triggers' })
+  })
+
+  afterAll(async () => {
+    if (actor) await deleteTestUser(svc, actor.id)
   })
 
   it('lock_order_on_payment: fijar payment_approved_at bloquea el pedido', async () => {
     const cycleId = await createCycle(svc, regionId)
-    const orderId = await createOrder(svc, { customerId: SUPERADMIN_ID, cycleId, regionId, status: 'payment_submitted' })
+    const orderId = await createOrder(svc, { customerId: actor.id, cycleId, regionId, status: 'payment_submitted' })
 
     const { error } = await svc
       .from('orders')
-      .update({ payment_approved_at: new Date().toISOString(), payment_approved_by: SUPERADMIN_ID, status: 'confirmed' })
+      .update({ payment_approved_at: new Date().toISOString(), payment_approved_by: actor.id, status: 'confirmed' })
       .eq('id', orderId)
     expect(error).toBeNull()
 
@@ -35,7 +41,7 @@ describe.skipIf(!INTEGRATION_ENABLED)('Triggers e inmutabilidad (BD real)', () =
 
   it('set_claim_window: fijar delivered_at calcula la ventana de reclamo a +2h', async () => {
     const cycleId = await createCycle(svc, regionId)
-    const orderId = await createOrder(svc, { customerId: SUPERADMIN_ID, cycleId, regionId, status: 'in_transit' })
+    const orderId = await createOrder(svc, { customerId: actor.id, cycleId, regionId, status: 'in_transit' })
 
     const deliveredAt = new Date()
     const { error } = await svc.from('orders').update({ delivered_at: deliveredAt.toISOString() }).eq('id', orderId)
@@ -50,7 +56,7 @@ describe.skipIf(!INTEGRATION_ENABLED)('Triggers e inmutabilidad (BD real)', () =
   it('audit_log es append-only: UPDATE y DELETE fallan', async () => {
     const { data: inserted, error: insErr } = await svc
       .from('audit_log')
-      .insert({ user_id: SUPERADMIN_ID, role_at_time: 'superadmin', action: 'test_action', module: 'system' })
+      .insert({ user_id: actor.id, role_at_time: 'superadmin', action: 'test_action', module: 'system' })
       .select('id')
       .single()
     expect(insErr).toBeNull()
@@ -67,7 +73,7 @@ describe.skipIf(!INTEGRATION_ENABLED)('Triggers e inmutabilidad (BD real)', () =
     const { data: tx, error: insErr } = await svc
       .from('wallet_transactions')
       .insert({
-        user_id: SUPERADMIN_ID, type: 'recharge', amount: 50,
+        user_id: actor.id, type: 'recharge', amount: 50,
         balance_before: 0, balance_after: 50, status: 'pending',
       })
       .select('id')
@@ -78,7 +84,7 @@ describe.skipIf(!INTEGRATION_ENABLED)('Triggers e inmutabilidad (BD real)', () =
     // Aprobación (status/approved_*) debe permitirse tras la migración 028.
     const { error: approveErr } = await svc
       .from('wallet_transactions')
-      .update({ status: 'approved', approved_by: SUPERADMIN_ID, approved_at: new Date().toISOString() })
+      .update({ status: 'approved', approved_by: actor.id, approved_at: new Date().toISOString() })
       .eq('id', id)
     expect(approveErr).toBeNull()
 
@@ -92,13 +98,13 @@ describe.skipIf(!INTEGRATION_ENABLED)('Triggers e inmutabilidad (BD real)', () =
 
   it('receipts es inmutable: UPDATE y DELETE fallan', async () => {
     const cycleId = await createCycle(svc, regionId)
-    const orderId = await createOrder(svc, { customerId: SUPERADMIN_ID, cycleId, regionId, status: 'delivered' })
+    const orderId = await createOrder(svc, { customerId: actor.id, cycleId, regionId, status: 'delivered' })
 
     const num = `T001-${Date.now().toString().slice(-8)}`
     const { data: rec, error: insErr } = await svc
       .from('receipts')
       .insert({
-        order_id: orderId, customer_id: SUPERADMIN_ID, type: 'boleta',
+        order_id: orderId, customer_id: actor.id, type: 'boleta',
         series: 'T001', correlative: 1, number: num,
         document: '12345678', customer_name: 'Prueba', subtotal: 100, total: 100,
       })

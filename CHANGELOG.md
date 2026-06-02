@@ -1,5 +1,19 @@
 # CHANGELOG — Miski GO
 
+## [2026-06-02] — Fix harness de integración + cobertura RLS por rol
+
+### Corregido
+- `tests/integration/helpers.ts` `createCycle` — `dispatch_date` única por llamada (base de días aleatoria por proceso + contador); eliminaba la colisión `dispatch_cycles_region_id_dispatch_date_key` que rompía 6 tests
+- `tests/integration/triggers.test.ts` y `receipts-rpc.test.ts` — dejaban de usar el superadmin sembrado hardcodeado (`00000000-...-0001`), que la migración 017 elimina (se recrea vía Admin API con id aleatorio); ahora crean un usuario real con `createTestUser` en `beforeAll` y lo limpian en `afterAll`
+
+### Añadido
+- `tests/integration/rls-roles.test.ts` — 7 casos de aislamiento RLS por rol (CLAUDE.md § 3): supplier no ve/edita publicaciones de otro supplier, no puede publicar a nombre ajeno (WITH CHECK), customer ve catálogo activo pero no inserta `wallet_transactions` (solo superadmin) y solo ve su propia billetera
+- `tests/integration/helpers.ts` `createProduct` — crea categoría + producto (vía service role) para colgar publicaciones; pcts como fracción (0–1)
+
+### Notas
+- Suite de integración: 22 casos en verde (antes 15). Unit: 65. Lint: 0 warnings.
+- Requiere Docker + `npm run db:start` + `npm run db:reset` + `npm run db:env`. Tras `db reset` no hay superadmin hasta correr `npm run seed:admin`.
+
 ## [2026-06-02] — Tests de integración contra Supabase local
 
 ### Añadido

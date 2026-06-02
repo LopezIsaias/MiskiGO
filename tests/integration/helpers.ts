@@ -98,10 +98,18 @@ export async function deleteTestUser(svc: SupabaseClient, id: string): Promise<v
   await svc.auth.admin.deleteUser(id)
 }
 
+// Base de días aleatoria por proceso + contador → cada ciclo tiene una
+// dispatch_date única (constraint UNIQUE(region_id, dispatch_date)), aun si
+// la suite se re-ejecuta sin `db reset`.
+const cycleDayBase = 5 + Math.floor(Math.random() * 3650)
+let cycleDayCounter = 0
+
 // Crea un ciclo de despacho mínimo para colgar pedidos.
 export async function createCycle(svc: SupabaseClient, regionId: string): Promise<string> {
-  const dispatchDate = new Date(Date.now() + 3 * 86_400_000).toISOString().slice(0, 10)
-  const cutoff = new Date(Date.now() + 2 * 86_400_000).toISOString()
+  cycleDayCounter += 1
+  const offset = cycleDayBase + cycleDayCounter
+  const dispatchDate = new Date(Date.now() + offset * 86_400_000).toISOString().slice(0, 10)
+  const cutoff = new Date(Date.now() + (offset - 1) * 86_400_000).toISOString()
   const { data, error } = await svc
     .from('dispatch_cycles')
     .insert({ region_id: regionId, dispatch_date: dispatchDate, cutoff_at: cutoff, status: 'open' })
@@ -109,6 +117,29 @@ export async function createCycle(svc: SupabaseClient, regionId: string): Promis
     .single()
   if (error || !data) throw new Error(`[integration] createCycle falló: ${error?.message}`)
   return data.id as string
+}
+
+// Crea una categoría + producto en el catálogo maestro (vía service role).
+// Devuelve el product_id, listo para colgar publicaciones.
+export async function createProduct(svc: SupabaseClient): Promise<string> {
+  const suffix = uniqueSuffix()
+  const { data: cat, error: catErr } = await svc
+    .from('product_categories')
+    .insert({
+      name: `Cat ${suffix}`, slug: `cat-${suffix}`,
+      operational_cost_pct: 0.2, suggested_margin_pct: 0.2, estimated_waste_pct: 0.08,
+    })
+    .select('id')
+    .single()
+  if (catErr || !cat) throw new Error(`[integration] createProduct (categoría) falló: ${catErr?.message}`)
+
+  const { data: prod, error: prodErr } = await svc
+    .from('products')
+    .insert({ category_id: cat.id, name: `Prod ${suffix}`, slug: `prod-${suffix}`, unit: 'kg' })
+    .select('id')
+    .single()
+  if (prodErr || !prod) throw new Error(`[integration] createProduct falló: ${prodErr?.message}`)
+  return prod.id as string
 }
 
 // Crea un pedido mínimo para el cliente dado.
