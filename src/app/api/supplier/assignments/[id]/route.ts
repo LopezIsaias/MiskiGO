@@ -262,6 +262,34 @@ export async function PATCH(
         order_id,
       },
     })
+
+    // No replacement covered the gap → mark the item as failed so the operator
+    // sees the manual-assign panel, and re-evaluate whether the order can advance.
+    if (remaining > 0.001) {
+      await adminClient
+        .from('order_items')
+        .update({ status: 'failed' })
+        .eq('id', assignment.order_item_id)
+
+      // Order advances once every item is resolved (assigned/failed/rejected) and
+      // at least one is assigned — failed items count as resolved so the order is
+      // not stuck waiting on an item with no available supplier.
+      const { data: allItems } = await adminClient
+        .from('order_items')
+        .select('status')
+        .eq('order_id', order_id)
+
+      const orderReady = (allItems ?? []).length > 0 &&
+        (allItems ?? []).every(i => i.status === 'assigned' || i.status === 'failed' || i.status === 'rejected')
+      const orderHasAssigned = (allItems ?? []).some(i => i.status === 'assigned')
+
+      if (orderReady && orderHasAssigned) {
+        await adminClient
+          .from('orders')
+          .update({ status: 'assigned' })
+          .eq('id', order_id)
+      }
+    }
   }
 
   return NextResponse.json({ success: true })

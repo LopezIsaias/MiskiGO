@@ -1,5 +1,18 @@
 # CHANGELOG — Miski GO
 
+## [2026-06-08] — Rechazo de proveedor sin reemplazo: ítem a `failed` + auto-avance del pedido
+
+### Corregido
+- `src/app/api/supplier/assignments/[id]/route.ts` — cuando un proveedor rechaza su asignación y la búsqueda de reemplazo NO cubre el faltante (`remaining > 0`), el `order_item` ahora pasa a `failed`. Antes quedaba en `pending`: el operador no veía el panel de reasignación manual (solo aparece si `itemStatus === 'failed'`) y el pedido se congelaba indefinidamente en `confirmed` porque el check `orderReady` exige todos los ítems en `assigned/failed/rejected`.
+
+### Modificado
+- `src/app/api/supplier/assignments/[id]/route.ts` — tras marcar el ítem como `failed`, re-evalúa el avance del pedido con la misma regla del path de confirmación: si todos los ítems están resueltos (`assigned/failed/rejected`) y al menos uno está `assigned`, el pedido auto-avanza a `assigned` sin intervención del operador. Reduce la carga de revisión manual.
+
+### Notas
+- Escenario cubierto: cliente pide N ítems, proveedor solo cumple algunos. Los no cubiertos quedan `failed` (badge "⚠ Stock" + mensaje WhatsApp "Problema" se activan) y el pedido avanza con lo confirmado.
+- Edge case pendiente: si se rechazan TODOS los ítems sin reemplazo, el pedido sigue en `confirmed` (no auto-avanza a `failed`). Mismo comportamiento que el path de confirmación; no se tocó por ser decisión de negocio que afecta ambos paths.
+- Lint 0 warnings.
+
 ## [2026-06-08] — Foto de reclamo: fecha real de captura (EXIF) verificada en servidor
 
 ### Añadido
