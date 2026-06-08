@@ -30,7 +30,7 @@ export default async function ClaimPage({
 
   const { data: order } = await adminClient
     .from('orders')
-    .select('id, status, delivery_address, claim_window_expires_at, created_at')
+    .select('id, status, delivery_address, claim_window_expires_at, delivered_at, created_at')
     .eq('id', orderId)
     .eq('customer_id', user.id)
     .maybeSingle()
@@ -95,6 +95,7 @@ export default async function ClaimPage({
           orderId={orderId}
           items={claimableItems}
           claimWindowExpiresAt={order.claim_window_expires_at!}
+          deliveredAt={order.delivered_at}
           customerId={user.id}
         />
       )}

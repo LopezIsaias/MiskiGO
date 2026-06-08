@@ -3,9 +3,11 @@
 import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { formatTime } from '@/lib/utils'
+import { formatTime, formatDateTime } from '@/lib/utils'
 import { extractExif } from '@/lib/utils/exif-client'
 import type { ExifData } from '@/lib/utils/exif-client'
+import { checkPhotoCaptureWindow, blocksClaim, photoVerificationMessage } from '@/lib/utils/exif-validation'
+import type { PhotoCheck } from '@/lib/utils/exif-validation'
 
 export interface ClaimableItem {
   productId:       string
@@ -25,15 +27,17 @@ interface Props {
   orderId:              string
   items:                ClaimableItem[]
   claimWindowExpiresAt: string
+  deliveredAt:          string | null
   customerId:           string
 }
 
-export function ClaimForm({ orderId, items, claimWindowExpiresAt, customerId }: Props) {
+export function ClaimForm({ orderId, items, claimWindowExpiresAt, deliveredAt, customerId }: Props) {
   const router = useRouter()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [photoUrl,       setPhotoUrl]       = useState<string | null>(null)
   const [photoExif,      setPhotoExif]      = useState<ExifData | null>(null)
+  const [photoCheck,     setPhotoCheck]     = useState<PhotoCheck | null>(null)
   const [photoPreview,   setPhotoPreview]   = useState<string | null>(null)
   const [uploadingPhoto, setUploadingPhoto] = useState(false)
   const [submitting,     setSubmitting]     = useState(false)
@@ -77,6 +81,16 @@ export function ClaimForm({ orderId, items, claimWindowExpiresAt, customerId }: 
     const exif = await extractExif(file)
     setPhotoExif(exif)
 
+    // Verificación preliminar en cliente (el servidor revalida al enviar).
+    const check = checkPhotoCaptureWindow(exif?.DateTimeOriginal, deliveredAt)
+    setPhotoCheck(check)
+    if (blocksClaim(check.verification)) {
+      setError(photoVerificationMessage(check.verification))
+      setUploadingPhoto(false)
+      setPhotoUrl(null)
+      return
+    }
+
     try {
       const supabase = createClient()
       const ext = file.name.split('.').pop() ?? 'jpg'
@@ -98,6 +112,9 @@ export function ClaimForm({ orderId, items, claimWindowExpiresAt, customerId }: 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!photoUrl) { setError('La foto es obligatoria.'); return }
+    if (photoCheck && blocksClaim(photoCheck.verification)) {
+      setError(photoVerificationMessage(photoCheck.verification)); return
+    }
 
     const claimItems = items
       .filter(item => itemStates[item.productId]?.selected)
@@ -161,7 +178,8 @@ export function ClaimForm({ orderId, items, claimWindowExpiresAt, customerId }: 
           Foto del problema <span className="text-red-500">*</span>
         </p>
         <p className="text-xs text-miski-olive mb-3">
-          Toma una foto clara que muestre el problema con el pedido.
+          Sube una foto clara del producto recibido que muestre el problema. Usa la foto
+          original (con su fecha), no una captura de pantalla ni una imagen editada.
         </p>
         {photoPreview ? (
           <div className="relative">
@@ -183,7 +201,7 @@ export function ClaimForm({ orderId, items, claimWindowExpiresAt, customerId }: 
             )}
             <button
               type="button"
-              onClick={() => { setPhotoPreview(null); setPhotoUrl(null) }}
+              onClick={() => { setPhotoPreview(null); setPhotoUrl(null); setPhotoCheck(null); setError('') }}
               className="absolute top-2 right-2 bg-white/80 text-gray-600 rounded-full w-7 h-7 text-xs flex items-center justify-center border border-miski-sage/40"
             >
               ✕
@@ -196,17 +214,29 @@ export function ClaimForm({ orderId, items, claimWindowExpiresAt, customerId }: 
             className="w-full h-28 rounded-xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center gap-1 text-gray-400 hover:border-red-400 hover:text-red-500 transition-colors"
           >
             <span className="text-3xl">📷</span>
-            <span className="text-xs font-medium">Tomar o seleccionar foto</span>
+            <span className="text-xs font-medium">Seleccionar foto</span>
           </button>
         )}
         <input
           ref={fileInputRef}
           type="file"
           accept="image/*"
-          capture="environment"
           className="hidden"
           onChange={handlePhotoSelect}
         />
+
+        {/* Resultado de la verificación de fecha de captura (EXIF) */}
+        {photoUrl && photoCheck && (
+          photoCheck.verification === 'valid' && photoCheck.takenAt ? (
+            <p className="mt-2 text-xs text-miski-forest">
+              📷 Foto tomada el {formatDateTime(photoCheck.takenAt)}
+            </p>
+          ) : photoCheck.verification === 'unknown' ? (
+            <p className="mt-2 text-xs text-amber-700">
+              {photoVerificationMessage('unknown')}
+            </p>
+          ) : null
+        )}
       </div>
 
       {/* Product list */}

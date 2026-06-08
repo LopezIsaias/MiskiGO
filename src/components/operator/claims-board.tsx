@@ -11,6 +11,8 @@ export interface ClaimRow {
   claimed_quantity:     number
   reason:               string
   photo_url:            string
+  photo_taken_at:       string | null
+  photo_verification:   string | null
   created_at:           string
   resolution_type:      string | null
   resolution_amount:    number | null
@@ -200,6 +202,16 @@ function ClaimCard({ claim }: CardProps) {
           <p className="text-xs text-gray-600 mt-1.5 bg-miski-cream/30 rounded-lg px-3 py-2 italic">
             &ldquo;{claim.reason}&rdquo;
           </p>
+          {/* Fecha real de captura de la foto (EXIF, verificada en servidor) */}
+          {claim.photo_verification === 'unknown' ? (
+            <p className="text-xs text-amber-700 mt-1.5">
+              ⚠ Foto sin fecha de captura verificable
+            </p>
+          ) : claim.photo_taken_at ? (
+            <p className="text-xs text-miski-olive mt-1.5">
+              📷 Foto tomada el <span className="font-medium text-gray-700">{formatDateTime(claim.photo_taken_at)}</span>
+            </p>
+          ) : null}
           {!claim.reception_photo_url && (
             <p className="text-xs text-gray-400 mt-1.5 italic">
               El repartidor no reportó problemas en recepción.

@@ -13,6 +13,8 @@ type RawClaim = {
   claimed_quantity:     number
   reason:               string
   photo_url:            string
+  photo_taken_at:       string | null
+  photo_verification:   string | null
   created_at:           string
   product_id:           string
   resolution_type:      string | null
@@ -53,7 +55,7 @@ export default async function ClaimsPage() {
   const { data: rawClaims } = await adminClient
     .from('claims')
     .select(`
-      id, status, claimed_quantity, reason, photo_url, created_at,
+      id, status, claimed_quantity, reason, photo_url, photo_taken_at, photo_verification, created_at,
       product_id,
       resolution_type, resolution_amount, resolution_proof_url, is_justified, resolved_at,
       customer:users!customer_id(full_name, phone),

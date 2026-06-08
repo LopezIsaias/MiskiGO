@@ -1,5 +1,23 @@
 # CHANGELOG — Miski GO
 
+## [2026-06-08] — Foto de reclamo: fecha real de captura (EXIF) verificada en servidor
+
+### Añadido
+- `supabase/migrations/20260608000033_claim_photo_capture.sql` — columnas `claims.photo_taken_at` (timestamptz) y `claims.photo_verification` (`valid`/`too_old`/`future`/`unknown`)
+- `src/lib/utils/exif-validation.ts` — lógica pura e isomórfica: valida la fecha de captura contra la ventana de entrega `[delivered_at − 30min, now + 10min]`. Constantes de tolerancia editables
+- `src/lib/utils/exif-server.ts` — extrae el EXIF (DateTimeOriginal) del archivo ya subido, en el servidor. Fuente de verdad: no se confía en la metadata que envía el cliente
+
+### Modificado
+- `src/components/customer/claim-form.tsx` — el input ya NO fuerza la cámara (`capture` removido), permitiendo subir la foto original con su fecha real. Verificación preliminar en cliente; bloquea el envío si la foto es anterior a la entrega o tiene fecha futura; muestra "📷 Foto tomada el …" o aviso si no hay EXIF
+- `src/app/api/customer/orders/[id]/claim/route.ts` — reextrae el EXIF en servidor y valida contra `orders.delivered_at`. Rechaza (422) fotos fuera de ventana (`too_old`/`future`); guarda `photo_taken_at`, `photo_verification` y la metadata cruda; notifica a operadores cuando la foto no tiene fecha verificable (`unknown`)
+- `src/app/(customer)/customer/orders/[id]/claim/page.tsx` — pasa `delivered_at` al formulario
+- `src/components/operator/claims-board.tsx` y `src/app/(operator)/operator/claims/page.tsx` — el operador ve la fecha real de captura de la foto, o el aviso "sin fecha de captura verificable"
+
+### Notas
+- Decisiones: fuera de ventana = rechazo duro; sin EXIF = se permite pero se marca y avisa al operador (algunos dispositivos legítimos no graban EXIF). La hora EXIF es local de la cámara (sin zona horaria) → tolerancias generosas.
+- Migración `033` aplicada al remoto vía `db push`.
+- Lint 0 warnings, `tsc` limpio.
+
 ## [2026-06-08] — Pedidos vencidos + estandarización de mensajes al cliente
 
 ### Añadido
