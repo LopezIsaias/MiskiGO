@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { useState, useMemo, useRef, useEffect } from 'react'
+import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
 import { publicationSchema, type PublicationInput } from '@/lib/validations/supplier'
@@ -34,6 +34,85 @@ const UNIT_LABEL: Record<string, string> = {
 const inputCls =
   'w-full border border-miski-sage rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-miski-lime/50 focus:border-miski-green transition-colors placeholder:text-gray-300 text-gray-800'
 
+function normalize(text: string): string {
+  return text.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
+}
+
+interface ProductSearchSelectProps {
+  products: Product[]
+  value: string
+  onChange: (id: string) => void
+}
+
+// Searchable product picker: filters the master catalog by name/category as the
+// supplier types, replacing the plain <select> which is unwieldy with many products.
+function ProductSearchSelect({ products, value, onChange }: ProductSearchSelectProps) {
+  const [search, setSearch] = useState('')
+  const [open, setOpen] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  const selected = products.find(p => p.id === value) ?? null
+
+  const filtered = useMemo(() => {
+    const q = normalize(search.trim())
+    if (!q) return products
+    return products.filter(
+      p => normalize(p.name).includes(q) || (p.category ? normalize(p.category.name).includes(q) : false),
+    )
+  }, [products, search])
+
+  // Close the dropdown when clicking outside.
+  useEffect(() => {
+    function onClickOutside(e: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', onClickOutside)
+    return () => document.removeEventListener('mousedown', onClickOutside)
+  }, [])
+
+  function pick(id: string) {
+    onChange(id)
+    setOpen(false)
+    setSearch('')
+  }
+
+  return (
+    <div ref={containerRef} className="relative">
+      <input
+        type="text"
+        value={open ? search : selected ? `${selected.name} (${UNIT_LABEL[selected.unit] ?? selected.unit})` : ''}
+        onChange={e => { setSearch(e.target.value); if (!open) setOpen(true) }}
+        onFocus={() => setOpen(true)}
+        placeholder="Busca un producto…"
+        className={inputCls}
+        autoComplete="off"
+      />
+      {open && (
+        <ul className="absolute z-10 mt-1 w-full max-h-60 overflow-auto bg-white border border-miski-sage rounded-lg shadow-lg py-1">
+          {filtered.length === 0 ? (
+            <li className="px-3 py-2 text-sm text-gray-400">Sin resultados</li>
+          ) : (
+            filtered.map(p => (
+              <li key={p.id}>
+                <button
+                  type="button"
+                  onClick={() => pick(p.id)}
+                  className={`w-full text-left px-3 py-2 text-sm hover:bg-miski-sage/20 transition-colors ${
+                    p.id === value ? 'bg-miski-lime/15 text-miski-forest font-medium' : 'text-gray-800'
+                  }`}
+                >
+                  {p.name} <span className="text-gray-400">({UNIT_LABEL[p.unit] ?? p.unit})</span>
+                  {p.category ? <span className="text-gray-400"> · {p.category.name}</span> : ''}
+                </button>
+              </li>
+            ))
+          )}
+        </ul>
+      )}
+    </div>
+  )
+}
+
 export function PublicationForm({ products, regions, cutoffs, publication }: PublicationFormProps) {
   const router = useRouter()
   const [serverError, setServerError] = useState<string | null>(null)
@@ -42,6 +121,7 @@ export function PublicationForm({ products, regions, cutoffs, publication }: Pub
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<PublicationInput>({
     resolver: zodResolver(publicationSchema),
@@ -101,15 +181,17 @@ export function PublicationForm({ products, regions, cutoffs, publication }: Pub
           </div>
         ) : (
           <>
-            <select {...register('product_id')} className={inputCls}>
-              <option value="">Selecciona un producto</option>
-              {products.map(p => (
-                <option key={p.id} value={p.id}>
-                  {p.name} ({UNIT_LABEL[p.unit] ?? p.unit})
-                  {p.category ? ` · ${p.category.name}` : ''}
-                </option>
-              ))}
-            </select>
+            <Controller
+              control={control}
+              name="product_id"
+              render={({ field }) => (
+                <ProductSearchSelect
+                  products={products}
+                  value={field.value ?? ''}
+                  onChange={field.onChange}
+                />
+              )}
+            />
             {errors.product_id && (
               <p className="text-red-500 text-xs mt-1">{errors.product_id.message}</p>
             )}
