@@ -46,6 +46,7 @@ type RawOrder = {
   created_at:               string
   delivery_confirmation_code: string | null
   cancellation_requested_at: string | null
+  dispatch_cycle: { dispatch_date: string } | { dispatch_date: string }[] | null
   receipt: { number: string; type: string } | { number: string; type: string }[] | null
   items: {
     quantity:          number
@@ -66,6 +67,7 @@ export default async function OrdersPage() {
       id, status, total_amount, delivery_address,
       delivered_at, claim_window_expires_at, created_at,
       delivery_confirmation_code, cancellation_requested_at,
+      dispatch_cycle:dispatch_cycles!dispatch_cycle_id(dispatch_date),
       receipt:receipts!order_id(number, type),
       items:order_items!order_id(
         quantity, unit_price_frozen,
@@ -85,7 +87,13 @@ export default async function OrdersPage() {
         <p className="text-gray-400 text-sm">Aún no tienes pedidos.</p>
       ) : (
         <div className="space-y-4">
-          {orders.map(order => (
+          {orders.map(order => {
+            const cycle = Array.isArray(order.dispatch_cycle) ? order.dispatch_cycle[0] : order.dispatch_cycle
+            const today = new Date().toISOString().slice(0, 10)
+            // Vencido: sigue 'confirmed' pero la fecha de despacho ya pasó (el cron
+            // lo pasará a 'failed'; mientras tanto no mostramos código ni cancelación).
+            const isOverdue = order.status === 'confirmed' && cycle != null && cycle.dispatch_date < today
+            return (
             <div key={order.id} className="bg-white rounded-xl border border-miski-sage/40 shadow-sm p-5">
               <div className="flex items-start justify-between gap-3 mb-3">
                 <div>
@@ -118,8 +126,17 @@ export default async function OrdersPage() {
               {/* Barra de estado del pedido */}
               <OrderStatusBar status={order.status} />
 
-              {/* Cancelación: solo mientras esté 'confirmed' y aún no 'assigned' (CLAUDE.md §4: aprobación manual) */}
-              {order.status === 'confirmed' && (
+              {/* Aviso neutral para pedidos vencidos aún sin resolver */}
+              {isOverdue && (
+                <div className="mt-3 bg-miski-gold-light/20 border border-miski-gold/40 rounded-xl px-4 py-3">
+                  <p className="text-sm text-amber-800">
+                    Tu pedido está en proceso. Nos pondremos en contacto contigo a la brevedad.
+                  </p>
+                </div>
+              )}
+
+              {/* Cancelación: solo mientras esté 'confirmed', no vencido y aún no 'assigned' (CLAUDE.md §4: aprobación manual) */}
+              {order.status === 'confirmed' && !isOverdue && (
                 <CancelOrderButton
                   orderId={order.id}
                   alreadyRequested={order.cancellation_requested_at !== null}
@@ -147,7 +164,7 @@ export default async function OrdersPage() {
               })()}
 
               {/* Confirmation code — visible desde que el pedido se confirma */}
-              {['confirmed', 'assigned', 'in_transit'].includes(order.status) && order.delivery_confirmation_code && (
+              {['confirmed', 'assigned', 'in_transit'].includes(order.status) && !isOverdue && order.delivery_confirmation_code && (
                 <div className="mt-3 bg-blue-50 border border-blue-200 rounded-xl px-4 py-3">
                   <p className="text-xs text-blue-600 font-semibold mb-1">Código de confirmación de entrega</p>
                   <p className="text-3xl font-bold text-blue-800 tracking-[0.3em]">
@@ -173,7 +190,8 @@ export default async function OrdersPage() {
                 />
               )}
             </div>
-          ))}
+            )
+          })}
         </div>
       )}
     </div>

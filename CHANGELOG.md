@@ -1,5 +1,23 @@
 # CHANGELOG — Miski GO
 
+## [2026-06-08] — Pedidos vencidos + estandarización de mensajes al cliente
+
+### Añadido
+- `src/app/api/cron/expire-overdue-orders/route.ts` — cron: marca como `failed` los pedidos aún `confirmed` cuyo ciclo ya pasó su `dispatch_date` (nunca asignados ni entregados). Libera stock reservado (mismas reglas que la cancelación del operador), registra en `audit_log` (`order_auto_failed`) y notifica al cliente. Autorizado con `Bearer CRON_SECRET`
+- `vercel.json` — Vercel Cron diario `0 6 * * *` (01:00 Lima) para el endpoint anterior
+- `ORDER_AUTO_FAILED: 'order_auto_failed'` en `AUDIT_ACTIONS` (`src/lib/constants/index.ts`)
+- `CRON_SECRET` en `.env.example`
+
+### Modificado
+- `src/app/(customer)/customer/orders/page.tsx` — calcula `isOverdue` (confirmed + `dispatch_date` pasada) uniendo `dispatch_cycles`. Si está vencido: oculta el código de entrega y el botón de cancelación, y muestra aviso neutral ("Tu pedido está en proceso. Nos pondremos en contacto contigo a la brevedad."). Cubre la ventana antes de que corra el cron
+- `src/app/api/customer/orders/[id]/cancel-request/route.ts` — rechaza la solicitud de cancelación si la `dispatch_date` del ciclo ya pasó (defensa server-side)
+- `src/components/customer/cancel-order-button.tsx` — mensaje de cancelación post-pago reformulado: "...serán revisados y aprobados o denegados por un operador en un plazo máximo de 2 horas."
+- `src/components/customer/checkout-form.tsx` — número de pedido de confirmación estandarizado a `Pedido #XXXXXXXX` (8 chars uppercase), consistente con el resto de la app
+
+### Notas
+- Lint 0 warnings, `tsc` limpio.
+- Pendiente: setear `CRON_SECRET` en env de Vercel. El cron solo corre en prod.
+
 ## [2026-06-02] — Historial del repartidor
 
 ### Añadido

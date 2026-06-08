@@ -220,7 +220,7 @@ export function CheckoutForm({ walletBalance, userId, fullName, dni, ruc }: Prop
             Se descontaron {formatCurrency(result.walletUsed)} de tu billetera.
           </p>
         )}
-        <p className="text-xs text-gray-400 mb-6">N.° de pedido: {result.orderId}</p>
+        <p className="text-xs text-gray-400 mb-6">Pedido #{result.orderId.slice(0, 8).toUpperCase()}</p>
         <button
           onClick={() => router.push('/customer/catalog')}
           className="bg-miski-forest text-white px-6 py-2.5 rounded-lg text-sm font-semibold hover:bg-miski-green transition-all active:scale-[0.98]"

@@ -110,6 +110,7 @@ export const AUDIT_ACTIONS = {
   SUPPLIER_CONFIRMED:         'supplier_confirmed',
   SUPPLIER_REJECTED:          'supplier_rejected',
   DELIVERY_CODE_FAILED:       'delivery_code_failed',
+  ORDER_AUTO_FAILED:          'order_auto_failed',
 } as const
 
 export const AUDIT_MODULES = {

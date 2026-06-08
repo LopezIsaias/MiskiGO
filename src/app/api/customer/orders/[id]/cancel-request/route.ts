@@ -42,7 +42,7 @@ export async function POST(
   // Solo se puede solicitar mientras esté 'confirmed' (pagado, aún no asignado).
   const { data: order } = await adminClient
     .from('orders')
-    .select('id, status, cancellation_requested_at')
+    .select('id, status, cancellation_requested_at, dispatch_cycle:dispatch_cycles!dispatch_cycle_id(dispatch_date)')
     .eq('id', orderId)
     .eq('customer_id', user.id)
     .maybeSingle()
@@ -53,6 +53,15 @@ export async function POST(
   if (order.status !== 'confirmed') {
     return NextResponse.json(
       { error: 'Solo puedes solicitar cancelación mientras el pedido esté confirmado y sin asignar' },
+      { status: 409 }
+    )
+  }
+  // Pedido vencido: la fecha de despacho ya pasó. No se puede solicitar cancelación.
+  const cycle = Array.isArray(order.dispatch_cycle) ? order.dispatch_cycle[0] : order.dispatch_cycle
+  const today = new Date().toISOString().slice(0, 10)
+  if (cycle && (cycle as { dispatch_date: string }).dispatch_date < today) {
+    return NextResponse.json(
+      { error: 'Este pedido ya venció su fecha de despacho. Nos pondremos en contacto contigo.' },
       { status: 409 }
     )
   }

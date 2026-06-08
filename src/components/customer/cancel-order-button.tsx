@@ -65,7 +65,7 @@ export function CancelOrderButton({ orderId, alreadyRequested }: Props) {
   return (
     <div className="mt-3 rounded-xl border border-red-200 bg-red-50/50 px-4 py-3 space-y-2">
       <p className="text-xs text-gray-600">
-        Tu pedido ya está pagado. La cancelación y el reembolso los aprueba un operador manualmente.
+        Tu pedido ya está pagado. La cancelación y el reembolso serán revisados y aprobados o denegados por un operador en un plazo máximo de 2 horas.
       </p>
       <textarea
         value={reason}
