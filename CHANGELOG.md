@@ -1,5 +1,14 @@
 # CHANGELOG — Miski GO
 
+## [2026-06-08] — Buscador de producto en publicación del proveedor
+
+### Modificado
+- `src/components/supplier/publication-form.tsx` — el `<select>` nativo de producto se reemplazó por un combobox buscable (`ProductSearchSelect`) que filtra el catálogo maestro por nombre y categoría mientras el proveedor escribe (normaliza acentos y mayúsculas). Cierra al hacer clic fuera, marca la selección actual y muestra "Sin resultados" cuando no hay match. Integrado con react-hook-form vía `Controller` (evita el warning de React Compiler por `watch()` y el riesgo de UI desactualizada). Solo aplica al crear; en edición el producto sigue bloqueado.
+
+### Notas
+- El catálogo del cliente (`src/components/customer/catalog-grid.tsx`) ya contaba con buscador + filtro por categoría; no requirió cambios.
+- Lint 0 warnings, `tsc` limpio.
+
 ## [2026-06-08] — Rechazo de proveedor sin reemplazo: ítem a `failed` + auto-avance del pedido
 
 ### Corregido
