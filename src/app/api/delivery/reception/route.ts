@@ -76,6 +76,11 @@ export async function POST(request: Request) {
   const adminClient = createAdminClient()
   const now = new Date().toISOString()
 
+  // Créditos de compensación PROPUESTOS por el repartidor. NO se aplican al saldo aquí:
+  // el repartidor no mueve dinero (CLAUDE.md §3) ni aprueba créditos (§4 — superadmin APRUEBA).
+  // Quedan en estado 'pending' y se aprueban desde /api/admin/wallet/[id].
+  const proposedCredits: { customerId: string; orderId: string; amount: number }[] = []
+
   // Verify cycle exists and is active
   const { data: cycle } = await adminClient
     .from('dispatch_cycles')
@@ -212,7 +217,8 @@ export async function POST(request: Request) {
         const compensation = Math.round(asgnShortfall * unit_price_frozen * 100) / 100
 
         if (compensation > 0) {
-          // Get customer's current wallet balance
+          // Saldo actual del cliente (solo para registrar balance_before del comprobante;
+          // el saldo NO cambia hasta que el superadmin apruebe el crédito).
           const { data: customerData } = await adminClient
             .from('users')
             .select('wallet_balance')
@@ -220,31 +226,27 @@ export async function POST(request: Request) {
             .maybeSingle()
 
           const balanceBefore = customerData?.wallet_balance ?? 0
-          const balanceAfter = Math.round((balanceBefore + compensation) * 100) / 100
 
-          // Insert wallet_transaction
+          // Crédito PROPUESTO (pending). El repartidor no aprueba ni mueve saldo.
+          // balance_after = balance_before porque el saldo aún no cambia; el endpoint
+          // de aprobación (admin/wallet/[id]) recalcula y aplica el saldo definitivo.
           await adminClient.from('wallet_transactions').insert({
             user_id: customerId,
             type: 'refund',
             amount: compensation,
             balance_before: balanceBefore,
-            balance_after: balanceAfter,
+            balance_after: balanceBefore,
             reference_order_id: orderId,
-            status: 'approved',
-            approved_by: user.id,
-            approved_at: now,
-            notes: `Compensación automática por rechazo de producto en recepción (${asgnShortfall} unidades)`,
+            status: 'pending',
+            notes: `Compensación propuesta por rechazo en recepción (${asgnShortfall} u.) — requiere aprobación de superadmin`,
           })
 
-          // Update customer wallet_balance
-          await adminClient.from('users').update({
-            wallet_balance: balanceAfter,
-          }).eq('id', customerId)
+          proposedCredits.push({ customerId, orderId, amount: compensation })
 
           await adminClient.from('audit_log').insert({
             user_id: user.id,
             role_at_time: profile!.role,
-            action: AUDIT_ACTIONS.WALLET_BALANCE_UPDATED,
+            action: AUDIT_ACTIONS.CREDIT_PROPOSED,
             module: AUDIT_MODULES.WALLET,
             entity_type: 'user',
             entity_id: customerId,
@@ -253,8 +255,7 @@ export async function POST(request: Request) {
               product_id: productId,
               order_id: orderId,
               shortfall_qty: asgnShortfall,
-              balance_before: balanceBefore,
-              balance_after: balanceAfter,
+              status: 'pending',
             },
           })
         }
@@ -315,6 +316,34 @@ export async function POST(request: Request) {
         shortfall,
       },
     })
+  }
+
+  // Notificar al superadmin los créditos de compensación pendientes de aprobación (§4).
+  if (proposedCredits.length > 0) {
+    const { data: superadmins } = await adminClient
+      .from('users')
+      .select('id')
+      .eq('role', 'superadmin')
+      .eq('status', 'active')
+      .limit(5)
+
+    const totalProposed = Math.round(proposedCredits.reduce((s, c) => s + c.amount, 0) * 100) / 100
+
+    if (superadmins && superadmins.length > 0) {
+      await adminClient.from('notifications').insert(
+        superadmins.map((sa: { id: string }) => ({
+          recipient_id:   sa.id,
+          type:           'credit_proposed',
+          channel:        'in_app',
+          title:          'Créditos de compensación por aprobar',
+          body:           `Recepción del ciclo ${cycleId.slice(0, 8).toUpperCase()} generó ${proposedCredits.length} crédito(s) de compensación (total S/${totalProposed.toFixed(2)}) por productos rechazados. Requieren tu aprobación.`,
+          reference_type: 'dispatch_cycle',
+          reference_id:   cycleId,
+          status:         'sent',
+          sent_at:        now,
+        }))
+      )
+    }
   }
 
   return NextResponse.json({ success: true })

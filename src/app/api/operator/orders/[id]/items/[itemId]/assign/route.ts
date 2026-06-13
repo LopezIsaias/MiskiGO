@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { AUDIT_ACTIONS, AUDIT_MODULES } from '@/lib/constants'
+import { decrementPublicationStock } from '@/lib/utils/stock'
 
 const assignSchema = z.object({
   publicationId: z.string().uuid(),
@@ -73,21 +74,17 @@ export async function POST(
     return NextResponse.json({ error: 'El ítem ya está completamente asignado' }, { status: 400 })
   }
 
-  const deduct = Math.min(pub.available_quantity, remaining)
-  const newQty = Math.round((pub.available_quantity - deduct) * 1000) / 1000
   const now = new Date().toISOString()
 
-  if (newQty <= 0) {
-    await adminClient.from('supplier_publications').update({ status: 'fulfilled' }).eq('id', pub.id)
-  } else {
-    await adminClient.from('supplier_publications').update({ available_quantity: newQty }).eq('id', pub.id)
-  }
+  // Descuento atómico (RPC con FOR UPDATE) — evita sobreventa si el stock cambió.
+  const deducted = await decrementPublicationStock(adminClient, pub.id, remaining)
+  if (deducted <= 0) return NextResponse.json({ error: 'Sin stock disponible' }, { status: 400 })
 
   await adminClient.from('order_item_assignments').insert({
     order_item_id: itemId,
     publication_id: pub.id,
     supplier_id: pub.supplier_id,
-    assigned_quantity: deduct,
+    assigned_quantity: deducted,
     supplier_price_frozen: pub.minimum_price,
     platform_margin_frozen: Math.round((orderItem.unit_price_frozen - pub.minimum_price) * 100) / 100,
     status: 'confirmed',
@@ -95,7 +92,7 @@ export async function POST(
   })
 
   // If now fully covered, advance item status and check if order is fully assigned
-  const newCovered = Math.round((alreadyCovered + deduct) * 1000) / 1000
+  const newCovered = Math.round((alreadyCovered + deducted) * 1000) / 1000
   const itemFullyCovered = newCovered >= orderItem.quantity - 0.001
 
   if (itemFullyCovered) {
@@ -122,10 +119,10 @@ export async function POST(
     new_value: {
       publication_id: pub.id,
       supplier_id: pub.supplier_id,
-      assigned_quantity: deduct,
+      assigned_quantity: deducted,
       item_fully_covered: itemFullyCovered,
     },
   })
 
-  return NextResponse.json({ success: true, assignedQty: deduct, itemFullyCovered })
+  return NextResponse.json({ success: true, assignedQty: deducted, itemFullyCovered })
 }

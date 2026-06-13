@@ -1,5 +1,56 @@
 # CHANGELOG — Miski GO
 
+## [2026-06-13] — Anti-sobreventa: descuento/restauración de stock atómico (RPC con FOR UPDATE) — §7
+
+### Corregido
+- **Bug HIGH "oversell":** el descuento de `supplier_publications.available_quantity` era read-modify-write desde la app (SELECT y UPDATE en llamadas separadas, sin lock). Dos checkouts concurrentes leían el mismo stock y ambos descontaban → sobreventa. Viola CLAUDE.md §7 (transacciones). Ahora todo descuento/restauración pasa por funciones Postgres atómicas con `SELECT ... FOR UPDATE`, que serializan a los procesos concurrentes sobre la misma fila.
+
+### Añadido
+- `supabase/migrations/20260613000034_stock_decrement_rpc.sql` — funciones `decrement_publication_stock(uuid, numeric)` y `restore_publication_stock(uuid, numeric)` (`security definer`, ejecutables solo por `service_role`). Al agotarse, la publicación pasa a `fulfilled` dejando `available_quantity` intacto (respeta el `CHECK (available_quantity > 0)`); `restore` reactiva sin duplicar.
+- `src/lib/utils/stock.ts` — wrappers `decrementPublicationStock()` / `restorePublicationStock()`.
+- `tests/integration/stock-rpc.test.ts` — 5 pruebas en vivo, incluida concurrencia real (6 descuentos paralelos de 8 sobre stock 8 → total descontado exactamente 8; 10×1 sobre 4 → 4 ganadores) y round-trip de restauración.
+
+### Modificado
+- Descuento ahora atómico en: `customer/orders` (checkout), `lib/utils/supplier-assignment` (gap-fill de `runSupplierAssignment`), `supplier/assignments/[id]` (reasignación) y `operator/orders/[id]/items/[itemId]/assign` (asignación manual). Se usa la cantidad realmente descontada como `assigned_quantity`.
+- Restauración ahora atómica en: `operator/orders/[id]/reject`, `operator/orders/[id]/cancel` y `cron/expire-overdue-orders` (reemplaza el read-modify-write con ramas por status).
+- `src/types/database.types.ts` — tipadas las dos nuevas funciones RPC.
+
+### Notas
+- Migración 034 aplicada en LOCAL. **Falta `db push` a producción** (acción manual pendiente de confirmación — toca BD de prod).
+- Pruebas en vivo: unit 72/72, integración 31/31. Lint + `tsc` limpios.
+
+## [2026-06-13] — Reasignación por rechazo: filtro de corte, desempate por reputación y guard de margen (§4)
+
+### Corregido
+- `src/app/api/supplier/assignments/[id]/route.ts` — la búsqueda de proveedor de reemplazo cuando uno rechaza ahora cumple CLAUDE.md §4:
+  - **Filtro de corte (B):** solo elige publicaciones con `published_at ≤ cutoff` del ciclo del pedido (antes podía tomar publicaciones posteriores al corte).
+  - **Desempate por reputación (B):** ante igual `minimum_price` y `published_at`, prioriza mayor `reputation_score` (reusa `comparePublicationsForAssignment`; antes solo ordenaba precio+fecha).
+  - **Guard de margen (C):** descarta candidatos cuyo `minimum_price` supere el `unit_price_frozen` del cliente (evita `platform_margin_frozen` negativo). El faltante se deja sin cubrir → ítem a `failed` → panel de asignación manual del operador. Se registra `skipped_over_price` en el `audit_log`.
+
+### Añadido
+- `src/lib/utils/supplier-assignment.ts` — helpers puros/testeable: `planReplacements()` (orden §4 + guard de margen, greedy, sin tocar BD), `fetchReplacementCandidates()` (consulta con filtro de corte y exclusión del proveedor que rechazó) y tipos `ReplacementCandidate`/`ReplacementPick`/`ReplacementPlan`.
+- `tests/supplier-reassignment.test.ts` — 7 pruebas unitarias de `planReplacements` (orden, FIFO, reputación, guard de margen, greedy, límite inclusivo).
+- `tests/integration/supplier-reassignment.test.ts` — 4 pruebas de integración contra Supabase local: exclusión por corte/proveedor, desempate por reputación con datos reales, descarte por sobreprecio, e invariante del FIX de recepción (refund `pending` no altera el saldo).
+- `tests/integration/helpers.ts` — helper `createPublication()`.
+
+### Modificado
+- `src/app/api/supplier/assignments/[id]/route.ts` — el bloque de reemplazo (consulta + selección greedy) se reemplazó por llamadas a los helpers anteriores; la lógica de negocio queda testeable fuera del handler HTTP.
+
+### Notas
+- Pruebas en vivo contra Supabase local: unit 72/72, integración 26/26. Lint + `tsc` limpios.
+
+## [2026-06-12] — Compensación en recepción: crédito propuesto, no auto-aprobado (§3/§4)
+
+### Corregido
+- `src/app/api/delivery/reception/route.ts` — el repartidor ya NO aprueba ni aplica créditos de billetera al cliente por productos rechazados. Antes insertaba `wallet_transactions` con `status:'approved'`, `approved_by = <repartidor>` y actualizaba `users.wallet_balance` directamente, violando CLAUDE.md §3 ("`delivery` NUNCA ve precios ni datos de pago") y §4 ("operador PROPONE créditos; superadmin APRUEBA"). Ahora el crédito de compensación se inserta como **propuesta** (`status:'pending'`, sin `approved_by`, sin tocar `wallet_balance`) y queda pendiente de aprobación del superadmin desde el endpoint existente `/api/admin/wallet/[id]` (que recalcula `balance_before/after` y aplica el saldo al aprobar).
+
+### Modificado
+- `src/app/api/delivery/reception/route.ts` — la acción de auditoría pasó de `WALLET_BALANCE_UPDATED` a `CREDIT_PROPOSED` (el saldo no cambia en este punto). Se acumulan los créditos propuestos y, al final de la recepción, se notifica una sola vez al superadmin (`notifications`, canal `in_app`) con el total pendiente de aprobación.
+
+### Notas
+- Hallazgo surgido de una batería de pruebas de trazado (datos ficticios) sobre el flujo de fallo de proveedor / reasignación. Bugs pendientes documentados en estado del proyecto (oversell por falta de transacción, reasignación sin filtro de corte ni desempate por reputación, margen negativo silencioso, cobertura parcial colapsada a `failed`, stock huérfano al rechazar).
+- Lint 0 warnings.
+
 ## [2026-06-08] — Buscador de producto en publicación del proveedor
 
 ### Modificado

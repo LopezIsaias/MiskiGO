@@ -1,5 +1,6 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { AUDIT_ACTIONS, AUDIT_MODULES } from '@/lib/constants'
+import { decrementPublicationStock } from '@/lib/utils/stock'
 
 type ProvisionalAssignment = {
   id: string
@@ -51,6 +52,85 @@ export function comparePublicationsForAssignment(
   if (a.minimum_price !== b.minimum_price) return a.minimum_price - b.minimum_price
   if (a.published_at !== b.published_at) return a.published_at < b.published_at ? -1 : 1
   return (b.supplier?.reputation_score ?? 0) - (a.supplier?.reputation_score ?? 0)
+}
+
+/** Publicación candidata para reemplazar a un proveedor que rechazó su asignación. */
+export interface ReplacementCandidate {
+  id: string
+  available_quantity: number
+  supplier_id: string
+  minimum_price: number
+  published_at: string
+  supplier: { reputation_score: number } | null
+}
+
+export interface ReplacementPick {
+  pub: ReplacementCandidate
+  deduct: number
+}
+
+export interface ReplacementPlan {
+  picks: ReplacementPick[]
+  remaining: number
+  /** true si se descartó ≥1 candidato por superar el precio congelado (margen negativo). */
+  skippedOverPrice: boolean
+}
+
+const round3 = (n: number): number => Math.round(n * 1000) / 1000
+
+/**
+ * Selecciona publicaciones de reemplazo (greedy) respetando el orden §4 y el guard de margen:
+ *   - Orden: minimum_price ASC → published_at ASC → reputation_score DESC.
+ *   - Guard (§4): descarta cualquier candidato con minimum_price > unitPriceFrozen,
+ *     porque auto-asignarlo congelaría un margen negativo. El gap restante se deja
+ *     para resolución manual del operador (override auditado).
+ * NO toca la BD — el llamador aplica los picks (insert asignación + decremento de stock).
+ * El filtro de corte (published_at ≤ cutoff) se aplica en la consulta, no aquí.
+ */
+export function planReplacements(
+  candidates: ReplacementCandidate[],
+  opts: { assignedQuantity: number; unitPriceFrozen: number },
+): ReplacementPlan {
+  const sorted = [...candidates].sort(comparePublicationsForAssignment)
+  let remaining = opts.assignedQuantity
+  let skippedOverPrice = false
+  const picks: ReplacementPick[] = []
+
+  for (const pub of sorted) {
+    if (remaining <= 0.001) break
+    if (pub.minimum_price > opts.unitPriceFrozen) {
+      skippedOverPrice = true
+      continue
+    }
+    const deduct = Math.min(pub.available_quantity, remaining)
+    remaining = round3(remaining - deduct)
+    picks.push({ pub, deduct })
+  }
+
+  return { picks, remaining, skippedOverPrice }
+}
+
+type AdminClientLike = ReturnType<typeof createAdminClient>
+
+/**
+ * Consulta candidatos de reemplazo para un producto, excluyendo al proveedor que rechazó
+ * y aplicando el filtro de corte (§4): solo publicaciones activas con stock publicadas
+ * antes o en el corte del ciclo.
+ */
+export async function fetchReplacementCandidates(
+  adminClient: AdminClientLike,
+  opts: { productId: string; excludeSupplierId: string; cutoffAt: string },
+): Promise<ReplacementCandidate[]> {
+  const { data } = await adminClient
+    .from('supplier_publications')
+    .select('id, available_quantity, supplier_id, minimum_price, published_at, supplier:users!supplier_id(reputation_score)')
+    .eq('product_id', opts.productId)
+    .eq('status', 'active')
+    .gt('available_quantity', 0)
+    .neq('supplier_id', opts.excludeSupplierId)
+    .lte('published_at', opts.cutoffAt)
+
+  return (data ?? []) as unknown as ReplacementCandidate[]
 }
 
 export interface AssignmentResult {
@@ -161,14 +241,15 @@ export async function runSupplierAssignment(params: AssignmentParams): Promise<A
           .in('id', pendingAsgs.map(a => a.id))
       }
     } else {
-      // APPLY phase: item fully covered — decrement stock and persist assignments.
+      // APPLY phase: item fully covered — decrement stock atómicamente y persistir.
+      // decrementPublicationStock (RPC con FOR UPDATE) evita sobreventa si el stock
+      // cambió desde la fase PLAN. Si descuenta menos de lo planeado, se asigna lo
+      // realmente descontado; el faltante residual lo cubre el flujo de confirmación
+      // del proveedor / recepción más adelante.
+      const appliedExtras: ExtraAssignmentPlan[] = []
       for (const plan of extraPlans) {
-        const newQty = Math.round((plan.origAvailableQty - plan.assigned_quantity) * 1000) / 1000
-        if (newQty <= 0) {
-          await adminClient.from('supplier_publications').update({ status: 'fulfilled' }).eq('id', plan.publication_id)
-        } else {
-          await adminClient.from('supplier_publications').update({ available_quantity: newQty }).eq('id', plan.publication_id)
-        }
+        const deducted = await decrementPublicationStock(adminClient, plan.publication_id, plan.assigned_quantity)
+        if (deducted > 0) appliedExtras.push({ ...plan, assigned_quantity: deducted })
       }
 
       // Keep existing provisional assignments as 'pending' — supplier must confirm.
@@ -176,9 +257,9 @@ export async function runSupplierAssignment(params: AssignmentParams): Promise<A
         for (const a of pendingAsgs) notifiedSuppliers.add(a.supplier_id)
       }
 
-      if (extraPlans.length > 0) {
+      if (appliedExtras.length > 0) {
         await adminClient.from('order_item_assignments').insert(
-          extraPlans.map(p => ({
+          appliedExtras.map(p => ({
             order_item_id: item.id,
             publication_id: p.publication_id,
             supplier_id: p.supplier_id,
@@ -188,7 +269,7 @@ export async function runSupplierAssignment(params: AssignmentParams): Promise<A
             status: 'pending',
           }))
         )
-        for (const p of extraPlans) notifiedSuppliers.add(p.supplier_id)
+        for (const p of appliedExtras) notifiedSuppliers.add(p.supplier_id)
       }
       // order_items and order stay at current status until suppliers confirm.
     }

@@ -1324,6 +1324,8 @@ export type Database = {
       get_user_region_id: { Args: never; Returns: string }
       get_user_role: { Args: never; Returns: string }
       next_receipt_correlative: { Args: { p_series: string }; Returns: number }
+      decrement_publication_stock: { Args: { p_pub_id: string; p_qty: number }; Returns: number }
+      restore_publication_stock: { Args: { p_pub_id: string; p_qty: number }; Returns: number }
     }
     Enums: {
       [_ in never]: never

@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { AUDIT_ACTIONS, AUDIT_MODULES } from '@/lib/constants'
+import { restorePublicationStock } from '@/lib/utils/stock'
 
 const rejectSchema = z.object({
   reason: z.string().min(1, 'Se requiere un motivo'),
@@ -63,28 +64,9 @@ export async function POST(
       .eq('status', 'pending')
 
     for (const asg of assignments ?? []) {
-      const { data: pub } = await adminClient
-        .from('supplier_publications')
-        .select('id, status, available_quantity')
-        .eq('id', asg.publication_id)
-        .maybeSingle()
-
-      if (!pub) continue
-
-      if (pub.status === 'fulfilled') {
-        // Fully consumed by this order — restore to active (available_quantity is unchanged, still > 0)
-        await adminClient
-          .from('supplier_publications')
-          .update({ status: 'active' })
-          .eq('id', pub.id)
-      } else if (pub.status === 'active') {
-        // Partially consumed — add back the assigned quantity
-        const restored = Math.round((pub.available_quantity + asg.assigned_quantity) * 1000) / 1000
-        await adminClient
-          .from('supplier_publications')
-          .update({ available_quantity: restored })
-          .eq('id', pub.id)
-      }
+      // Restauración atómica del stock (RPC con FOR UPDATE): suma de vuelta y reactiva
+      // la publicación si quedó 'fulfilled'. Coherente con decrementPublicationStock.
+      await restorePublicationStock(adminClient, asg.publication_id, asg.assigned_quantity)
 
       await adminClient
         .from('order_item_assignments')

@@ -684,10 +684,15 @@ Construir estrictamente en este orden. No avanzar al siguiente paso sin que el a
 > Todo agente que trabaje en este proyecto debe leer este archivo completo y respetar todas las decisiones documentadas aquí antes de proponer o aplicar cambios.
 
 **Último agente:** Claude Code (claude-opus-4-8)
-**Fecha:** 2026-06-08
-**Pasos completados:** 1 al 20 — MVP completo + mejoras posteriores (ver CHANGELOG). Última sesión: (1) rechazo de proveedor sin reemplazo → ítem a `failed` + auto-avance del pedido a `assigned`; (2) buscador de producto en el form de publicación del proveedor.
-**Último commit:** 2d45b92 (CHANGELOG/estado sin commitear aún)
-**Migraciones aplicadas:** `030`, `031`, `032`, `033` ya en remoto vía `db push`.
-**Próximo paso:** Probar en navegador los flujos nuevos (rechazo→auto-avance, buscador del proveedor). Para coords precisas en ruta, habilitar "Maps Static API" en Google Cloud.
-**Bugs pendientes:** Ninguno conocido
-**Decisiones pendientes:** Edge case — si un proveedor rechaza TODOS los ítems sin reemplazo, el pedido sigue en `confirmed` (no pasa a `failed`). Decisión de negocio pendiente (afecta paths de confirmación y rechazo). Nota: §4 — el cliente puede SOLICITAR cancelación post-pago en estado `confirmed`; operador/superadmin ejecuta; reembolso MANUAL.
+**Fecha:** 2026-06-13
+**Pasos completados:** 1 al 20 — MVP completo + mejoras posteriores (ver CHANGELOG). Última sesión: batería de pruebas de trazado (datos ficticios) del flujo fallo-de-proveedor/reasignación + 4 fixes (compensación en recepción PROPUESTA no auto-aprobada §3/§4; reasignación con filtro de corte + desempate por reputación §4; guard de margen negativo §4; **anti-sobreventa con RPC atómica `FOR UPDATE` §7**) + suites en vivo (unit 72/72, integración 31/31 contra Supabase local).
+**Último commit:** 2d45b92 (cambios de esta sesión sin commitear aún)
+**Migraciones aplicadas:** `030`–`033` en remoto vía `db push`. `034` (stock RPC) SOLO EN LOCAL — falta `db push` a producción (acción manual, toca BD prod).
+**Próximo paso:** `db push` de la migración 034 a producción (confirmar antes). Luego atacar bugs MED pendientes (cobertura parcial, stock huérfano, interleaving).
+**Bugs pendientes (de la batería de pruebas, por prioridad):**
+- MED — cobertura parcial: un `order_item` con varias asignaciones colapsa a `failed`/`rejected` entero aunque parte esté confirmada. Falta estado `partially_assigned` y entrega parcial explícita.
+- MED — stock huérfano: al rechazar un proveedor NO se restaura el stock que su publicación había cedido en checkout (a diferencia de `operator/orders/[id]/reject`). Decisión de negocio pendiente.
+- MED — interleaving confirm/fail deja `order_items`/`orders` en estados inconsistentes (p.ej. item `assigned` con asignación `pending` sin confirmar).
+- ~~MED — reasignación sin filtro de corte ni desempate por reputación~~ → CORREGIDO 2026-06-13.
+- ~~MED — margen negativo silencioso en reemplazo~~ → CORREGIDO 2026-06-13 (guard).
+**Decisiones pendientes:** Edge case — si un proveedor rechaza TODOS los ítems sin reemplazo, el pedido sigue en `confirmed`. Sustitución/compensación: evaluar modelo con aviso al cliente (Instacart/Rappi) en lugar de crédito silencioso. Nota: §4 — el cliente puede SOLICITAR cancelación post-pago en estado `confirmed`; operador/superadmin ejecuta; reembolso MANUAL.

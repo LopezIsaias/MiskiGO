@@ -142,6 +142,31 @@ export async function createProduct(svc: SupabaseClient): Promise<string> {
   return prod.id as string
 }
 
+// Crea una publicación de proveedor sobre un producto del catálogo.
+export async function createPublication(
+  svc: SupabaseClient,
+  opts: {
+    supplierId: string; productId: string; regionId: string
+    minPrice: number; qty: number
+    publishedAt?: string; expiresAt?: string; status?: string
+  },
+): Promise<string> {
+  const expires = opts.expiresAt ?? new Date(Date.now() + 7 * 86_400_000).toISOString()
+  const row: Record<string, unknown> = {
+    supplier_id: opts.supplierId,
+    product_id: opts.productId,
+    region_id: opts.regionId,
+    available_quantity: opts.qty,
+    minimum_price: opts.minPrice,
+    expires_at: expires,
+    status: opts.status ?? 'active',
+  }
+  if (opts.publishedAt) row.published_at = opts.publishedAt
+  const { data, error } = await svc.from('supplier_publications').insert(row).select('id').single()
+  if (error || !data) throw new Error(`[integration] createPublication falló: ${error?.message}`)
+  return data.id as string
+}
+
 // Crea un pedido mínimo para el cliente dado.
 export async function createOrder(
   svc: SupabaseClient,

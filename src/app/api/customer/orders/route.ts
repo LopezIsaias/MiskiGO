@@ -6,6 +6,7 @@ import { calculateSalePrice } from '@/lib/utils'
 import { AUDIT_ACTIONS, AUDIT_MODULES } from '@/lib/constants'
 import { runSupplierAssignment } from '@/lib/utils/supplier-assignment'
 import { getReservedByOthers } from '@/lib/utils/stock-reservations'
+import { decrementPublicationStock } from '@/lib/utils/stock'
 
 type PubRow = {
   product_id: string
@@ -263,7 +264,9 @@ export async function POST(request: Request) {
     const itemIdByProduct = new Map<string, string>()
     for (const ci of createdItems) itemIdByProduct.set(ci.product_id, ci.id)
 
-    // Decrement stock and create provisional order_item_assignments (greedy, cheapest first)
+    // Decrement stock and create provisional order_item_assignments (greedy, cheapest first).
+    // El descuento de stock usa decrementPublicationStock (RPC atómica con FOR UPDATE):
+    // serializa checkouts concurrentes sobre la misma publicación y evita sobreventa.
     type StockPub = { id: string; available_quantity: number; supplier_id: string; minimum_price: number }
     for (const item of orderItems) {
       const orderItemId = itemIdByProduct.get(item.productId)
@@ -285,31 +288,20 @@ export async function POST(request: Request) {
 
       let remaining = item.quantity
       for (const pub of (stockPubs ?? []) as StockPub[]) {
-        if (remaining <= 0) break
-        const deduct = Math.min(pub.available_quantity, remaining)
-        remaining = Math.round((remaining - deduct) * 1000) / 1000
-        const newQty = Math.round((pub.available_quantity - deduct) * 1000) / 1000
+        if (remaining <= 0.001) break
+        // Cantidad realmente descontada (puede ser menor si hubo consumo concurrente).
+        const deducted = await decrementPublicationStock(adminClient, pub.id, remaining)
+        if (deducted <= 0) continue
+        remaining = Math.round((remaining - deducted) * 1000) / 1000
 
         assignments.push({
           order_item_id: orderItemId,
           publication_id: pub.id,
           supplier_id: pub.supplier_id,
-          assigned_quantity: deduct,
+          assigned_quantity: deducted,
           supplier_price_frozen: pub.minimum_price,
           platform_margin_frozen: Math.round((item.unitPriceFrozen - pub.minimum_price) * 100) / 100,
         })
-
-        if (newQty <= 0) {
-          await adminClient
-            .from('supplier_publications')
-            .update({ status: 'fulfilled' })
-            .eq('id', pub.id)
-        } else {
-          await adminClient
-            .from('supplier_publications')
-            .update({ available_quantity: newQty })
-            .eq('id', pub.id)
-        }
       }
 
       if (assignments.length > 0) {

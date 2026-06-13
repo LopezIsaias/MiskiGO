@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { AUDIT_ACTIONS, AUDIT_MODULES } from '@/lib/constants'
+import { restorePublicationStock } from '@/lib/utils/stock'
 
 const cancelSchema = z.object({
   reason: z.string().min(1, 'Se requiere un motivo'),
@@ -67,26 +68,8 @@ export async function POST(
       .in('status', ['pending', 'confirmed'])
 
     for (const asg of assignments ?? []) {
-      const { data: pub } = await adminClient
-        .from('supplier_publications')
-        .select('id, status, available_quantity')
-        .eq('id', asg.publication_id)
-        .maybeSingle()
-
-      if (pub) {
-        if (pub.status === 'fulfilled') {
-          await adminClient
-            .from('supplier_publications')
-            .update({ status: 'active' })
-            .eq('id', pub.id)
-        } else if (pub.status === 'active') {
-          const restored = Math.round((pub.available_quantity + asg.assigned_quantity) * 1000) / 1000
-          await adminClient
-            .from('supplier_publications')
-            .update({ available_quantity: restored })
-            .eq('id', pub.id)
-        }
-      }
+      // Restauración atómica del stock (RPC con FOR UPDATE).
+      await restorePublicationStock(adminClient, asg.publication_id, asg.assigned_quantity)
 
       await adminClient
         .from('order_item_assignments')

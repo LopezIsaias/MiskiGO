@@ -3,6 +3,8 @@ import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { AUDIT_ACTIONS, AUDIT_MODULES } from '@/lib/constants'
+import { fetchReplacementCandidates, planReplacements } from '@/lib/utils/supplier-assignment'
+import { decrementPublicationStock } from '@/lib/utils/stock'
 
 const bodySchema = z.discriminatedUnion('action', [
   z.object({ action: z.literal('confirm') }),
@@ -190,48 +192,53 @@ export async function PATCH(
   if (assignment.order_item) {
     const { order_id, unit_price_frozen, product_id } = assignment.order_item
 
-    type PubRow = {
-      id: string
-      available_quantity: number
-      supplier_id: string
-      minimum_price: number
-    }
+    // Corte del ciclo del pedido — solo son elegibles publicaciones anteriores al corte (§4).
+    const { data: orderRow } = await adminClient
+      .from('orders')
+      .select('dispatch_cycle_id')
+      .eq('id', order_id)
+      .maybeSingle()
 
-    const { data: rawPubs } = await adminClient
-      .from('supplier_publications')
-      .select('id, available_quantity, supplier_id, minimum_price')
-      .eq('product_id', product_id)
-      .eq('status', 'active')
-      .gt('available_quantity', 0)
-      .neq('supplier_id', assignment.supplier_id)
-      .order('minimum_price', { ascending: true })
-      .order('published_at', { ascending: true })
-      .limit(5)
+    const { data: cycleRow } = orderRow?.dispatch_cycle_id
+      ? await adminClient
+          .from('dispatch_cycles')
+          .select('cutoff_at')
+          .eq('id', orderRow.dispatch_cycle_id)
+          .maybeSingle()
+      : { data: null }
 
-    const pubs = (rawPubs ?? []) as unknown as PubRow[]
+    const cutoffAt = cycleRow?.cutoff_at ?? now
+
+    // Candidatos elegibles (filtro de corte en la consulta) + plan greedy con orden §4
+    // y guard de margen. Lógica pura testeable en planReplacements().
+    const candidates = await fetchReplacementCandidates(adminClient, {
+      productId: product_id,
+      excludeSupplierId: assignment.supplier_id,
+      cutoffAt,
+    })
+    const plan = planReplacements(candidates, {
+      assignedQuantity: assignment.assigned_quantity,
+      unitPriceFrozen: unit_price_frozen,
+    })
+    const skippedOverPrice = plan.skippedOverPrice
+    // `remaining` se recalcula con lo realmente descontado por la RPC atómica
+    // (decrementPublicationStock evita sobreventa si el stock cambió en paralelo).
     let remaining = assignment.assigned_quantity
 
-    for (const pub of pubs) {
-      if (remaining <= 0) break
-      const deduct = Math.min(pub.available_quantity, remaining)
-      remaining = Math.round((remaining - deduct) * 1000) / 1000
-      const newQty = Math.round((pub.available_quantity - deduct) * 1000) / 1000
+    for (const { pub, deduct } of plan.picks) {
+      const deducted = await decrementPublicationStock(adminClient, pub.id, deduct)
+      if (deducted <= 0) continue
+      remaining = Math.round((remaining - deducted) * 1000) / 1000
 
       await adminClient.from('order_item_assignments').insert({
         order_item_id:          assignment.order_item_id,
         publication_id:         pub.id,
         supplier_id:            pub.supplier_id,
-        assigned_quantity:      deduct,
+        assigned_quantity:      deducted,
         supplier_price_frozen:  pub.minimum_price,
         platform_margin_frozen: Math.round((unit_price_frozen - pub.minimum_price) * 100) / 100,
         status:                 'pending',
       })
-
-      if (newQty <= 0) {
-        await adminClient.from('supplier_publications').update({ status: 'fulfilled' }).eq('id', pub.id)
-      } else {
-        await adminClient.from('supplier_publications').update({ available_quantity: newQty }).eq('id', pub.id)
-      }
 
       // Notify new supplier
       await adminClient.from('notifications').insert({
@@ -259,6 +266,7 @@ export async function PATCH(
         reason,
         replaced: remaining <= 0,
         remaining_qty: remaining,
+        skipped_over_price: skippedOverPrice,
         order_id,
       },
     })
