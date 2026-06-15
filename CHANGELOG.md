@@ -1,5 +1,24 @@
 # CHANGELOG — Miski GO
 
+## [2026-06-15] — Integridad de cobertura: stock huérfano + cobertura parcial TODO-O-NADA + interleaving (3 bugs MED)
+
+### Corregido
+- **MED stock huérfano (#2):** al rechazar un proveedor su asignación (`fail` en `supplier/assignments/[id]`), el stock que su publicación había cedido en checkout NO se restauraba (a diferencia de `operator/orders/[id]/reject`) → stock huérfano nunca liberado. Ahora `fail` restaura el stock de la publicación rechazada vía RPC atómica tras marcar `failed`.
+- **MED cobertura parcial / interleaving (#1, #3):** un `order_item` con varias asignaciones colapsaba a `assigned`/`failed` de forma incoherente — el confirm-handler marcaba `assigned` con "alguno confirmado" (ignorando la cantidad), y el fail-handler marcaba el ítem `failed` dejando splits `confirmed` activos y su stock sin restaurar. Decisión de negocio (usuario): **TODO-O-NADA** — sin estado nuevo. El ítem solo pasa a `assigned` cuando la suma de `assigned_quantity` de asignaciones `confirmed` cubre `order_items.quantity`; si hay gap no cubrible, el ítem entero falla restaurando el stock y marcando `failed` TODAS sus asignaciones activas (`pending`+`confirmed`). Esto elimina los estados inconsistentes del interleaving confirm/fail.
+
+### Añadido
+- `src/lib/utils/supplier-assignment.ts`:
+  - `failOrderItemAllOrNothing(admin, orderItemId, reason)` — restaura stock + marca `failed` todas las asignaciones activas del ítem + ítem a `failed`.
+  - `tryAdvanceOrderToAssigned(admin, orderId)` — re-evalúa avance del pedido a `assigned` (todos los ítems resueltos y ≥1 `assigned`). Extrae lógica duplicada en confirm/fail.
+- `tests/integration/order-item-allornothing.test.ts` — 4 pruebas en vivo de los helpers (rollback de stock confirmed+pending, avance del pedido, no-avance con pending, no-avance con todos failed).
+
+### Modificado
+- `src/app/api/supplier/assignments/[id]/route.ts` — confirm-handler usa cobertura por CANTIDAD (no "alguno confirmado"); fail-handler usa `failOrderItemAllOrNothing` en lugar de marcar solo el ítem; ambos usan `tryAdvanceOrderToAssigned`. Añadido `publication_id` al select/type de la asignación.
+
+### Notas
+- Sin migración (todo-o-nada no requiere estado nuevo). Lint + `tsc` limpios. Unit 72/72.
+- Integración del nuevo test NO verificada en vivo: Docker/Supabase local caído en esta sesión. Pendiente correr `tests/integration/order-item-allornothing.test.ts` con `npx supabase start`.
+
 ## [2026-06-13] — Anti-sobreventa: descuento/restauración de stock atómico (RPC con FOR UPDATE) — §7
 
 ### Corregido

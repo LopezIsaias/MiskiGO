@@ -684,15 +684,15 @@ Construir estrictamente en este orden. No avanzar al siguiente paso sin que el a
 > Todo agente que trabaje en este proyecto debe leer este archivo completo y respetar todas las decisiones documentadas aquí antes de proponer o aplicar cambios.
 
 **Último agente:** Claude Code (claude-opus-4-8)
-**Fecha:** 2026-06-13
-**Pasos completados:** 1 al 20 — MVP completo + mejoras posteriores (ver CHANGELOG). Última sesión: batería de pruebas de trazado (datos ficticios) del flujo fallo-de-proveedor/reasignación + 4 fixes (compensación en recepción PROPUESTA no auto-aprobada §3/§4; reasignación con filtro de corte + desempate por reputación §4; guard de margen negativo §4; **anti-sobreventa con RPC atómica `FOR UPDATE` §7**) + suites en vivo (unit 72/72, integración 31/31 contra Supabase local).
-**Último commit:** 786bbb5 (pusheado a main; deploy Vercel en curso).
-**Migraciones aplicadas:** `030`–`034` en remoto vía `db push` (034 stock RPC aplicada a producción 2026-06-13).
-**Próximo paso:** Atacar bugs MED pendientes (cobertura parcial, stock huérfano, interleaving confirm/fail).
+**Fecha:** 2026-06-15
+**Pasos completados:** 1 al 20 — MVP completo + mejoras posteriores (ver CHANGELOG). Última sesión: 3 bugs MED de integridad de cobertura — stock huérfano al rechazar proveedor (#2), y cobertura parcial + interleaving confirm/fail (#1, #3) resueltos con modelo **TODO-O-NADA** (decisión del usuario, sin estado nuevo). Helpers `failOrderItemAllOrNothing` / `tryAdvanceOrderToAssigned`.
+**Último commit:** 786bbb5 (cambios de esta sesión SIN commitear aún).
+**Migraciones aplicadas:** `030`–`034` en remoto vía `db push` (034 stock RPC aplicada a producción 2026-06-13). Esta sesión NO añade migración.
+**Próximo paso:** Levantar Supabase local (Docker) y correr `tests/integration/order-item-allornothing.test.ts` (no verificado en vivo esta sesión). Luego commit + push.
 **Bugs pendientes (de la batería de pruebas, por prioridad):**
-- MED — cobertura parcial: un `order_item` con varias asignaciones colapsa a `failed`/`rejected` entero aunque parte esté confirmada. Falta estado `partially_assigned` y entrega parcial explícita.
-- MED — stock huérfano: al rechazar un proveedor NO se restaura el stock que su publicación había cedido en checkout (a diferencia de `operator/orders/[id]/reject`). Decisión de negocio pendiente.
-- MED — interleaving confirm/fail deja `order_items`/`orders` en estados inconsistentes (p.ej. item `assigned` con asignación `pending` sin confirmar).
+- ~~MED — cobertura parcial~~ → CORREGIDO 2026-06-15 (TODO-O-NADA: ítem cubierto por cantidad confirmada o falla entero restaurando stock).
+- ~~MED — stock huérfano al rechazar proveedor~~ → CORREGIDO 2026-06-15 (`fail` restaura stock vía RPC).
+- ~~MED — interleaving confirm/fail estados inconsistentes~~ → CORREGIDO 2026-06-15 (cobertura por cantidad + `failOrderItemAllOrNothing` falla/restaura todas las asignaciones activas).
 - ~~MED — reasignación sin filtro de corte ni desempate por reputación~~ → CORREGIDO 2026-06-13.
 - ~~MED — margen negativo silencioso en reemplazo~~ → CORREGIDO 2026-06-13 (guard).
 **Decisiones pendientes:** Edge case — si un proveedor rechaza TODOS los ítems sin reemplazo, el pedido sigue en `confirmed`. Sustitución/compensación: evaluar modelo con aviso al cliente (Instacart/Rappi) en lugar de crédito silencioso. Nota: §4 — el cliente puede SOLICITAR cancelación post-pago en estado `confirmed`; operador/superadmin ejecuta; reembolso MANUAL.

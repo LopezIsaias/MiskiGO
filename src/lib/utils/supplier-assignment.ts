@@ -1,6 +1,6 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { AUDIT_ACTIONS, AUDIT_MODULES } from '@/lib/constants'
-import { decrementPublicationStock } from '@/lib/utils/stock'
+import { decrementPublicationStock, restorePublicationStock } from '@/lib/utils/stock'
 
 type ProvisionalAssignment = {
   id: string
@@ -111,6 +111,59 @@ export function planReplacements(
 }
 
 type AdminClientLike = ReturnType<typeof createAdminClient>
+
+/**
+ * TODO-O-NADA (decisión de negocio): un order_item con cobertura parcial NO se entrega
+ * parcialmente. Si un gap no se cubre, el ítem entero falla: se restaura el stock de
+ * TODAS sus asignaciones aún activas (pending/confirmed) y se marcan como failed, para
+ * no dejar proveedores comprometidos ni stock huérfano por un ítem que no se entregará.
+ * Idempotente respecto al estado: solo toca asignaciones activas.
+ */
+export async function failOrderItemAllOrNothing(
+  admin: AdminClientLike,
+  orderItemId: string,
+  reason: string,
+): Promise<void> {
+  const { data: active } = await admin
+    .from('order_item_assignments')
+    .select('id, publication_id, assigned_quantity')
+    .eq('order_item_id', orderItemId)
+    .in('status', ['pending', 'confirmed'])
+
+  for (const a of active ?? []) {
+    await restorePublicationStock(admin, a.publication_id, a.assigned_quantity)
+    await admin
+      .from('order_item_assignments')
+      .update({ status: 'failed', failure_reason: reason })
+      .eq('id', a.id)
+  }
+
+  await admin.from('order_items').update({ status: 'failed' }).eq('id', orderItemId)
+}
+
+/**
+ * Re-evalúa si el pedido puede avanzar a 'assigned': todos sus ítems resueltos
+ * (assigned/failed/rejected) y al menos uno assigned. Los ítems failed cuentan como
+ * resueltos para no dejar el pedido atascado en un ítem sin proveedor disponible.
+ */
+export async function tryAdvanceOrderToAssigned(
+  admin: AdminClientLike,
+  orderId: string,
+): Promise<void> {
+  const { data: allItems } = await admin
+    .from('order_items')
+    .select('status')
+    .eq('order_id', orderId)
+
+  const items = allItems ?? []
+  const orderReady = items.length > 0 &&
+    items.every(i => i.status === 'assigned' || i.status === 'failed' || i.status === 'rejected')
+  const orderHasAssigned = items.some(i => i.status === 'assigned')
+
+  if (orderReady && orderHasAssigned) {
+    await admin.from('orders').update({ status: 'assigned' }).eq('id', orderId)
+  }
+}
 
 /**
  * Consulta candidatos de reemplazo para un producto, excluyendo al proveedor que rechazó

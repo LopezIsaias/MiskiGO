@@ -3,8 +3,13 @@ import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { AUDIT_ACTIONS, AUDIT_MODULES } from '@/lib/constants'
-import { fetchReplacementCandidates, planReplacements } from '@/lib/utils/supplier-assignment'
-import { decrementPublicationStock } from '@/lib/utils/stock'
+import {
+  fetchReplacementCandidates,
+  planReplacements,
+  failOrderItemAllOrNothing,
+  tryAdvanceOrderToAssigned,
+} from '@/lib/utils/supplier-assignment'
+import { decrementPublicationStock, restorePublicationStock } from '@/lib/utils/stock'
 
 const bodySchema = z.discriminatedUnion('action', [
   z.object({ action: z.literal('confirm') }),
@@ -15,6 +20,7 @@ type AssignmentRow = {
   id: string
   supplier_id: string
   order_item_id: string
+  publication_id: string
   assigned_quantity: number
   status: string
   order_item: {
@@ -62,7 +68,7 @@ export async function PATCH(
   const { data: rawAssignment } = await adminClient
     .from('order_item_assignments')
     .select(`
-      id, supplier_id, order_item_id, assigned_quantity, status,
+      id, supplier_id, order_item_id, publication_id, assigned_quantity, status,
       order_item:order_items!order_item_id(order_id, unit_price_frozen, product_id)
     `)
     .eq('id', assignmentId)
@@ -94,39 +100,45 @@ export async function PATCH(
     const orderId = assignment.order_item?.order_id ?? null
 
     if (orderId) {
-      // Check if all assignments for this order_item are now confirmed (none pending/failed that aren't failed)
+      // Resolver el ítem por COBERTURA DE CANTIDAD (no por "alguno confirmado").
+      // El ítem solo se resuelve cuando ya no quedan asignaciones pending.
       const { data: itemAssignments } = await adminClient
         .from('order_item_assignments')
-        .select('status')
+        .select('status, assigned_quantity')
         .eq('order_item_id', assignment.order_item_id)
 
-      const itemDone = (itemAssignments ?? []).every(
-        a => a.status === 'confirmed' || a.status === 'failed',
-      )
-      const itemFullyCovered = (itemAssignments ?? []).some(a => a.status === 'confirmed')
-
-      if (itemDone && itemFullyCovered) {
-        await adminClient
-          .from('order_items')
-          .update({ status: 'assigned' })
-          .eq('id', assignment.order_item_id)
-      }
-
-      // Check if all order_items for this order are assigned or failed
-      const { data: allItems } = await adminClient
+      const { data: itemRow } = await adminClient
         .from('order_items')
-        .select('status')
-        .eq('order_id', orderId)
+        .select('quantity')
+        .eq('id', assignment.order_item_id)
+        .maybeSingle()
 
-      const orderReady = (allItems ?? []).length > 0 &&
-        (allItems ?? []).every(i => i.status === 'assigned' || i.status === 'failed' || i.status === 'rejected')
-      const orderHasAssigned = (allItems ?? []).some(i => i.status === 'assigned')
+      const asgs = itemAssignments ?? []
+      const anyPending = asgs.some(a => a.status === 'pending')
 
-      if (orderReady && orderHasAssigned) {
-        await adminClient
-          .from('orders')
-          .update({ status: 'assigned' })
-          .eq('id', orderId)
+      if (!anyPending) {
+        const confirmedQty = asgs
+          .filter(a => a.status === 'confirmed')
+          .reduce((s, a) => Math.round((s + Number(a.assigned_quantity)) * 1000) / 1000, 0)
+        const itemQty = Number(itemRow?.quantity ?? 0)
+        const covered = confirmedQty >= itemQty - 0.001
+
+        if (covered) {
+          await adminClient
+            .from('order_items')
+            .update({ status: 'assigned' })
+            .eq('id', assignment.order_item_id)
+        } else {
+          // TODO-O-NADA: cobertura confirmada insuficiente y sin pendientes que la
+          // completen → el ítem entero falla y se restaura/rollback de lo confirmado.
+          await failOrderItemAllOrNothing(
+            adminClient,
+            assignment.order_item_id,
+            'Cobertura parcial: ítem no alcanza la cantidad pedida (todo-o-nada)',
+          )
+        }
+
+        await tryAdvanceOrderToAssigned(adminClient, orderId)
       }
     }
 
@@ -151,6 +163,11 @@ export async function PATCH(
     .from('order_item_assignments')
     .update({ status: 'failed', failure_reason: reason })
     .eq('id', assignmentId)
+
+  // Restaurar el stock que la publicación rechazada había cedido en checkout —
+  // el proveedor no cumplirá, así que su stock vuelve al pool (coherente con
+  // operator/orders/[id]/reject). Atómico vía RPC. Evita stock huérfano.
+  await restorePublicationStock(adminClient, assignment.publication_id, assignment.assigned_quantity)
 
   await adminClient.from('audit_log').insert({
     user_id:      user.id,
@@ -271,32 +288,18 @@ export async function PATCH(
       },
     })
 
-    // No replacement covered the gap → mark the item as failed so the operator
-    // sees the manual-assign panel, and re-evaluate whether the order can advance.
+    // El gap no se cubrió del todo → TODO-O-NADA: el ítem entero falla.
+    // failOrderItemAllOrNothing restaura el stock y marca como failed TODAS las
+    // asignaciones aún activas del ítem (incluidos los reemplazos parciales recién
+    // creados y cualquier split confirmado), evitando estados inconsistentes (#3) y
+    // stock huérfano. Luego se re-evalúa el avance del pedido.
     if (remaining > 0.001) {
-      await adminClient
-        .from('order_items')
-        .update({ status: 'failed' })
-        .eq('id', assignment.order_item_id)
-
-      // Order advances once every item is resolved (assigned/failed/rejected) and
-      // at least one is assigned — failed items count as resolved so the order is
-      // not stuck waiting on an item with no available supplier.
-      const { data: allItems } = await adminClient
-        .from('order_items')
-        .select('status')
-        .eq('order_id', order_id)
-
-      const orderReady = (allItems ?? []).length > 0 &&
-        (allItems ?? []).every(i => i.status === 'assigned' || i.status === 'failed' || i.status === 'rejected')
-      const orderHasAssigned = (allItems ?? []).some(i => i.status === 'assigned')
-
-      if (orderReady && orderHasAssigned) {
-        await adminClient
-          .from('orders')
-          .update({ status: 'assigned' })
-          .eq('id', order_id)
-      }
+      await failOrderItemAllOrNothing(
+        adminClient,
+        assignment.order_item_id,
+        `Cobertura parcial tras rechazo: ítem no cubierto totalmente (todo-o-nada). ${reason}`,
+      )
+      await tryAdvanceOrderToAssigned(adminClient, order_id)
     }
   }
 
