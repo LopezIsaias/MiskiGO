@@ -15,9 +15,13 @@
 ### Modificado
 - `src/app/api/supplier/assignments/[id]/route.ts` — confirm-handler usa cobertura por CANTIDAD (no "alguno confirmado"); fail-handler usa `failOrderItemAllOrNothing` en lugar de marcar solo el ítem; ambos usan `tryAdvanceOrderToAssigned`. Añadido `publication_id` al select/type de la asignación.
 
+### Corregido (bug latente destapado por el test de integración)
+- **`order_items.status` no permitía `'failed'`** (CHECK de migración 006: solo `pending/assigned/delivered/rejected`), pero `runSupplierAssignment`, el fail-handler y `failOrderItemAllOrNothing` marcan el ítem como `'failed'`. PostgREST rechazaba el UPDATE por el CHECK y el error se tragaba → el ítem quedaba `'pending'` y el pedido nunca avanzaba a `'assigned'` (atascado en `'confirmed'`). La lógica de avance (`assigned||failed||rejected`) ya esperaba `'failed'`; faltaba en el esquema.
+- `supabase/migrations/20260615000035_order_item_failed_status.sql` — añade `'failed'` al CHECK de `order_items.status`.
+
 ### Notas
-- Sin migración (todo-o-nada no requiere estado nuevo). Lint + `tsc` limpios. Unit 72/72.
-- Integración del nuevo test NO verificada en vivo: Docker/Supabase local caído en esta sesión. Pendiente correr `tests/integration/order-item-allornothing.test.ts` con `npx supabase start`.
+- Lint + `tsc` limpios. Unit 72/72. **Integración 35/35 en vivo** (Supabase local) incluido el test nuevo.
+- **Migración 035 aplicada SOLO en LOCAL — falta `npx supabase db push` a producción** (acción manual, toca BD prod).
 
 ## [2026-06-13] — Anti-sobreventa: descuento/restauración de stock atómico (RPC con FOR UPDATE) — §7
 

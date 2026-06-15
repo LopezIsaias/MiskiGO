@@ -311,7 +311,7 @@ product_id          uuid REFERENCES products(id) NOT NULL
 quantity            numeric(10,3) NOT NULL
 unit_price_frozen   numeric(10,2) NOT NULL  -- CONGELADO al confirmar
 subtotal_frozen     numeric(10,2) NOT NULL  -- CONGELADO al confirmar
-status              text DEFAULT 'pending' CHECK (status IN ('pending','assigned','delivered','rejected'))
+status              text DEFAULT 'pending' CHECK (status IN ('pending','assigned','delivered','rejected','failed'))  -- 'failed' añadido en migración 035
 created_at          timestamptz DEFAULT now()
 ```
 
@@ -687,8 +687,8 @@ Construir estrictamente en este orden. No avanzar al siguiente paso sin que el a
 **Fecha:** 2026-06-15
 **Pasos completados:** 1 al 20 — MVP completo + mejoras posteriores (ver CHANGELOG). Última sesión: 3 bugs MED de integridad de cobertura — stock huérfano al rechazar proveedor (#2), y cobertura parcial + interleaving confirm/fail (#1, #3) resueltos con modelo **TODO-O-NADA** (decisión del usuario, sin estado nuevo). Helpers `failOrderItemAllOrNothing` / `tryAdvanceOrderToAssigned`.
 **Último commit:** 786bbb5 (cambios de esta sesión SIN commitear aún).
-**Migraciones aplicadas:** `030`–`034` en remoto vía `db push` (034 stock RPC aplicada a producción 2026-06-13). Esta sesión NO añade migración.
-**Próximo paso:** Levantar Supabase local (Docker) y correr `tests/integration/order-item-allornothing.test.ts` (no verificado en vivo esta sesión). Luego commit + push.
+**Migraciones aplicadas:** `030`–`034` en remoto vía `db push`. **`035` (order_items.status += 'failed') aplicada SOLO en LOCAL — falta `db push` a producción.**
+**Próximo paso:** Aplicar migración `035` a producción (`npx supabase db push`). Corrige bug latente: sin `'failed'` en el CHECK, los UPDATE de `order_items` a 'failed' se tragaban silenciosamente → pedidos sin cobertura quedaban atascados en `confirmed`.
 **Bugs pendientes (de la batería de pruebas, por prioridad):**
 - ~~MED — cobertura parcial~~ → CORREGIDO 2026-06-15 (TODO-O-NADA: ítem cubierto por cantidad confirmada o falla entero restaurando stock).
 - ~~MED — stock huérfano al rechazar proveedor~~ → CORREGIDO 2026-06-15 (`fail` restaura stock vía RPC).
