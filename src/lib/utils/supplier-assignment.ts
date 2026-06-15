@@ -142,6 +142,47 @@ export async function failOrderItemAllOrNothing(
 }
 
 /**
+ * Resuelve la cobertura de un order_item tras confirmar/fallar una asignación
+ * (modelo TODO-O-NADA). NO hace nada mientras queden asignaciones 'pending'
+ * (aún pueden confirmarse). Cuando todas están resueltas:
+ *   - cobertura confirmada ≥ quantity  → ítem 'assigned'
+ *   - en caso contrario                → falla el ítem entero (failOrderItemAllOrNothing)
+ * Devuelve el desenlace para que el llamador audite/decida.
+ */
+export async function resolveOrderItemCoverage(
+  admin: AdminClientLike,
+  orderItemId: string,
+  reason: string,
+): Promise<'pending' | 'assigned' | 'failed'> {
+  const { data: itemAssignments } = await admin
+    .from('order_item_assignments')
+    .select('status, assigned_quantity')
+    .eq('order_item_id', orderItemId)
+
+  const asgs = itemAssignments ?? []
+  if (asgs.some(a => a.status === 'pending')) return 'pending'
+
+  const { data: itemRow } = await admin
+    .from('order_items')
+    .select('quantity')
+    .eq('id', orderItemId)
+    .maybeSingle()
+
+  const confirmedQty = asgs
+    .filter(a => a.status === 'confirmed')
+    .reduce((s, a) => Math.round((s + Number(a.assigned_quantity)) * 1000) / 1000, 0)
+  const itemQty = Number(itemRow?.quantity ?? 0)
+
+  if (confirmedQty >= itemQty - 0.001) {
+    await admin.from('order_items').update({ status: 'assigned' }).eq('id', orderItemId)
+    return 'assigned'
+  }
+
+  await failOrderItemAllOrNothing(admin, orderItemId, reason)
+  return 'failed'
+}
+
+/**
  * Re-evalúa si el pedido puede avanzar a 'assigned': todos sus ítems resueltos
  * (assigned/failed/rejected) y al menos uno assigned. Los ítems failed cuentan como
  * resueltos para no dejar el pedido atascado en un ítem sin proveedor disponible.

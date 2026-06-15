@@ -9,6 +9,7 @@ import {
 import {
   failOrderItemAllOrNothing,
   tryAdvanceOrderToAssigned,
+  resolveOrderItemCoverage,
 } from '@/lib/utils/supplier-assignment'
 
 // Inserta un order_item mínimo (precios congelados ficticios).
@@ -152,5 +153,84 @@ describe.skipIf(!INTEGRATION_ENABLED)('Cobertura parcial — TODO-O-NADA (BD rea
 
     const { data: order } = await svc.from('orders').select('status').eq('id', orderId).single()
     expect(order?.status).toBe('confirmed') // queda para resolución manual del operador
+  })
+
+  it('failOrderItemAllOrNothing: reactiva una publicación fulfilled al restaurarle stock', async () => {
+    const productId = await createProduct(svc)
+    const orderId = await createOrder(svc, { customerId: customer.id, cycleId, regionId, status: 'confirmed' })
+    const itemId = await createOrderItem(svc, { orderId, productId, quantity: 4 })
+
+    // Publicación agotada en checkout → status 'fulfilled'. La RPC 034 deja
+    // available_quantity intacto (>0, respeta el CHECK); solo marca fulfilled.
+    const pub = await createPublication(svc, { supplierId: supA.id, productId, regionId, minPrice: 3, qty: 4 })
+    await svc.from('supplier_publications').update({ status: 'fulfilled' }).eq('id', pub)
+    await createAssignment(svc, { orderItemId: itemId, publicationId: pub, supplierId: supA.id, qty: 4, status: 'confirmed' })
+
+    await failOrderItemAllOrNothing(svc, itemId, 'rollback')
+
+    const { data: p } = await svc.from('supplier_publications').select('available_quantity, status').eq('id', pub).single()
+    // fulfilled: la RPC reactiva SIN sumar (el valor quedó intacto al agotarse; sumar duplicaría).
+    expect(Number(p?.available_quantity)).toBe(4)
+    expect(p?.status).toBe('active') // reactivada
+  })
+
+  it('resolveOrderItemCoverage: devuelve pending y NO toca el ítem si queda una asignación pending', async () => {
+    const productId = await createProduct(svc)
+    const orderId = await createOrder(svc, { customerId: customer.id, cycleId, regionId, status: 'confirmed' })
+    const itemId = await createOrderItem(svc, { orderId, productId, quantity: 5 })
+    const pubA = await createPublication(svc, { supplierId: supA.id, productId, regionId, minPrice: 3, qty: 10 })
+    const pubB = await createPublication(svc, { supplierId: supB.id, productId, regionId, minPrice: 3, qty: 10 })
+    await createAssignment(svc, { orderItemId: itemId, publicationId: pubA, supplierId: supA.id, qty: 3, status: 'confirmed' })
+    await createAssignment(svc, { orderItemId: itemId, publicationId: pubB, supplierId: supB.id, qty: 2, status: 'pending' })
+
+    const outcome = await resolveOrderItemCoverage(svc, itemId, 'gap')
+    expect(outcome).toBe('pending')
+
+    const { data: item } = await svc.from('order_items').select('status').eq('id', itemId).single()
+    expect(item?.status).toBe('pending') // intacto
+  })
+
+  it('resolveOrderItemCoverage: confirmados cubren la cantidad → assigned', async () => {
+    const productId = await createProduct(svc)
+    const orderId = await createOrder(svc, { customerId: customer.id, cycleId, regionId, status: 'confirmed' })
+    const itemId = await createOrderItem(svc, { orderId, productId, quantity: 5 })
+    const pubA = await createPublication(svc, { supplierId: supA.id, productId, regionId, minPrice: 3, qty: 10 })
+    const pubB = await createPublication(svc, { supplierId: supB.id, productId, regionId, minPrice: 3, qty: 10 })
+    await createAssignment(svc, { orderItemId: itemId, publicationId: pubA, supplierId: supA.id, qty: 3, status: 'confirmed' })
+    await createAssignment(svc, { orderItemId: itemId, publicationId: pubB, supplierId: supB.id, qty: 2, status: 'confirmed' })
+
+    const outcome = await resolveOrderItemCoverage(svc, itemId, 'gap')
+    expect(outcome).toBe('assigned')
+
+    const { data: item } = await svc.from('order_items').select('status').eq('id', itemId).single()
+    expect(item?.status).toBe('assigned')
+  })
+
+  it('resolveOrderItemCoverage: sin pending y cobertura confirmada insuficiente → failed (todo-o-nada)', async () => {
+    const productId = await createProduct(svc)
+    const orderId = await createOrder(svc, { customerId: customer.id, cycleId, regionId, status: 'confirmed' })
+    const itemId = await createOrderItem(svc, { orderId, productId, quantity: 5 })
+    const pubA = await createPublication(svc, { supplierId: supA.id, productId, regionId, minPrice: 3, qty: 10 })
+    const pubB = await createPublication(svc, { supplierId: supB.id, productId, regionId, minPrice: 3, qty: 10 })
+    // confirmado 3 (<5), el otro split falló sin reemplazo
+    await createAssignment(svc, { orderItemId: itemId, publicationId: pubA, supplierId: supA.id, qty: 3, status: 'confirmed' })
+    await createAssignment(svc, { orderItemId: itemId, publicationId: pubB, supplierId: supB.id, qty: 2, status: 'failed' })
+
+    const outcome = await resolveOrderItemCoverage(svc, itemId, 'gap no cubierto')
+    expect(outcome).toBe('failed')
+
+    const { data: item } = await svc.from('order_items').select('status').eq('id', itemId).single()
+    expect(item?.status).toBe('failed')
+
+    // El split confirmado se revierte: failed + stock restaurado (10 + 3)
+    const { data: pa } = await svc.from('supplier_publications').select('available_quantity').eq('id', pubA).single()
+    expect(Number(pa?.available_quantity)).toBe(13)
+    const { data: asgA } = await svc
+      .from('order_item_assignments')
+      .select('status')
+      .eq('order_item_id', itemId)
+      .eq('publication_id', pubA)
+      .single()
+    expect(asgA?.status).toBe('failed')
   })
 })

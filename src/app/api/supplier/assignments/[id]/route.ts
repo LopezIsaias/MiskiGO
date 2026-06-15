@@ -8,6 +8,7 @@ import {
   planReplacements,
   failOrderItemAllOrNothing,
   tryAdvanceOrderToAssigned,
+  resolveOrderItemCoverage,
 } from '@/lib/utils/supplier-assignment'
 import { decrementPublicationStock, restorePublicationStock } from '@/lib/utils/stock'
 
@@ -100,44 +101,14 @@ export async function PATCH(
     const orderId = assignment.order_item?.order_id ?? null
 
     if (orderId) {
-      // Resolver el ítem por COBERTURA DE CANTIDAD (no por "alguno confirmado").
-      // El ítem solo se resuelve cuando ya no quedan asignaciones pending.
-      const { data: itemAssignments } = await adminClient
-        .from('order_item_assignments')
-        .select('status, assigned_quantity')
-        .eq('order_item_id', assignment.order_item_id)
-
-      const { data: itemRow } = await adminClient
-        .from('order_items')
-        .select('quantity')
-        .eq('id', assignment.order_item_id)
-        .maybeSingle()
-
-      const asgs = itemAssignments ?? []
-      const anyPending = asgs.some(a => a.status === 'pending')
-
-      if (!anyPending) {
-        const confirmedQty = asgs
-          .filter(a => a.status === 'confirmed')
-          .reduce((s, a) => Math.round((s + Number(a.assigned_quantity)) * 1000) / 1000, 0)
-        const itemQty = Number(itemRow?.quantity ?? 0)
-        const covered = confirmedQty >= itemQty - 0.001
-
-        if (covered) {
-          await adminClient
-            .from('order_items')
-            .update({ status: 'assigned' })
-            .eq('id', assignment.order_item_id)
-        } else {
-          // TODO-O-NADA: cobertura confirmada insuficiente y sin pendientes que la
-          // completen → el ítem entero falla y se restaura/rollback de lo confirmado.
-          await failOrderItemAllOrNothing(
-            adminClient,
-            assignment.order_item_id,
-            'Cobertura parcial: ítem no alcanza la cantidad pedida (todo-o-nada)',
-          )
-        }
-
+      // Resuelve el ítem por COBERTURA DE CANTIDAD (TODO-O-NADA). No avanza
+      // mientras queden asignaciones pending. Si se resuelve, re-evalúa el pedido.
+      const outcome = await resolveOrderItemCoverage(
+        adminClient,
+        assignment.order_item_id,
+        'Cobertura parcial: ítem no alcanza la cantidad pedida (todo-o-nada)',
+      )
+      if (outcome !== 'pending') {
         await tryAdvanceOrderToAssigned(adminClient, orderId)
       }
     }

@@ -10,7 +10,8 @@
 - `src/lib/utils/supplier-assignment.ts`:
   - `failOrderItemAllOrNothing(admin, orderItemId, reason)` — restaura stock + marca `failed` todas las asignaciones activas del ítem + ítem a `failed`.
   - `tryAdvanceOrderToAssigned(admin, orderId)` — re-evalúa avance del pedido a `assigned` (todos los ítems resueltos y ≥1 `assigned`). Extrae lógica duplicada en confirm/fail.
-- `tests/integration/order-item-allornothing.test.ts` — 4 pruebas en vivo de los helpers (rollback de stock confirmed+pending, avance del pedido, no-avance con pending, no-avance con todos failed).
+  - `resolveOrderItemCoverage(admin, orderItemId, reason)` — resuelve el ítem por cobertura de cantidad (TODO-O-NADA): `pending` si quedan asignaciones por confirmar, `assigned` si lo confirmado cubre `quantity`, `failed` en otro caso. Extraído del confirm-handler para hacerlo testeable.
+- `tests/integration/order-item-allornothing.test.ts` — 8 pruebas en vivo: `failOrderItemAllOrNothing` (rollback confirmed+pending, reactivación de publicación `fulfilled` sin doble suma), `tryAdvanceOrderToAssigned` (avance, no-avance con pending, no-avance con todos failed), `resolveOrderItemCoverage` (pending / assigned / failed con rollback de stock).
 
 ### Modificado
 - `src/app/api/supplier/assignments/[id]/route.ts` — confirm-handler usa cobertura por CANTIDAD (no "alguno confirmado"); fail-handler usa `failOrderItemAllOrNothing` en lugar de marcar solo el ítem; ambos usan `tryAdvanceOrderToAssigned`. Añadido `publication_id` al select/type de la asignación.
