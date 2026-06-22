@@ -77,6 +77,57 @@ export type Database = {
           },
         ]
       }
+      cycle_offerings: {
+        Row: {
+          id: string
+          dispatch_cycle_id: string
+          product_id: string
+          expected_quantity: number
+          sale_price: number
+          status: string
+          created_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          dispatch_cycle_id: string
+          product_id: string
+          expected_quantity: number
+          sale_price: number
+          status?: string
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          dispatch_cycle_id?: string
+          product_id?: string
+          expected_quantity?: number
+          sale_price?: number
+          status?: string
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cycle_offerings_dispatch_cycle_id_fkey"
+            columns: ["dispatch_cycle_id"]
+            isOneToOne: false
+            referencedRelation: "dispatch_cycles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cycle_offerings_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       claims: {
         Row: {
           claimed_quantity: number
