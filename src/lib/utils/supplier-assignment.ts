@@ -321,6 +321,14 @@ export async function runSupplierAssignment(params: AssignmentParams): Promise<A
 
     const fullyResolved = remaining <= 0.001
 
+    if (!fullyResolved && pendingAsgs.length === 0 && extraPlans.length === 0) {
+      // Demanda-primero: no hay oferta de proveedor capturada todavía para este
+      // ítem (cero publicaciones). NO es un fallo — queda 'pending' hasta que el
+      // operador capture stock (Fase 2) y se re-ejecute la asignación.
+      allAssigned = false
+      continue
+    }
+
     if (!fullyResolved) {
       // Item fails — gap-fill plans are discarded, no stock changes made.
       allAssigned = false

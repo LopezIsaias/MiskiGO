@@ -693,10 +693,10 @@ Construir estrictamente en este orden. No avanzar al siguiente paso sin que el a
 
 **Último agente:** Claude Code (claude-opus-4-8)
 **Fecha:** 2026-06-22
-**Pasos completados:** 1 al 20 — MVP completo + mejoras posteriores (ver CHANGELOG). Última sesión: **Fase 0 de endurecimiento de seguridad** — cerrada escalada de privilegios/saldo en `users` (🔴 trigger guard) y fuga de `supplier_id`/`minimum_price` al customer (🟠 vista `catalog_availability` + drop de policy 019). Decidido modelo de oferta objetivo: **demanda-primero, catálogo fijo** (NO se quita el corte/ciclos). Fases 1–3 pendientes (ver Próximo paso).
-**Último commit:** Fase 0 (este commit; ver `git log -1`).
-**Migraciones aplicadas:** `030`–`036` en remoto vía `db push`. (`035` + `036` empujadas a producción esta sesión.)
-**Próximo paso:** **Fase 1** del plan demanda-primero — tabla `cycle_offerings` (operador siembra producto+cantidad+precio de venta por ciclo); el catálogo lee de ahí (vía vista) en vez de depender de que el proveedor publique. Luego **Fase 2** (UI operador captura oferta real on-behalf — RLS ya lo permite) y **Fase 3** (gap real < pedido → sustitución/aviso al cliente).
+**Pasos completados:** 1 al 20 — MVP completo + mejoras posteriores (ver CHANGELOG). Esta sesión: **Fase 0 seguridad** (🔴 trigger guard en `users`; 🟠 vista `catalog_availability` + drop policy 019) — aplicada a producción. **Fase 1 demanda-primero** (tabla `cycle_offerings`; catálogo/checkout/reserva leen de ofertas; UI operador para sembrar; engine guard sin-oferta→pending) — validada en local, **NO empujada a prod aún**. Modelo de oferta: demanda-primero, catálogo fijo, se mantiene corte/ciclos.
+**Último commit:** Fase 1 (este commit; ver `git log -1`).
+**Migraciones aplicadas:** `030`–`036` en remoto vía `db push`. `037` + `038` SOLO en LOCAL (Fase 1) — pendientes de push coordinado con el sembrado de ofertas.
+**Próximo paso:** (1) Empujar `037`+`038` a prod y abrir un ciclo + sembrar ofertas (sin esto el catálogo queda vacío). (2) **Fase 2**: el operador captura la oferta real del proveedor (publicaciones on-behalf, RLS ya lo permite) y dispara `runSupplierAssignment`; revisar que el approve-path y los pedidos con billetera (que ya no asignan en checkout) se asignen al capturar. (3) **Fase 3**: gap real < pedido → sustitución/aviso al cliente.
 **Bugs pendientes (de la batería de pruebas, por prioridad):**
 - ~~MED — cobertura parcial~~ → CORREGIDO 2026-06-15 (TODO-O-NADA: ítem cubierto por cantidad confirmada o falla entero restaurando stock).
 - ~~MED — stock huérfano al rechazar proveedor~~ → CORREGIDO 2026-06-15 (`fail` restaura stock vía RPC).

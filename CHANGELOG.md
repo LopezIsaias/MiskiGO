@@ -1,5 +1,29 @@
 # CHANGELOG — Miski GO
 
+## [2026-06-22] — Fase 1 demanda-primero: catálogo desacoplado de la publicación del proveedor
+
+### Contexto
+El catálogo dependía de que el agricultor publicara su stock (brecha digital → catálogo vacío → cero ventas). Demanda-primero: el operador siembra qué se ofrece por ciclo (cantidad esperada + precio de venta) y el catálogo/checkout leen de ahí. `supplier_publications` pasa a ser fuente de SOURCING (Fase 2), no de catálogo. Decisión de negocio del usuario; se mantiene corte/ciclos.
+
+### Añadido
+- `supabase/migrations/20260622000037_cycle_offerings.sql` — tabla `cycle_offerings` (dispatch_cycle_id, product_id, expected_quantity, sale_price, status) + RLS (staff; operator acotado a su región vía el ciclo). UNIQUE(cycle, product).
+- `supabase/migrations/20260622000038_catalog_from_offerings.sql` — `catalog_availability` ahora lee de `cycle_offerings` del ciclo ABIERTO (DISTINCT ON producto+región, precio = sale_price del operador). DROP+CREATE por cambio de tipos.
+- `src/app/api/operator/cycle/route.ts` — POST: abre un ciclo (status open) para región+fecha (cutoff = día previo 12:00 Lima); idempotente; auditado.
+- `src/app/api/operator/offerings/route.ts` — GET/POST(upsert)/DELETE(soft) de ofertas; operator acotado a su región; upsert de precio auditado (§8 modificación de precio).
+- `src/app/(operator)/operator/offerings/page.tsx` + `src/components/operator/offerings-manager.tsx` — UI operador: abrir ciclo + sembrar cantidad/precio por producto.
+- Constantes audit `DISPATCH_CYCLE_CREATED`, `CYCLE_OFFERING_UPSERTED`; link de nav "Ofertas del ciclo".
+
+### Modificado
+- `src/app/(customer)/customer/catalog/page.tsx` — lee `catalog_availability` (ahora desde ofertas) filtrando por la región del cliente.
+- `src/app/api/customer/orders/route.ts` (checkout) — precio congelado = `offering.sale_price`; stock validado vs `expected_quantity`; usa el ciclo ABIERTO existente (ya no lo crea lazy); **se quitó la asignación inline de proveedores + descuento de publicaciones** (pasa a Fase 2; order_items quedan `pending`).
+- `src/app/api/customer/cart/reserve/route.ts` — disponibilidad desde `expected_quantity` de la oferta del ciclo abierto, no desde suma de publicaciones.
+- `src/lib/utils/supplier-assignment.ts` — `runSupplierAssignment`: si un ítem no tiene NINGUNA oferta de proveedor (cero publicaciones), queda `pending` en vez de `failed` (correcto en demanda-primero; protege el approve-path hasta Fase 2).
+- `tests/integration/rls-roles.test.ts` — el test de catálogo del customer ahora verifica que NO puede leer `supplier_publications` directo (fix Fase 0), en vez de lo contrario.
+
+### Notas
+- Validado en local: vista muestra la oferta del ciclo abierto y queda vacía al cerrarlo; tsc + lint limpios; **unit 72/72, integración 39/39**.
+- **Migraciones 037 + 038 NO empujadas a producción todavía** — al hacerlo, el catálogo queda vacío hasta que el operador abra un ciclo y siembre ofertas. Coordinar el push con el sembrado.
+
 ## [2026-06-22] — Fase 0 endurecimiento de seguridad (escalada de privilegios + fuga de datos de proveedor)
 
 ### Corregido

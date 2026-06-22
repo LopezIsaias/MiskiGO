@@ -88,10 +88,13 @@ describe.skipIf(!INTEGRATION_ENABLED)('RLS: aislamiento por rol', () => {
     expect(Number(fresh?.minimum_price)).toBe(5)
   })
 
-  it('un customer ve publicaciones activas (catálogo del marketplace)', async () => {
+  it('un customer NO puede leer supplier_publications directo (Fase 0: sin fuga de supplier_id/minimum_price)', async () => {
+    // El catálogo del cliente se sirve vía la vista catalog_availability,
+    // no por acceso directo a la tabla. La policy supplier_pub_select_customer
+    // fue eliminada en mig 036.
     const clientC = await signedInClient(customer)
     const { data } = await clientC.from('supplier_publications').select('id').eq('id', pubA)
-    expect((data ?? []).map(p => p.id)).toContain(pubA)
+    expect(data ?? []).toHaveLength(0)
   })
 
   it('un customer NO puede insertar wallet_transactions (solo superadmin)', async () => {

@@ -17,7 +17,7 @@ export async function POST(request: Request) {
 
   const { data: profile } = await supabase
     .from('users')
-    .select('role, status')
+    .select('role, status, region_id')
     .eq('id', user.id)
     .maybeSingle()
 
@@ -35,20 +35,43 @@ export async function POST(request: Request) {
 
   const admin = createAdminClient()
 
-  // Stock activo disponible del producto (suma de publicaciones vigentes)
-  const { data: pubs } = await admin
-    .from('supplier_publications')
-    .select('available_quantity')
-    .eq('product_id', productId)
-    .eq('status', 'active')
-    .gt('expires_at', new Date().toISOString())
+  // Demanda-primero: el stock disponible es la cantidad esperada de la oferta
+  // (cycle_offerings) del ciclo abierto de la región del cliente.
+  let regionId = profile.region_id
+  if (!regionId) {
+    const { data: region } = await admin
+      .from('regions').select('id').eq('is_active', true).limit(1).maybeSingle()
+    regionId = region?.id ?? null
+  }
 
-  const pubTotal = (pubs ?? []).reduce((s, p) => s + (p.available_quantity ?? 0), 0)
+  const { data: openCycle } = regionId
+    ? await admin
+        .from('dispatch_cycles')
+        .select('id')
+        .eq('region_id', regionId)
+        .eq('status', 'open')
+        .gt('cutoff_at', new Date().toISOString())
+        .order('cutoff_at', { ascending: true })
+        .limit(1)
+        .maybeSingle()
+    : { data: null }
+
+  const { data: offering } = openCycle
+    ? await admin
+        .from('cycle_offerings')
+        .select('expected_quantity')
+        .eq('dispatch_cycle_id', openCycle.id)
+        .eq('product_id', productId)
+        .eq('status', 'active')
+        .maybeSingle()
+    : { data: null }
+
+  const expectedQty = Number(offering?.expected_quantity ?? 0)
 
   // Reservas activas de OTROS clientes
   const othersMap = await getReservedByOthers(admin, [productId], user.id)
   const reservedByOthers = othersMap.get(productId) ?? 0
-  const available = Math.round((pubTotal - reservedByOthers) * 1000) / 1000
+  const available = Math.round((expectedQty - reservedByOthers) * 1000) / 1000
 
   if (quantity > available) {
     return NextResponse.json(

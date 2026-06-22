@@ -2,21 +2,8 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { checkoutSchema } from '@/lib/validations/customer'
-import { calculateSalePrice } from '@/lib/utils'
 import { AUDIT_ACTIONS, AUDIT_MODULES } from '@/lib/constants'
-import { runSupplierAssignment } from '@/lib/utils/supplier-assignment'
 import { getReservedByOthers } from '@/lib/utils/stock-reservations'
-import { decrementPublicationStock } from '@/lib/utils/stock'
-
-type PubRow = {
-  product_id: string
-  available_quantity: number
-  minimum_price: number
-  expires_at: string
-  product: {
-    category: { operational_cost_pct: number; suggested_margin_pct: number } | null
-  } | null
-}
 
 export async function POST(request: Request) {
   try {
@@ -66,113 +53,68 @@ export async function POST(request: Request) {
       regionId = region.id
     }
 
-    // Validate stock and collect pricing data
-    const productIds = items.map(i => i.productId)
-    const { data: rawPubs } = await adminClient
-      .from('supplier_publications')
-      .select(`
-        product_id, available_quantity, minimum_price, expires_at,
-        product:products!product_id(
-          category:product_categories!category_id(operational_cost_pct, suggested_margin_pct)
-        )
-      `)
-      .in('product_id', productIds)
-      .eq('status', 'active')
-      .gt('expires_at', new Date().toISOString())
+    // Demanda-primero: el catálogo y el precio salen de cycle_offerings del
+    // ciclo ABIERTO de la región. El operador siembra las ofertas y define el
+    // precio (§4). El ciclo ya existe (lo abre el operador); no se crea aquí.
+    const { data: openCycle } = await adminClient
+      .from('dispatch_cycles')
+      .select('id, cutoff_at')
+      .eq('region_id', regionId)
+      .eq('status', 'open')
+      .gt('cutoff_at', new Date().toISOString())
+      .order('cutoff_at', { ascending: true })
+      .limit(1)
+      .maybeSingle()
 
-    const pubs = (rawPubs ?? []) as unknown as PubRow[]
-
-    type ProductAgg = {
-      totalAvailable: number
-      maxMinPrice: number
-      nearestCutoff: string
-      opCostPct: number
-      marginPct: number
+    if (!openCycle) {
+      return NextResponse.json({ error: 'No hay un ciclo de despacho abierto para tu región' }, { status: 400 })
     }
-    const byProduct = new Map<string, ProductAgg>()
+    const cycleId = openCycle.id
 
-    for (const pub of pubs) {
-      if (!pub.product?.category) continue
-      const existing = byProduct.get(pub.product_id)
-      if (existing) {
-        existing.totalAvailable += pub.available_quantity
-        if (pub.minimum_price > existing.maxMinPrice) existing.maxMinPrice = pub.minimum_price
-        if (pub.expires_at < existing.nearestCutoff) existing.nearestCutoff = pub.expires_at
-      } else {
-        byProduct.set(pub.product_id, {
-          totalAvailable: pub.available_quantity,
-          maxMinPrice: pub.minimum_price,
-          nearestCutoff: pub.expires_at,
-          opCostPct: pub.product.category.operational_cost_pct,
-          marginPct: pub.product.category.suggested_margin_pct,
-        })
-      }
+    const productIds = items.map(i => i.productId)
+    const { data: rawOfferings } = await adminClient
+      .from('cycle_offerings')
+      .select('product_id, expected_quantity, sale_price')
+      .eq('dispatch_cycle_id', cycleId)
+      .eq('status', 'active')
+      .in('product_id', productIds)
+
+    const offeringByProduct = new Map<string, { expected: number; price: number }>()
+    for (const o of rawOfferings ?? []) {
+      offeringByProduct.set(o.product_id, { expected: Number(o.expected_quantity), price: Number(o.sale_price) })
     }
 
     // Reservas activas de otros clientes (excluye las propias, que se consumen en este pedido)
     const reservedByOthers = await getReservedByOthers(adminClient, productIds, user.id)
 
+    // Validate stock contra la cantidad esperada de la oferta
     for (const item of items) {
-      const agg = byProduct.get(item.productId)
-      if (!agg) return NextResponse.json({ error: `Producto no disponible` }, { status: 400 })
-      const available = agg.totalAvailable - (reservedByOthers.get(item.productId) ?? 0)
+      const off = offeringByProduct.get(item.productId)
+      if (!off) return NextResponse.json({ error: `Producto no disponible` }, { status: 400 })
+      const available = off.expected - (reservedByOthers.get(item.productId) ?? 0)
       if (item.quantity > Math.floor(available)) {
         return NextResponse.json({ error: `Stock insuficiente` }, { status: 400 })
       }
     }
 
-    // Calculate frozen prices
+    // Precios congelados = sale_price de la oferta
     type OrderItemPayload = {
       productId: string; quantity: number
       unitPriceFrozen: number; subtotalFrozen: number
     }
     const orderItems: OrderItemPayload[] = []
     let subtotal = 0
-    let minCutoff = ''
 
     for (const item of items) {
-      const agg = byProduct.get(item.productId)!
-      let price: number
-      try { price = calculateSalePrice(agg.maxMinPrice, agg.opCostPct, agg.marginPct) }
-      catch (e) {
-        console.error('[orders POST] calculateSalePrice failed:', e)
-        return NextResponse.json({ error: 'Error al calcular precios' }, { status: 500 })
-      }
+      const off = offeringByProduct.get(item.productId)!
+      const price = off.price
       const itemSubtotal = Math.round(price * item.quantity * 100) / 100
       subtotal += itemSubtotal
       orderItems.push({ productId: item.productId, quantity: item.quantity, unitPriceFrozen: price, subtotalFrozen: itemSubtotal })
-      if (!minCutoff || agg.nearestCutoff < minCutoff) minCutoff = agg.nearestCutoff
     }
 
     subtotal = Math.round(subtotal * 100) / 100
     const total = subtotal  // delivery_fee = 0 en MVP
-
-    // Get or create dispatch cycle
-    const dispatchDate = new Date(new Date(minCutoff).getTime() + 24 * 60 * 60 * 1000)
-    const dispatchDateStr = dispatchDate.toISOString().split('T')[0]
-
-    const { data: existingCycle } = await adminClient
-      .from('dispatch_cycles')
-      .select('id')
-      .eq('region_id', regionId)
-      .eq('dispatch_date', dispatchDateStr)
-      .maybeSingle()
-
-    let cycleId: string
-    if (existingCycle) {
-      cycleId = existingCycle.id
-    } else {
-      const { data: newCycle, error: cycleErr } = await adminClient
-        .from('dispatch_cycles')
-        .insert({ region_id: regionId, dispatch_date: dispatchDateStr, cutoff_at: minCutoff, status: 'open' })
-        .select('id')
-        .single()
-      if (cycleErr || !newCycle) {
-        console.error('[orders POST] dispatch_cycle insert failed:', cycleErr?.message)
-        return NextResponse.json({ error: 'Error al crear ciclo de despacho' }, { status: 500 })
-      }
-      cycleId = newCycle.id
-    }
 
     // Payment logic
     const walletBalance: number = profile.wallet_balance ?? 0
@@ -264,66 +206,10 @@ export async function POST(request: Request) {
       .eq('status', 'active')
       .in('product_id', productIds)
 
-    // Map product_id → order_item_id for assignment creation
-    const itemIdByProduct = new Map<string, string>()
-    for (const ci of createdItems) itemIdByProduct.set(ci.product_id, ci.id)
-
-    // Decrement stock and create provisional order_item_assignments (greedy, cheapest first).
-    // El descuento de stock usa decrementPublicationStock (RPC atómica con FOR UPDATE):
-    // serializa checkouts concurrentes sobre la misma publicación y evita sobreventa.
-    type StockPub = { id: string; available_quantity: number; supplier_id: string; minimum_price: number }
-    for (const item of orderItems) {
-      const orderItemId = itemIdByProduct.get(item.productId)
-      if (!orderItemId) continue
-
-      const { data: stockPubs } = await adminClient
-        .from('supplier_publications')
-        .select('id, available_quantity, supplier_id, minimum_price')
-        .eq('product_id', item.productId)
-        .eq('status', 'active')
-        .gt('available_quantity', 0)
-        .order('minimum_price', { ascending: true })
-        .order('published_at', { ascending: true })
-
-      const assignments: {
-        order_item_id: string; publication_id: string; supplier_id: string
-        assigned_quantity: number; supplier_price_frozen: number; platform_margin_frozen: number
-      }[] = []
-
-      let remaining = item.quantity
-      for (const pub of (stockPubs ?? []) as StockPub[]) {
-        if (remaining <= 0.001) break
-        // Cantidad realmente descontada (puede ser menor si hubo consumo concurrente).
-        const deducted = await decrementPublicationStock(adminClient, pub.id, remaining)
-        if (deducted <= 0) continue
-        remaining = Math.round((remaining - deducted) * 1000) / 1000
-
-        assignments.push({
-          order_item_id: orderItemId,
-          publication_id: pub.id,
-          supplier_id: pub.supplier_id,
-          assigned_quantity: deducted,
-          supplier_price_frozen: pub.minimum_price,
-          platform_margin_frozen: Math.round((item.unitPriceFrozen - pub.minimum_price) * 100) / 100,
-        })
-      }
-
-      if (assignments.length > 0) {
-        await adminClient.from('order_item_assignments').insert(assignments)
-      }
-    }
-
-    // For wallet-only orders the status is already 'confirmed' and no operator approval will
-    // happen, so we run supplier assignment immediately after the provisional assignments exist.
-    if (orderStatus === 'confirmed') {
-      await runSupplierAssignment({
-        orderId: order.id,
-        userId: user.id,
-        userRole: 'customer',
-        cutoffAt: minCutoff,
-        // No operatorId — notification skipped; operator will see the order in the panel
-      })
-    }
+    // Demanda-primero: NO se asigna proveedor en el checkout. Las publicaciones
+    // (sourcing) pueden no existir aún; el operador captura la oferta real y la
+    // asignación corre en Fase 2 (runSupplierAssignment al aprobar pago / capturar).
+    // Los order_items quedan en 'pending'.
 
     // Wallet debit (admin client bypasses RLS on wallet_transactions)
     if (walletUsed > 0) {

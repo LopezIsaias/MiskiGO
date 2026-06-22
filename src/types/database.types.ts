@@ -1380,6 +1380,7 @@ export type Database = {
           total_available: number
           sale_price: number
           nearest_cutoff: string
+          region_id: string
         }
         Relationships: []
       }

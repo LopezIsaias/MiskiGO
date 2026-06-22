@@ -14,6 +14,7 @@ type CatalogRow = {
   total_available: number
   sale_price: number
   nearest_cutoff: string
+  region_id: string
 }
 
 function getDeliveryLabel(expiresAtIso: string): string {
@@ -42,10 +43,18 @@ export default async function CatalogPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  const { data: rawRows } = await supabase
-    .from('catalog_availability')
-    .select('product_id, name, unit, image_url, description, category_name, total_available, sale_price, nearest_cutoff')
+  // Región del cliente: la vista da una fila por (producto, región) del
+  // ciclo abierto. Filtramos a la región del cliente para no duplicar.
+  const { data: profile } = user
+    ? await supabase.from('users').select('region_id').eq('id', user.id).maybeSingle()
+    : { data: null }
 
+  let query = supabase
+    .from('catalog_availability')
+    .select('product_id, name, unit, image_url, description, category_name, total_available, sale_price, nearest_cutoff, region_id')
+  if (profile?.region_id) query = query.eq('region_id', profile.region_id)
+
+  const { data: rawRows } = await query
   const rows = (rawRows ?? []) as CatalogRow[]
 
   // Descontar stock reservado por otros clientes (carritos en curso, no vencidos)
