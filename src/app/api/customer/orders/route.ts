@@ -35,6 +35,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
     }
 
+    // Lectura de stock/precio de proveedor: server-only. El customer ya no
+    // tiene acceso RLS a supplier_publications (mig 036) y minimum_price
+    // nunca debe salir al navegador.
+    const adminClient = createAdminClient()
+
     let body: unknown
     try { body = await request.json() } catch {
       return NextResponse.json({ error: 'Cuerpo inválido' }, { status: 400 })
@@ -63,7 +68,7 @@ export async function POST(request: Request) {
 
     // Validate stock and collect pricing data
     const productIds = items.map(i => i.productId)
-    const { data: rawPubs } = await supabase
+    const { data: rawPubs } = await adminClient
       .from('supplier_publications')
       .select(`
         product_id, available_quantity, minimum_price, expires_at,
@@ -105,7 +110,6 @@ export async function POST(request: Request) {
     }
 
     // Reservas activas de otros clientes (excluye las propias, que se consumen en este pedido)
-    const adminClient = createAdminClient()
     const reservedByOthers = await getReservedByOthers(adminClient, productIds, user.id)
 
     for (const item of items) {

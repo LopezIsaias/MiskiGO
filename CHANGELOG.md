@@ -1,5 +1,26 @@
 # CHANGELOG — Miski GO
 
+## [2026-06-22] — Fase 0 endurecimiento de seguridad (escalada de privilegios + fuga de datos de proveedor)
+
+### Corregido
+- **🔴 CRÍTICO escalada de privilegios/saldo en `users`:** RLS `users_update` permitía a customer/supplier hacer UPDATE de su propia fila y el GRANT (mig 017) cubre TODAS las columnas, sin guard de columnas. Un usuario podía auto-asignarse `wallet_balance`, `role` (→ superadmin), `reputation_score`, `status`, `region_id` vía PostgREST directo. Viola CLAUDE.md §3/§8. Cerrado con trigger BD.
+- **🟠 ALTO fuga de datos de proveedor al cliente:** la policy `supplier_pub_select_customer` (mig 019) daba al customer SELECT de la fila completa de `supplier_publications` (`supplier_id` + `minimum_price`) → identidad del proveedor y margen de la plataforma deducibles vía REST. La "agregación solo en UI" no era seguridad. Reemplazada por vista sin columnas sensibles + drop de la policy.
+
+### Añadido
+- `supabase/migrations/20260622000036_security_hardening.sql`:
+  - Trigger `users_protect_privileged` (`protect_user_privileged_fields`) — rechaza cambios de `role`/`wallet_balance`/`reputation_score`/`status`/`region_id` salvo `service_role`/`postgres`/`supabase_admin`. El panel admin/operador ya escribe vía `adminClient` (service_role), no se rompe.
+  - Vista `catalog_availability` — expone solo producto, stock agregado y precio de venta YA calculado (§4: `ceil(max_min/(1-op%-margen%)·100)/100`); sin `supplier_id` ni `minimum_price`. `security_invoker=false` (salta RLS por diseño). `REVOKE ALL` + `GRANT SELECT` solo a `authenticated` (sin `anon`).
+  - Drop de policy `supplier_pub_select_customer`.
+
+### Modificado
+- `src/app/(customer)/customer/catalog/page.tsx` — lee de `catalog_availability` en vez de `supplier_publications`; agregación y cálculo de precio ahora en BD.
+- `src/app/api/customer/orders/route.ts` — el checkout lee `supplier_publications` (stock/precio mínimo) con `adminClient` (server-only), no con la sesión del customer; `minimum_price` nunca sale al navegador. `adminClient` se crea una vez al inicio.
+- `src/types/database.types.ts` — tipada la vista `catalog_availability`.
+
+### Notas
+- Validado en local (`db reset` 001→036): trigger bloquea customer (wallet/role) y permite `service_role` + edición de `full_name`; precio 6/0.6=10.00 y fragile 3.5/0.48=7.30; vista sin columnas sensibles; grants least-privilege. tsc + lint limpios.
+- **Migraciones `035` + `036` aplicadas a PRODUCCIÓN** vía `db push`.
+
 ## [2026-06-15] — Integridad de cobertura: stock huérfano + cobertura parcial TODO-O-NADA + interleaving (3 bugs MED)
 
 ### Corregido

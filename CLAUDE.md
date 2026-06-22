@@ -134,6 +134,14 @@ Texto exacto a mostrar (no modificar sin aprobación):
 3. En empate de precio Y fecha: priorizar mayor `reputation_score`
 4. El operador puede sobreescribir. Queda en audit_log.
 
+### Cobertura de un ítem — TODO-O-NADA
+Un `order_item` puede tener varias asignaciones (`order_item_assignments`) a distintos proveedores. La resolución del ítem es por CANTIDAD, sin estados intermedios:
+- El ítem pasa a `assigned` **solo** cuando la suma de `assigned_quantity` de las asignaciones `confirmed` cubre `order_items.quantity`.
+- Si quedan asignaciones por confirmar, el ítem sigue `pending`.
+- Si hay un gap no cubrible (un proveedor falla/rechaza y no hay reemplazo que complete la cantidad), el ítem entero **falla**: se restaura el stock cedido en checkout (RPC atómica) y se marcan `failed` TODAS sus asignaciones activas (`pending`+`confirmed`). No se entrega cobertura parcial.
+- El pedido avanza a `assigned` cuando todos sus ítems están resueltos y ≥1 quedó `assigned`.
+- **Edge case abierto:** si TODOS los ítems fallan sin reemplazo, el pedido se queda en `confirmed` (pendiente: modelo de sustitución/aviso al cliente — ver §12).
+
 ### Pagos (MVP)
 - Métodos: Yape, transferencia bancaria, billetera virtual
 - Validación: MANUAL. El operador aprueba el comprobante
@@ -684,11 +692,11 @@ Construir estrictamente en este orden. No avanzar al siguiente paso sin que el a
 > Todo agente que trabaje en este proyecto debe leer este archivo completo y respetar todas las decisiones documentadas aquí antes de proponer o aplicar cambios.
 
 **Último agente:** Claude Code (claude-opus-4-8)
-**Fecha:** 2026-06-15
-**Pasos completados:** 1 al 20 — MVP completo + mejoras posteriores (ver CHANGELOG). Última sesión: 3 bugs MED de integridad de cobertura — stock huérfano al rechazar proveedor (#2), y cobertura parcial + interleaving confirm/fail (#1, #3) resueltos con modelo **TODO-O-NADA** (decisión del usuario, sin estado nuevo). Helpers `failOrderItemAllOrNothing` / `tryAdvanceOrderToAssigned`.
-**Último commit:** 786bbb5 (cambios de esta sesión SIN commitear aún).
-**Migraciones aplicadas:** `030`–`034` en remoto vía `db push`. **`035` (order_items.status += 'failed') aplicada SOLO en LOCAL — falta `db push` a producción.**
-**Próximo paso:** Aplicar migración `035` a producción (`npx supabase db push`). Corrige bug latente: sin `'failed'` en el CHECK, los UPDATE de `order_items` a 'failed' se tragaban silenciosamente → pedidos sin cobertura quedaban atascados en `confirmed`.
+**Fecha:** 2026-06-22
+**Pasos completados:** 1 al 20 — MVP completo + mejoras posteriores (ver CHANGELOG). Última sesión: **Fase 0 de endurecimiento de seguridad** — cerrada escalada de privilegios/saldo en `users` (🔴 trigger guard) y fuga de `supplier_id`/`minimum_price` al customer (🟠 vista `catalog_availability` + drop de policy 019). Decidido modelo de oferta objetivo: **demanda-primero, catálogo fijo** (NO se quita el corte/ciclos). Fases 1–3 pendientes (ver Próximo paso).
+**Último commit:** Fase 0 (este commit; ver `git log -1`).
+**Migraciones aplicadas:** `030`–`036` en remoto vía `db push`. (`035` + `036` empujadas a producción esta sesión.)
+**Próximo paso:** **Fase 1** del plan demanda-primero — tabla `cycle_offerings` (operador siembra producto+cantidad+precio de venta por ciclo); el catálogo lee de ahí (vía vista) en vez de depender de que el proveedor publique. Luego **Fase 2** (UI operador captura oferta real on-behalf — RLS ya lo permite) y **Fase 3** (gap real < pedido → sustitución/aviso al cliente).
 **Bugs pendientes (de la batería de pruebas, por prioridad):**
 - ~~MED — cobertura parcial~~ → CORREGIDO 2026-06-15 (TODO-O-NADA: ítem cubierto por cantidad confirmada o falla entero restaurando stock).
 - ~~MED — stock huérfano al rechazar proveedor~~ → CORREGIDO 2026-06-15 (`fail` restaura stock vía RPC).

@@ -1318,7 +1318,20 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      catalog_availability: {
+        Row: {
+          product_id: string
+          name: string
+          unit: string
+          image_url: string | null
+          description: string | null
+          category_name: string
+          total_available: number
+          sale_price: number
+          nearest_cutoff: string
+        }
+        Relationships: []
+      }
     }
     Functions: {
       get_user_region_id: { Args: never; Returns: string }

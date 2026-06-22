@@ -1,28 +1,19 @@
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { calculateSalePrice } from '@/lib/utils'
 import { getReservedByOthers } from '@/lib/utils/stock-reservations'
 import { CatalogGrid, type CatalogProduct } from '@/components/customer/catalog-grid'
 
-type RawPublication = {
+// Filas de la vista catalog_availability (mig 036): sin supplier_id ni minimum_price.
+type CatalogRow = {
   product_id: string
-  available_quantity: number
-  minimum_price: number
-  expires_at: string
-  product: {
-    id: string
-    name: string
-    unit: string
-    image_url: string | null
-    description: string | null
-    is_active: boolean
-    deleted_at: string | null
-    category: {
-      name: string
-      operational_cost_pct: number
-      suggested_margin_pct: number
-    } | null
-  } | null
+  name: string
+  unit: string
+  image_url: string | null
+  description: string | null
+  category_name: string
+  total_available: number
+  sale_price: number
+  nearest_cutoff: string
 }
 
 function getDeliveryLabel(expiresAtIso: string): string {
@@ -51,83 +42,34 @@ export default async function CatalogPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  const { data: rawPubs } = await supabase
-    .from('supplier_publications')
-    .select(`
-      product_id,
-      available_quantity,
-      minimum_price,
-      expires_at,
-      product:products!product_id(
-        id, name, unit, image_url, description, is_active, deleted_at,
-        category:product_categories!category_id(
-          name, operational_cost_pct, suggested_margin_pct
-        )
-      )
-    `)
-    .eq('status', 'active')
-    .gt('expires_at', new Date().toISOString())
+  const { data: rawRows } = await supabase
+    .from('catalog_availability')
+    .select('product_id, name, unit, image_url, description, category_name, total_available, sale_price, nearest_cutoff')
 
-  const pubs = (rawPubs ?? []) as unknown as RawPublication[]
-
-  type Aggregated = {
-    product: NonNullable<RawPublication['product']>
-    maxMinPrice: number
-    totalQty: number
-    nearestCutoff: string
-  }
-
-  const byProduct = new Map<string, Aggregated>()
-
-  for (const pub of pubs) {
-    if (!pub.product || !pub.product.is_active || pub.product.deleted_at || !pub.product.category) {
-      continue
-    }
-    const existing = byProduct.get(pub.product_id)
-    if (existing) {
-      existing.totalQty += pub.available_quantity
-      if (pub.minimum_price > existing.maxMinPrice) existing.maxMinPrice = pub.minimum_price
-      if (pub.expires_at < existing.nearestCutoff) existing.nearestCutoff = pub.expires_at
-    } else {
-      byProduct.set(pub.product_id, {
-        product: pub.product,
-        maxMinPrice: pub.minimum_price,
-        totalQty: pub.available_quantity,
-        nearestCutoff: pub.expires_at,
-      })
-    }
-  }
+  const rows = (rawRows ?? []) as CatalogRow[]
 
   // Descontar stock reservado por otros clientes (carritos en curso, no vencidos)
   const reservedByOthers = await getReservedByOthers(
     createAdminClient(),
-    [...byProduct.keys()],
+    rows.map(r => r.product_id),
     user?.id,
   )
 
   const catalog: CatalogProduct[] = []
-  for (const [productId, item] of byProduct) {
-    const effectiveQty = Math.round((item.totalQty - (reservedByOthers.get(productId) ?? 0)) * 1000) / 1000
+  for (const row of rows) {
+    const effectiveQty = Math.round((row.total_available - (reservedByOthers.get(row.product_id) ?? 0)) * 1000) / 1000
     if (effectiveQty <= 0) continue
-    item.totalQty = effectiveQty
-    const { operational_cost_pct, suggested_margin_pct } = item.product.category!
-    let estimatedPrice: number
-    try {
-      estimatedPrice = calculateSalePrice(item.maxMinPrice, operational_cost_pct, suggested_margin_pct)
-    } catch {
-      continue
-    }
     catalog.push({
-      id: item.product.id,
-      name: item.product.name,
-      unit: item.product.unit,
-      imageUrl: item.product.image_url,
-      description: item.product.description,
-      categoryName: item.product.category!.name,
-      totalAvailable: item.totalQty,
-      estimatedPrice,
-      nearestCutoff: item.nearestCutoff,
-      deliveryLabel: getDeliveryLabel(item.nearestCutoff),
+      id: row.product_id,
+      name: row.name,
+      unit: row.unit,
+      imageUrl: row.image_url,
+      description: row.description,
+      categoryName: row.category_name,
+      totalAvailable: effectiveQty,
+      estimatedPrice: row.sale_price,
+      nearestCutoff: row.nearest_cutoff,
+      deliveryLabel: getDeliveryLabel(row.nearest_cutoff),
     })
   }
 
