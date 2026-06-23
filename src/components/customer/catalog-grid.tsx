@@ -2,8 +2,11 @@
 
 import { useState, useMemo } from 'react'
 import Image from 'next/image'
-import { formatCurrency } from '@/lib/utils'
 import { useCartStore } from '@/stores/cart'
+import { Card } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { PriceTag } from '@/components/ui/price-tag'
 
 export interface CatalogProduct {
   id: string
@@ -86,47 +89,47 @@ function ProductCard({ product }: ProductCardProps) {
 
   const unitLabel = UNIT_LABEL[product.unit] ?? product.unit
   const availableDisplay = Math.floor(product.totalAvailable).toLocaleString('es-PE')
+  const priceUnit = product.unit as 'kg' | 'unit' | 'liter' | 'bunch'
 
   return (
-    <div className="bg-white rounded-xl border border-miski-sage/40 shadow-sm hover:shadow-md transition-shadow p-5 flex flex-col gap-3">
-      {product.imageUrl ? (
-        <div className="relative w-full h-36 rounded-lg overflow-hidden">
-          <Image
-            src={product.imageUrl}
-            alt={product.name}
-            fill
-            className="object-cover"
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-          />
-        </div>
-      ) : (
-        <div className="w-full h-36 bg-miski-cream rounded-lg flex items-center justify-center">
-          <span className="text-4xl font-light text-miski-olive">
-            {product.name.charAt(0).toUpperCase()}
-          </span>
-        </div>
-      )}
+    <Card className="p-5 flex flex-col gap-3 transition-shadow hover:shadow-md">
+      <div className="relative">
+        {product.imageUrl ? (
+          <div className="relative w-full h-36 rounded-xl overflow-hidden">
+            <Image
+              src={product.imageUrl}
+              alt={product.name}
+              fill
+              className="object-cover"
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+            />
+          </div>
+        ) : (
+          <div className="w-full h-36 bg-miski-green-soft rounded-xl flex items-center justify-center">
+            <span className="font-display text-4xl font-bold text-miski-green/70">
+              {product.name.charAt(0).toUpperCase()}
+            </span>
+          </div>
+        )}
+        <Badge tone="fresh" className="absolute top-2 left-2 shadow-sm">◣ fresco</Badge>
+      </div>
 
       <div>
-        <span className="bg-miski-lime/15 text-miski-forest text-xs font-medium px-2 py-0.5 rounded-full">
-          {product.categoryName}
-        </span>
-        <h3 className="text-base font-semibold text-miski-forest mt-1.5">{product.name}</h3>
+        <Badge tone="neutral">{product.categoryName}</Badge>
+        <h3 className="font-display text-base font-bold text-miski-forest mt-1.5">{product.name}</h3>
         {product.description && (
-          <p className="text-xs text-gray-500 mt-1 line-clamp-2">{product.description}</p>
+          <p className="text-xs text-miski-muted mt-1 line-clamp-2">{product.description}</p>
         )}
       </div>
 
-      <div className="flex items-center justify-between text-sm">
-        <span className="text-gray-500">
-          Disponible: {availableDisplay} {unitLabel}
+      <div className="flex items-end justify-between">
+        <span className="text-xs text-miski-muted">
+          Disponible: <span className="tabular text-miski-tinta">{availableDisplay}</span> {unitLabel}
         </span>
-        <span className="font-bold text-miski-forest">
-          {formatCurrency(product.estimatedPrice)}/{unitLabel}
-        </span>
+        <PriceTag amount={product.estimatedPrice} unit={priceUnit} size="md" />
       </div>
 
-      <p className="text-xs text-gray-400">{product.deliveryLabel}</p>
+      <p className="text-xs text-miski-muted">{product.deliveryLabel}</p>
 
       <div className="flex items-center gap-2 mt-auto pt-1">
         <input
@@ -136,22 +139,22 @@ function ProductCard({ product }: ProductCardProps) {
           step={1}
           value={qty}
           onChange={e => handleQtyChange(e.target.value)}
-          className="w-20 text-sm border border-miski-sage rounded-lg px-2 py-1.5 text-center focus:outline-none focus:ring-2 focus:ring-miski-lime/50 focus:border-miski-green transition-colors text-gray-800"
+          aria-label={`Cantidad de ${product.name}`}
+          className="w-20 h-10 tabular text-sm border border-miski-border rounded-xl px-2 text-center text-miski-tinta focus:outline-none focus:ring-2 focus:ring-miski-green/40 focus:border-miski-green transition-colors"
         />
-        <button
+        <Button
           onClick={handleAdd}
           disabled={reserving}
-          className={`flex-1 text-sm font-semibold py-1.5 rounded-lg transition-all active:scale-[0.98] disabled:opacity-60 ${
-            added
-              ? 'bg-miski-lime/20 text-miski-forest cursor-default'
-              : 'bg-miski-forest text-white hover:bg-miski-green'
-          }`}
+          variant={added ? 'secondary' : 'primary'}
+          size="sm"
+          fullWidth
+          className="flex-1"
         >
-          {reserving ? 'Reservando…' : added ? 'Agregado al carrito' : 'Agregar'}
-        </button>
+          {reserving ? 'Reservando…' : added ? '✓ Agregado' : '+ Agregar'}
+        </Button>
       </div>
       {error && <p className="text-xs text-red-600">{error}</p>}
-    </div>
+    </Card>
   )
 }
 
@@ -190,8 +193,8 @@ export function CatalogGrid({ products }: CatalogGridProps) {
   if (products.length === 0) {
     return (
       <div className="text-center py-20">
-        <p className="text-gray-400 text-lg font-medium">No hay productos disponibles ahora.</p>
-        <p className="text-gray-400 text-sm mt-1">
+        <p className="font-display text-lg font-bold text-miski-forest">No hay productos disponibles ahora.</p>
+        <p className="text-miski-muted text-sm mt-1">
           Vuelve a consultar antes del próximo corte de pedidos.
         </p>
       </div>
@@ -203,7 +206,7 @@ export function CatalogGrid({ products }: CatalogGridProps) {
       {/* Search bar */}
       <div className="relative">
         <svg
-          className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-miski-olive"
+          className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-miski-muted"
           fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"
         >
           <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-4.35-4.35m1.85-4.65a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0Z" />
@@ -213,7 +216,7 @@ export function CatalogGrid({ products }: CatalogGridProps) {
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder="Buscar producto…"
-          className="w-full pl-10 pr-4 py-2.5 text-sm border border-miski-sage rounded-xl focus:outline-none focus:ring-2 focus:ring-miski-lime/50 focus:border-miski-green transition-colors text-gray-800 placeholder:text-gray-400"
+          className="w-full h-11 pl-10 pr-4 text-sm bg-white border border-miski-border rounded-xl focus:outline-none focus:ring-2 focus:ring-miski-green/40 focus:border-miski-green transition-colors text-miski-tinta placeholder:text-miski-muted/60"
         />
       </div>
 
@@ -222,10 +225,10 @@ export function CatalogGrid({ products }: CatalogGridProps) {
         <button
           type="button"
           onClick={() => setActiveCategory(ALL_CATEGORIES)}
-          className={`shrink-0 text-xs font-medium px-3.5 py-1.5 rounded-full border transition-colors ${
+          className={`shrink-0 text-xs font-semibold px-3.5 py-1.5 rounded-full border transition-colors ${
             activeCategory === ALL_CATEGORIES
               ? 'bg-miski-forest text-white border-miski-forest'
-              : 'bg-white text-miski-forest border-miski-sage hover:bg-miski-sage/20'
+              : 'bg-white text-miski-forest border-miski-border hover:bg-miski-green-soft'
           }`}
         >
           Todas
@@ -235,10 +238,10 @@ export function CatalogGrid({ products }: CatalogGridProps) {
             key={cat}
             type="button"
             onClick={() => setActiveCategory(cat)}
-            className={`shrink-0 text-xs font-medium px-3.5 py-1.5 rounded-full border transition-colors ${
+            className={`shrink-0 text-xs font-semibold px-3.5 py-1.5 rounded-full border transition-colors ${
               activeCategory === cat
                 ? 'bg-miski-forest text-white border-miski-forest'
-                : 'bg-white text-miski-forest border-miski-sage hover:bg-miski-sage/20'
+                : 'bg-white text-miski-forest border-miski-border hover:bg-miski-green-soft'
             }`}
           >
             {cat}
@@ -247,7 +250,7 @@ export function CatalogGrid({ products }: CatalogGridProps) {
       </div>
 
       {/* Result count */}
-      <p className="text-xs text-miski-olive">
+      <p className="text-xs text-miski-muted">
         {filtered.length === products.length
           ? `${products.length} producto${products.length !== 1 ? 's' : ''}`
           : `${filtered.length} de ${products.length} producto${products.length !== 1 ? 's' : ''}`}
@@ -256,7 +259,7 @@ export function CatalogGrid({ products }: CatalogGridProps) {
       {/* Unified product grid */}
       {filtered.length === 0 ? (
         <div className="text-center py-16">
-          <p className="text-gray-400 text-sm font-medium">Sin resultados para tu búsqueda.</p>
+          <p className="text-miski-muted text-sm font-medium">Sin resultados para tu búsqueda.</p>
           <button
             type="button"
             onClick={() => { setSearch(''); setActiveCategory(ALL_CATEGORIES) }}

@@ -1,33 +1,68 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* "Selva alta" — fondo hueso (blanco con tinte verde, no crema) + tinta verdosa */
+  --background: #F6F8F1;
+  --foreground: #16241B;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
 
-  /* Miski GO — paleta oficial */
-  --color-miski-forest:     #205B3D;
-  --color-miski-green:      #469C53;
-  --color-miski-lime:       #BED348;
+  /* Tipografía: display (titulares), sans (cuerpo), mono (cifras S/ y kg) */
+  --font-display: var(--font-display);
+  --font-sans:    var(--font-body);
+  --font-mono:    var(--font-mono);
+
+  /* ── Miski GO — paleta oficial "Selva alta" ──────────────────────────────
+     Nombres estables (clases miski-* usadas en toda la app); hex refinados. */
+  --color-miski-forest:     #1B4D32;  /* dosel profundo — marca, títulos       */
+  --color-miski-green:      #3E8E4F;  /* acción primaria — botones             */
+  --color-miski-green-soft: #E6F0E5;  /* fondo suave de acento verde           */
+  --color-miski-lime:       #9FC131;  /* acento "fresco" — destacados, lo nuevo */
   --color-miski-lime-light: #E9F080;
-  --color-miski-lime-pale:  #E0E690;
+  --color-miski-lime-pale:  #EEF3CB;
+  --color-miski-gold:       #E0A53B;  /* maíz — precios / valor / fair-price    */
+  --color-miski-gold-light: #F2D79A;
   --color-miski-olive:      #8A9D4E;
-  --color-miski-olive-mid:  #7DAB48;
-  --color-miski-gold:       #C9B151;
-  --color-miski-gold-light: #E9D57C;
-  --color-miski-gold-pale:  #C1A64F;
-  --color-miski-cream:      #EFF0B4;
   --color-miski-sage:       #CCD5C2;
+  --color-miski-hueso:      #F6F8F1;  /* fondo                                  */
+  --color-miski-cream:      #EFF0B4;
+  --color-miski-tinta:      #16241B;  /* texto base (negro sub-tono verde)      */
+  --color-miski-muted:      #5E6E60;  /* texto secundario                       */
+  --color-miski-border:     #DCE2D2;  /* líneas / divisores                     */
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-sans, Arial, sans-serif);
+  font-family: var(--font-sans, system-ui, sans-serif);
+}
+
+/* Display utilitaria para titulares y cifras de héroe */
+.font-display { font-family: var(--font-display, var(--font-sans)); }
+
+/* Cifras de dinero/peso: mono con tabular-nums para que las columnas cuadren */
+.tabular { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+/* Signature "sin escalas": línea continua con dos extremos (campo ● ── ● mesa) */
+.rule-sin-escalas {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  color: var(--color-miski-border);
+}
+.rule-sin-escalas::before,
+.rule-sin-escalas::after {
+  content: "";
+  width: 7px; height: 7px;
+  border-radius: 9999px;
+  background: var(--color-miski-green);
+  flex: none;
+}
+.rule-sin-escalas > span {
+  flex: 1 1 auto;
+  height: 1px;
+  background: currentColor;
 }

@@ -29,6 +29,9 @@ export async function middleware(request: NextRequest) {
   // API routes manage their own auth
   if (pathname.startsWith('/api')) return supabaseResponse
 
+  // Preview de identidad visual — accesible sin login SOLO en desarrollo.
+  if (pathname === '/style-guide' && process.env.NODE_ENV !== 'production') return supabaseResponse
+
   // Public auth routes: redirect authenticated users to dashboard
   if (PUBLIC_PATHS.has(pathname)) {
     if (!user) return supabaseResponse
