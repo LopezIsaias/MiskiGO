@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation'
 import { resetPasswordSchema, type ResetPasswordInput } from '@/lib/validations/admin'
 
 const inputCls =
-  'w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500'
+  'w-full border border-miski-border rounded-xl px-3 py-2.5 text-sm bg-white text-miski-tinta focus:outline-none focus:ring-2 focus:ring-miski-green/40 focus:border-miski-green transition-colors'
 
 export function ChangePasswordForm() {
   const router = useRouter()
@@ -47,13 +47,13 @@ export function ChangePasswordForm() {
       )}
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Nueva contraseña</label>
+        <label className="block text-sm font-medium text-miski-forest mb-1">Nueva contraseña</label>
         <input type="password" {...register('password')} className={inputCls} autoFocus />
         {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password.message}</p>}
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Confirmar contraseña</label>
+        <label className="block text-sm font-medium text-miski-forest mb-1">Confirmar contraseña</label>
         <input type="password" {...register('confirm_password')} className={inputCls} />
         {errors.confirm_password && (
           <p className="text-red-500 text-xs mt-1">{errors.confirm_password.message}</p>
@@ -63,9 +63,9 @@ export function ChangePasswordForm() {
       <button
         type="submit"
         disabled={isSubmitting}
-        className="w-full bg-green-600 text-white py-2.5 rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-50 transition-colors"
+        className="w-full bg-miski-green text-white py-2.5 rounded-xl font-display text-sm font-semibold hover:bg-miski-forest disabled:opacity-50 transition-colors"
       >
-        {isSubmitting ? 'Actualizando...' : 'Actualizar contraseña'}
+        {isSubmitting ? 'Actualizando…' : 'Actualizar contraseña'}
       </button>
     </form>
   )

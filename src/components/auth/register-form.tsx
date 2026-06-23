@@ -20,7 +20,7 @@ interface Props {
 }
 
 const inputCls =
-  'w-full border border-miski-sage rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-miski-lime/50 focus:border-miski-green transition-colors placeholder:text-gray-300 text-gray-800'
+  'w-full border border-miski-border rounded-xl px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-miski-green/40 focus:border-miski-green transition-colors placeholder:text-miski-muted/60 text-miski-tinta'
 
 const labelCls = 'block text-xs font-semibold text-miski-forest/70 uppercase tracking-wider mb-1.5'
 
@@ -93,10 +93,10 @@ export function RegisterForm({ regions }: Props) {
               key={r}
               type="button"
               onClick={() => selectRole(r)}
-              className={`p-3 rounded-lg border-2 text-sm font-medium transition-colors ${
+              className={`p-3 rounded-xl border-2 text-sm font-semibold transition-colors ${
                 role === r
-                  ? 'border-miski-lime bg-miski-lime/10 text-miski-forest'
-                  : 'border-miski-sage text-gray-500 hover:border-miski-sage/80'
+                  ? 'border-miski-green bg-miski-green-soft text-miski-forest'
+                  : 'border-miski-border text-miski-muted hover:border-miski-green/60'
               }`}
             >
               {r === 'customer' ? 'Cliente' : 'Proveedor'}
@@ -181,9 +181,9 @@ export function RegisterForm({ regions }: Props) {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full bg-miski-forest text-white py-2.5 rounded-lg font-semibold text-sm hover:bg-miski-green active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-150"
+            className="w-full bg-miski-green text-white py-2.5 rounded-xl font-display font-semibold text-sm hover:bg-miski-forest disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            {isSubmitting ? 'Creando cuenta...' : 'Crear cuenta'}
+            {isSubmitting ? 'Creando cuenta…' : 'Crear cuenta'}
           </button>
         </>
       )}

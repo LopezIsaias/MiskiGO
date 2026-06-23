@@ -14,18 +14,19 @@ export default async function RegisterPage() {
     .order('name')
 
   return (
-    <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
+    <div className="bg-miski-hueso rounded-2xl shadow-2xl overflow-hidden">
       <div className="h-1 bg-gradient-to-r from-miski-forest via-miski-green to-miski-lime" />
       <div className="p-8">
-        <div className="flex justify-center mb-6">
-          <span className="text-2xl font-bold text-miski-forest tracking-tight">Miski GO</span>
+        <div className="text-center mb-6">
+          <span className="font-display text-2xl font-extrabold text-miski-forest tracking-tight">Miski GO</span>
+          <p className="font-display text-xs font-semibold text-miski-green mt-0.5">Del campo a tu mesa, sin escalas.</p>
         </div>
-        <h2 className="text-xl font-bold text-miski-forest mb-1">Crear cuenta</h2>
-        <p className="text-sm text-gray-400 mb-6">Para proveedores y clientes</p>
+        <h2 className="font-display text-xl font-bold text-miski-forest mb-1">Crear cuenta</h2>
+        <p className="text-sm text-miski-muted mb-6">Para proveedores y clientes</p>
         <RegisterForm regions={regions ?? []} />
-        <p className="text-center text-sm text-gray-500 mt-6">
+        <p className="text-center text-sm text-miski-muted mt-6">
           ¿Ya tienes cuenta?{' '}
-          <Link href="/login" className="text-miski-green hover:text-miski-forest font-medium transition-colors">
+          <Link href="/login" className="text-miski-green hover:text-miski-forest font-semibold transition-colors">
             Inicia sesión
           </Link>
         </p>
