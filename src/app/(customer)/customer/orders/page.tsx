@@ -24,14 +24,14 @@ const STATUS_LABEL: Record<string, string> = {
 }
 
 const STATUS_COLOR: Record<string, string> = {
-  pending_payment:   'bg-miski-gold-light/40 text-amber-800',
-  payment_submitted: 'bg-miski-gold-light/40 text-amber-800',
-  confirmed:         'bg-miski-lime/20 text-miski-forest',
-  assigned:          'bg-miski-lime/20 text-miski-forest',
-  in_transit:        'bg-miski-green/15 text-miski-forest',
-  delivered:         'bg-miski-lime/20 text-miski-forest',
-  in_storage:        'bg-miski-gold-light/40 text-amber-800',
-  completed:         'bg-miski-lime/20 text-miski-forest',
+  pending_payment:   'bg-miski-gold-light/50 text-miski-forest',
+  payment_submitted: 'bg-miski-gold-light/50 text-miski-forest',
+  confirmed:         'bg-miski-green-soft text-miski-forest',
+  assigned:          'bg-miski-green-soft text-miski-forest',
+  in_transit:        'bg-miski-lime-pale text-miski-forest',
+  delivered:         'bg-miski-green-soft text-miski-forest',
+  in_storage:        'bg-miski-gold-light/50 text-miski-forest',
+  completed:         'bg-miski-green-soft text-miski-forest',
   cancelled:         'bg-red-100 text-red-700',
   failed:            'bg-red-100 text-red-700',
 }
@@ -81,10 +81,10 @@ export default async function OrdersPage() {
 
   return (
     <div className="max-w-2xl">
-      <h1 className="text-2xl font-bold text-miski-forest mb-6">Mis pedidos</h1>
+      <h1 className="font-display text-2xl font-bold text-miski-forest mb-6">Mis pedidos</h1>
 
       {orders.length === 0 ? (
-        <p className="text-gray-400 text-sm">Aún no tienes pedidos.</p>
+        <p className="text-miski-muted text-sm">Aún no tienes pedidos.</p>
       ) : (
         <div className="space-y-4">
           {orders.map(order => {
@@ -94,33 +94,33 @@ export default async function OrdersPage() {
             // lo pasará a 'failed'; mientras tanto no mostramos código ni cancelación).
             const isOverdue = order.status === 'confirmed' && cycle != null && cycle.dispatch_date < today
             return (
-            <div key={order.id} className="bg-white rounded-xl border border-miski-sage/40 shadow-sm p-5">
+            <div key={order.id} className="bg-white rounded-2xl border border-miski-border shadow-sm p-5">
               <div className="flex items-start justify-between gap-3 mb-3">
                 <div>
-                  <p className="text-xs text-gray-400">
+                  <p className="text-xs text-miski-muted tabular">
                     {formatDate(order.created_at)} · #{order.id.slice(0, 8).toUpperCase()}
                   </p>
-                  <p className="text-sm text-gray-600 mt-0.5">{order.delivery_address}</p>
+                  <p className="text-sm text-miski-tinta mt-0.5">{order.delivery_address}</p>
                 </div>
-                <span className={`shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full ${STATUS_COLOR[order.status] ?? 'bg-miski-gold-light/40 text-amber-800'}`}>
+                <span className={`shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full ${STATUS_COLOR[order.status] ?? 'bg-miski-gold-light/50 text-miski-forest'}`}>
                   {STATUS_LABEL[order.status] ?? order.status}
                 </span>
               </div>
 
               <div className="space-y-1 mb-3">
                 {order.items.map((item, i) => (
-                  <div key={i} className="flex justify-between text-xs text-gray-600">
+                  <div key={i} className="flex justify-between text-xs text-miski-muted">
                     <span>{item.product?.name ?? '—'}</span>
-                    <span className="font-medium">
+                    <span className="tabular text-miski-tinta">
                       {item.quantity} {item.product?.unit} · {formatCurrency(item.unit_price_frozen)}
                     </span>
                   </div>
                 ))}
               </div>
 
-              <div className="flex items-center justify-between border-t border-miski-sage/20 pt-3">
-                <span className="text-xs text-miski-olive">Total</span>
-                <span className="text-sm font-bold text-miski-forest">{formatCurrency(order.total_amount)}</span>
+              <div className="flex items-center justify-between border-t border-miski-border pt-3">
+                <span className="text-xs text-miski-muted">Total</span>
+                <span className="tabular text-sm font-bold text-miski-forest">{formatCurrency(order.total_amount)}</span>
               </div>
 
               {/* Barra de estado del pedido */}
@@ -129,7 +129,7 @@ export default async function OrdersPage() {
               {/* Aviso neutral para pedidos vencidos aún sin resolver */}
               {isOverdue && (
                 <div className="mt-3 bg-miski-gold-light/20 border border-miski-gold/40 rounded-xl px-4 py-3">
-                  <p className="text-sm text-amber-800">
+                  <p className="text-sm text-miski-forest">
                     Tu pedido está en proceso. Nos pondremos en contacto contigo a la brevedad.
                   </p>
                 </div>
@@ -148,10 +148,10 @@ export default async function OrdersPage() {
                 const receipt = Array.isArray(order.receipt) ? order.receipt[0] : order.receipt
                 if (!receipt) return null
                 return (
-                  <div className="mt-3 flex items-center justify-between bg-miski-cream/40 border border-miski-sage/30 rounded-xl px-4 py-2.5">
+                  <div className="mt-3 flex items-center justify-between bg-miski-green-soft border border-miski-border rounded-xl px-4 py-2.5">
                     <div>
-                      <p className="text-xs text-miski-olive capitalize">{receipt.type}</p>
-                      <p className="text-sm font-semibold text-miski-forest">{receipt.number}</p>
+                      <p className="text-xs text-miski-muted capitalize">{receipt.type}</p>
+                      <p className="text-sm font-semibold text-miski-forest tabular">{receipt.number}</p>
                     </div>
                     <Link
                       href={`/customer/orders/${order.id}/receipt`}
@@ -165,19 +165,19 @@ export default async function OrdersPage() {
 
               {/* Confirmation code — visible desde que el pedido se confirma */}
               {['confirmed', 'assigned', 'in_transit'].includes(order.status) && !isOverdue && order.delivery_confirmation_code && (
-                <div className="mt-3 bg-blue-50 border border-blue-200 rounded-xl px-4 py-3">
-                  <p className="text-xs text-blue-600 font-semibold mb-1">Código de confirmación de entrega</p>
-                  <p className="text-3xl font-bold text-blue-800 tracking-[0.3em]">
+                <div className="mt-3 bg-miski-forest rounded-xl px-4 py-3">
+                  <p className="text-xs text-miski-lime font-semibold mb-1">Código de confirmación de entrega</p>
+                  <p className="tabular text-3xl font-bold text-white tracking-[0.3em]">
                     {order.delivery_confirmation_code}
                   </p>
-                  <p className="text-xs text-blue-500 mt-1">Dáselo al repartidor cuando llegue</p>
+                  <p className="text-xs text-white/60 mt-1">Dáselo al repartidor cuando llegue</p>
                 </div>
               )}
 
               {/* In-storage banner */}
               {order.status === 'in_storage' && (
                 <div className="mt-3 bg-miski-gold-light/20 border border-miski-gold/40 rounded-xl px-4 py-3">
-                  <p className="text-sm text-amber-800">
+                  <p className="text-sm text-miski-forest">
                     Tu pedido está en nuestro almacén esperando ser recogido. Coordina con nosotros para la entrega.
                   </p>
                 </div>

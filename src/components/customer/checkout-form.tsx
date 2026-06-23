@@ -197,33 +197,33 @@ export function CheckoutForm({ walletBalance, userId, fullName, dni, ruc }: Prop
     const confirmed = result.status === 'confirmed'
     return (
       <div className="max-w-lg mx-auto text-center py-12">
-        <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${confirmed ? 'bg-miski-lime/20' : 'bg-miski-gold-light/40'}`}>
-          <span className={`text-3xl font-light ${confirmed ? 'text-miski-forest' : 'text-amber-700'}`}>
+        <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${confirmed ? 'bg-miski-green-soft' : 'bg-miski-gold-light/50'}`}>
+          <span className={`text-3xl ${confirmed ? 'text-miski-green' : 'text-miski-gold'}`}>
             {confirmed ? '✓' : '⏳'}
           </span>
         </div>
-        <h2 className="text-xl font-bold text-miski-forest mb-2">
+        <h2 className="font-display text-xl font-bold text-miski-forest mb-2">
           {confirmed ? 'Pedido confirmado' : 'Comprobante recibido'}
         </h2>
         {confirmed ? (
-          <p className="text-gray-600 text-sm mb-6">
+          <p className="text-miski-muted text-sm mb-6">
             Tu pedido fue confirmado. Recibirás tu entrega en la fecha indicada.
           </p>
         ) : (
-          <p className="text-gray-600 text-sm mb-6">
+          <p className="text-miski-muted text-sm mb-6">
             Tu comprobante está siendo validado. El tiempo estimado de revisión es de 1 a 3 horas
             durante horario laboral. Te notificaremos cuando se confirme.
           </p>
         )}
         {result.walletUsed > 0 && (
-          <p className="text-sm text-gray-500 mb-4">
-            Se descontaron {formatCurrency(result.walletUsed)} de tu billetera.
+          <p className="text-sm text-miski-muted mb-4">
+            Se descontaron <span className="tabular">{formatCurrency(result.walletUsed)}</span> de tu billetera.
           </p>
         )}
-        <p className="text-xs text-gray-400 mb-6">Pedido #{result.orderId.slice(0, 8).toUpperCase()}</p>
+        <p className="text-xs text-miski-muted mb-6 tabular">Pedido #{result.orderId.slice(0, 8).toUpperCase()}</p>
         <button
           onClick={() => router.push('/customer/catalog')}
-          className="bg-miski-forest text-white px-6 py-2.5 rounded-lg text-sm font-semibold hover:bg-miski-green transition-all active:scale-[0.98]"
+          className="bg-miski-green text-white px-6 py-2.5 rounded-xl font-display text-sm font-semibold hover:bg-miski-forest transition-colors"
         >
           Volver al catálogo
         </button>
@@ -239,29 +239,29 @@ export function CheckoutForm({ walletBalance, userId, fullName, dni, ruc }: Prop
   return (
     <form onSubmit={handleSubmit} className="max-w-2xl space-y-6">
       {/* Order summary */}
-      <section className="bg-white rounded-xl border border-miski-sage/40 overflow-hidden">
-        <div className="px-4 py-3 border-b border-miski-sage/20 bg-miski-forest/5">
-          <h2 className="text-sm font-semibold text-miski-forest">Resumen del pedido</h2>
+      <section className="bg-white rounded-2xl border border-miski-border overflow-hidden">
+        <div className="px-4 py-3 border-b border-miski-border bg-miski-green-soft">
+          <h2 className="font-display text-sm font-bold text-miski-forest">Resumen del pedido</h2>
         </div>
-        <div className="divide-y divide-miski-sage/20">
+        <div className="divide-y divide-miski-border">
           {items.map(item => (
             <div key={item.productId} className="px-4 py-3 flex items-center justify-between text-sm">
               <div>
-                <span className="font-medium text-miski-forest">{item.name}</span>
-                <span className="text-gray-400 ml-2">
+                <span className="font-display font-bold text-miski-forest">{item.name}</span>
+                <span className="text-miski-muted ml-2 tabular">
                   {item.quantity} {UNIT_LABEL[item.unit] ?? item.unit}
                 </span>
-                <p className="text-xs text-gray-400 mt-0.5">{item.deliveryLabel}</p>
+                <p className="text-xs text-miski-muted mt-0.5">{item.deliveryLabel}</p>
               </div>
-              <span className="font-medium text-miski-forest">
+              <span className="tabular font-semibold text-miski-forest">
                 {formatCurrency(item.estimatedPrice * item.quantity)}
               </span>
             </div>
           ))}
         </div>
-        <div className="px-4 py-3 border-t border-miski-sage/20 flex justify-between text-sm font-semibold">
-          <span className="text-miski-olive">Total</span>
-          <span className="text-miski-forest">{formatCurrency(subtotal)}</span>
+        <div className="px-4 py-3 border-t border-miski-border flex justify-between text-sm font-semibold bg-miski-hueso">
+          <span className="text-miski-muted">Total</span>
+          <span className="tabular text-miski-forest">{formatCurrency(subtotal)}</span>
         </div>
       </section>
 
@@ -274,14 +274,14 @@ export function CheckoutForm({ walletBalance, userId, fullName, dni, ruc }: Prop
           onChange={e => setAddress(e.target.value)}
           placeholder="Jr. Los Cedros 123, Tarapoto"
           required
-          className="w-full border border-miski-sage rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-miski-lime/50 focus:border-miski-green transition-colors placeholder:text-gray-300 text-gray-800"
+          className="w-full border border-miski-border rounded-xl px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-miski-green/40 focus:border-miski-green transition-colors placeholder:text-miski-muted/60 text-miski-tinta"
         />
         <input
           type="text"
           value={deliveryNotes}
           onChange={e => setDeliveryNotes(e.target.value)}
           placeholder="Referencias (opcional): portón azul, segundo piso..."
-          className="w-full border border-miski-sage rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-miski-lime/50 focus:border-miski-green transition-colors placeholder:text-gray-300 text-gray-800"
+          className="w-full border border-miski-border rounded-xl px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-miski-green/40 focus:border-miski-green transition-colors placeholder:text-miski-muted/60 text-miski-tinta"
         />
 
         {/* Ubicación exacta (pin para el repartidor) */}
@@ -320,8 +320,8 @@ export function CheckoutForm({ walletBalance, userId, fullName, dni, ruc }: Prop
               onClick={() => handleReceiptTypeChange(type)}
               className={`py-2.5 rounded-lg text-sm font-medium border transition-colors capitalize ${
                 receiptType === type
-                  ? 'border-miski-lime bg-miski-lime/10 text-miski-forest'
-                  : 'border-miski-sage hover:border-miski-sage/80 bg-white text-gray-700'
+                  ? 'border-miski-green bg-miski-green-soft text-miski-forest font-semibold'
+                  : 'border-miski-border hover:border-miski-green/60 bg-white text-miski-muted'
               }`}
             >
               {type}
@@ -330,7 +330,7 @@ export function CheckoutForm({ walletBalance, userId, fullName, dni, ruc }: Prop
         </div>
 
         <div>
-          <label className="block text-xs text-miski-olive mb-1">
+          <label className="block text-xs font-medium text-miski-forest mb-1">
             {receiptType === 'boleta' ? 'DNI (8 dígitos)' : 'RUC (11 dígitos)'}
           </label>
           <input
@@ -339,12 +339,12 @@ export function CheckoutForm({ walletBalance, userId, fullName, dni, ruc }: Prop
             value={receiptDocument}
             onChange={e => setReceiptDocument(e.target.value.replace(/\D/g, '').slice(0, receiptType === 'boleta' ? 8 : 11))}
             placeholder={receiptType === 'boleta' ? '12345678' : '20123456789'}
-            className="w-full border border-miski-sage rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-miski-lime/50 focus:border-miski-green transition-colors placeholder:text-gray-300 text-gray-800"
+            className="w-full border border-miski-border rounded-xl px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-miski-green/40 focus:border-miski-green transition-colors placeholder:text-miski-muted/60 text-miski-tinta"
           />
         </div>
 
         <div>
-          <label className="block text-xs text-miski-olive mb-1">
+          <label className="block text-xs font-medium text-miski-forest mb-1">
             {receiptType === 'boleta' ? 'Nombre completo' : 'Razón social'}
           </label>
           <input
@@ -352,7 +352,7 @@ export function CheckoutForm({ walletBalance, userId, fullName, dni, ruc }: Prop
             value={receiptName}
             onChange={e => setReceiptName(e.target.value)}
             placeholder={receiptType === 'boleta' ? 'Juan Pérez' : 'Mi Empresa S.A.C.'}
-            className="w-full border border-miski-sage rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-miski-lime/50 focus:border-miski-green transition-colors placeholder:text-gray-300 text-gray-800"
+            className="w-full border border-miski-border rounded-xl px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-miski-green/40 focus:border-miski-green transition-colors placeholder:text-miski-muted/60 text-miski-tinta"
           />
         </div>
         <p className="text-xs text-gray-400">
@@ -377,10 +377,10 @@ export function CheckoutForm({ walletBalance, userId, fullName, dni, ruc }: Prop
                 onClick={() => { setPaymentMethod(method); setUseWallet(false); setProofUrl(null); setProofFile(null) }}
                 className={`py-2.5 rounded-lg text-sm font-medium border transition-colors ${
                   paymentMethod === method
-                    ? 'border-miski-lime bg-miski-lime/10 text-miski-forest'
+                    ? 'border-miski-green bg-miski-green-soft text-miski-forest font-semibold'
                     : isDisabled
                       ? 'bg-gray-50 text-gray-300 border-gray-200 cursor-not-allowed'
-                      : 'border-miski-sage hover:border-miski-sage/80 bg-white text-gray-700'
+                      : 'border-miski-border hover:border-miski-green/60 bg-white text-miski-muted'
                 }`}
               >
                 {labels[method]}
@@ -474,7 +474,7 @@ export function CheckoutForm({ walletBalance, userId, fullName, dni, ruc }: Prop
           onChange={e => setCustomerNote(e.target.value)}
           placeholder="Nota al vendedor (opcional)"
           rows={2}
-          className="w-full border border-miski-sage rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-miski-lime/50 focus:border-miski-green transition-colors placeholder:text-gray-300 text-gray-800 resize-none"
+          className="w-full border border-miski-border rounded-xl px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-miski-green/40 focus:border-miski-green transition-colors placeholder:text-miski-muted/60 text-miski-tinta resize-none"
         />
       </section>
 
@@ -487,9 +487,9 @@ export function CheckoutForm({ walletBalance, userId, fullName, dni, ruc }: Prop
       <button
         type="submit"
         disabled={submitting || uploading || (paymentMethod === 'wallet' && walletBalance < subtotal)}
-        className="w-full bg-miski-forest text-white py-3 rounded-lg text-sm font-semibold hover:bg-miski-green transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full bg-miski-green text-white py-3 rounded-xl font-display text-sm font-semibold hover:bg-miski-forest transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        {submitting ? 'Procesando...' : `Confirmar pedido — ${formatCurrency(subtotal)}`}
+        {submitting ? 'Procesando…' : <>Confirmar pedido — <span className="tabular">{formatCurrency(subtotal)}</span></>}
       </button>
     </form>
   )
