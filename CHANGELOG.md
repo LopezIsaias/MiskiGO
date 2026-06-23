@@ -1,5 +1,17 @@
 # CHANGELOG — Miski GO
 
+## [2026-06-22] — Fix: aprobación de crédito/reembolso pendiente bloqueada por el guard de balance
+
+### Corregido
+- **Bug latente (destapado por Fase 3):** el trigger `protect_wallet_balance_fields` (mig 028) bloqueaba CUALQUIER cambio de `balance_before/after` en UPDATE. Pero aprobar un tx PENDIENTE recalcula esos campos contra el saldo ACTUAL del cliente; si el saldo cambió entre la propuesta y la aprobación, el trigger rechazaba la aprobación → reembolsos de Fase 3 y créditos/recargas pendientes podían quedar imposibles de aprobar. Reproducido en local.
+
+### Añadido
+- `supabase/migrations/20260622000039_wallet_balance_guard_fix.sql` — el guard ahora solo protege `balance_before/after` cuando el tx YA está `approved` (ledger congelado post-aprobación); la transición `pending → approved` puede fijarlos.
+
+### Notas
+- Validado en local: aprobación con saldo cambiado PASA; mutar un tx ya aprobado FALLA. unit 72/72, integración 46/46.
+- Aplicada a producción vía `db push`.
+
 ## [2026-06-22] — Fase 3 demanda-primero: aviso al cliente + propuesta de reembolso por ítem no disponible
 
 ### Contexto
