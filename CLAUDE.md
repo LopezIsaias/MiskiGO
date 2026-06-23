@@ -696,8 +696,9 @@ Construir estrictamente en este orden. No avanzar al siguiente paso sin que el a
 **Pasos completados:** 1 al 20 — MVP completo + mejoras posteriores (ver CHANGELOG). Esta sesión: **Fase 0 seguridad**, **Fase 1 demanda-primero** (catálogo desde `cycle_offerings`), **Fase 2** (captura on-behalf + auto-asignación confirmada), **Fase 3** (ítem failed en pedido pagado → aviso al cliente + propuesta de reembolso pendiente que aprueba el superadmin; pedido→failed si todos fallan). El approve-path usa `autoSourceOrderConfirmed`. Modelo: demanda-primero, catálogo fijo, se mantiene corte/ciclos; proveedor offline → operador siembra ofertas y captura sourcing.
 **Migraciones aplicadas:** `030`–`038` TODAS en producción vía `db push`. Fase 2 no tiene migración.
 **⚠️ DESPLIEGUE:** el código se despliega por `git push` a main (Vercel CD). Revisar que `origin/main` esté al día con los commits de Fase 0/1/2 — si la BD está migrada pero el código no desplegado, el catálogo del cliente queda vacío (código viejo lee `supplier_publications`).
-**Último commit:** fix guard de balance (mig 039; este commit; ver `git log -1`).
-**Migraciones aplicadas:** `030`–`039` TODAS en producción vía `db push`.
+**Último commit:** fix GAP delivered→completed + tooling de simulación (este commit; ver `git log -1`).
+**Migraciones aplicadas:** `030`–`039` TODAS en producción vía `db push`. (El cierre delivered→completed y el tooling son código, sin migración.)
+**Limpieza prod pendiente:** `scripts/cleanup-prod.sql` listo (conserva users/products/categories/regions/system_params; borra operativo + audit_log; saldo→0, reputación→100). Lo corre el usuario en el SQL Editor de Supabase tras backup. Prod verificado READY (región/categorías/productos/usuarios presentes; falta abrir ciclo + sembrar ofertas).
 **Próximo paso:** (1) Operación inicial en prod: abrir un ciclo + sembrar ofertas (*Ofertas del ciclo*); capturar oferta de proveedores (*Captura de oferta*) y asignar. Sin ofertas el catálogo está vacío. (2) Opcional/futuro: **sustitución** (ofrecer producto alternativo en vez de solo reembolsar) — más complejo, queda como mejora.
 **Bugs pendientes (de la batería de pruebas, por prioridad):**
 - ~~MED — cobertura parcial~~ → CORREGIDO 2026-06-15 (TODO-O-NADA: ítem cubierto por cantidad confirmada o falla entero restaurando stock).

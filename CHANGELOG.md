@@ -1,5 +1,20 @@
 # CHANGELOG — Miski GO
 
+## [2026-06-22] — Fix GAP: cierre de pedidos delivered → completed + herramientas de simulación/verificación
+
+### Corregido
+- **GAP — `completed` muerto:** ningún código transicionaba `delivered → completed` tras vencer la ventana de reclamo (§4 lo define; el enum lo tenía). Los pedidos entregados quedaban en `delivered` indefinidamente. Detectado por la simulación de flujo. El cron `expire-overdue-orders` ahora también marca `completed` los pedidos `delivered` con `claim_window_expires_at < now()` (auditado `order_completed`). Mismo schedule/auth; sin migración.
+
+### Añadido
+- `tests/integration/flow-simulation.test.ts` — simulación end-to-end con 1 usuario por rol: S1 camino feliz (pagado→asignado→entregado), S2 sin stock (ítem failed→reembolso pendiente→pedido failed), S3 entrega con reintento (`delivery_attempts`), S4 cierre delivered→completed.
+- `scripts/check-prereqs.mjs` — verifica (solo lectura) prerrequisitos para operar (regiones/categorías/productos/usuarios por rol/ciclos/ofertas). Útil contra prod.
+- Constante audit `ORDER_COMPLETED`.
+
+### Notas
+- Verificado en prod (solo lectura): región 1, categorías 13, productos 10, superadmin/operadores/repartidores/proveedores presentes; sin ciclos/ofertas abiertos (operativo).
+- Hallazgo menor (no corregido, es de diseño): "entregado a la primera vez" no se distingue por estado final (`delivered` en ambos casos), solo por `delivery_attempts`.
+- Validado: unit 72/72, integración 50/50, tsc + lint limpios.
+
 ## [2026-06-22] — Fix: aprobación de crédito/reembolso pendiente bloqueada por el guard de balance
 
 ### Corregido

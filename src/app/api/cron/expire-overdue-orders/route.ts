@@ -18,6 +18,30 @@ export async function GET(request: Request) {
   const adminClient = createAdminClient()
   const today = new Date().toISOString().slice(0, 10) // YYYY-MM-DD (fecha de despacho)
 
+  // ── Cierre de pedidos entregados cuya ventana de reclamo (2h) ya venció ──
+  // delivered → completed (§4). Independiente de los ciclos vencidos.
+  const nowIso = new Date().toISOString()
+  const { data: completedRows } = await adminClient
+    .from('orders')
+    .update({ status: 'completed' })
+    .eq('status', 'delivered')
+    .lt('claim_window_expires_at', nowIso)
+    .select('id')
+  const completed = completedRows?.length ?? 0
+  for (const o of completedRows ?? []) {
+    await adminClient.from('audit_log').insert({
+      user_id:      null,
+      role_at_time: 'system',
+      action:       AUDIT_ACTIONS.ORDER_COMPLETED,
+      module:       AUDIT_MODULES.ORDERS,
+      entity_type:  'order',
+      entity_id:    o.id,
+      previous_value: { status: 'delivered' },
+      new_value:      { status: 'completed' },
+      notes:        'Cerrado automáticamente: venció la ventana de reclamo',
+    })
+  }
+
   // Ciclos cuya fecha de despacho ya pasó
   const { data: cycles } = await adminClient
     .from('dispatch_cycles')
@@ -26,7 +50,7 @@ export async function GET(request: Request) {
 
   const cycleIds = (cycles ?? []).map((c: { id: string }) => c.id)
   if (cycleIds.length === 0) {
-    return NextResponse.json({ success: true, expired: 0 })
+    return NextResponse.json({ success: true, expired: 0, completed })
   }
 
   // Pedidos aún 'confirmed' en esos ciclos
@@ -97,5 +121,5 @@ export async function GET(request: Request) {
     expired++
   }
 
-  return NextResponse.json({ success: true, expired })
+  return NextResponse.json({ success: true, expired, completed })
 }
