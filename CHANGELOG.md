@@ -1,5 +1,16 @@
 # CHANGELOG — Miski GO
 
+## [2026-06-23b] — Validación integral de caminos + endpoint reabrir reclamo
+
+### Añadido
+- **`POST /api/admin/orders/[id]/reopen-claim`** (solo superadmin, §4): reabre el plazo de reclamo de un pedido entregado cuya ventana venció. Reextiende `claim_window_expires_at` a `now + CLAIM_WINDOW_HOURS` y, si el pedido ya estaba `completed`, lo regresa a `delivered` para volver a permitir reclamos. Audita `claim_window_reopened` (la constante y la descripción ya existían pero no había ruta) y notifica al cliente. Cierra el gap detectado en la validación.
+
+### Notas — validación integral de la lógica (tests TS + spot-check prod)
+- **Suite completa en verde:** 72 unit + 50 integración (Supabase local). Cubren asignación (split/desempate/corte/margen/sin-pub→pending/TODO-O-NADA), Fase-3, RPC de stock con concurrencia (sin sobreventa), triggers (`lock_order_on_payment`, ventana reclamo, inmutabilidad de `audit_log`/`wallet_transactions`/`receipts`), correlativo de comprobantes y RLS por rol.
+- **Spot-checks en prod (replicando rutas vía SQL + RPCs reales, luego limpiado):** aprobar/rechazar pago (rechazo con billetera: restaura stock + reembolsa saldo + `cancelled`), cancelación post-pago (solicitud cliente → operador ejecuta → bloqueo tras `assigned`), aprobación de reembolso por superadmin (`admin/wallet`), recepción con shortfall (compensación proporcional `pending` + ítem `rejected`), reclamo resuelto `wallet_credit` (auto-acredita), reserva anti-sobreventa (excluye self, ignora vencidas: 50−15=35), cron `confirmed`→`failed` por ciclo vencido, y el nuevo reopen (`completed`→`delivered` + ventana reabierta).
+- **Hallazgo de separación correcta (no bug):** `operator/wallet/[id]` solo aprueba `recharge`; `admin/wallet/[id]` (superadmin) aprueba `refund`/créditos. Los reembolsos Fase-3 sí tienen path de aprobación.
+- Prod re-truncada al baseline tras cada lote de pruebas (operativo + `audit_log` = 0; saldos→0, reputación→100; users/products/categorías/regiones/system_params conservados).
+
 ## [2026-06-23] — Validación end-to-end del flujo en prod (sin cambios de código)
 
 ### Notas
