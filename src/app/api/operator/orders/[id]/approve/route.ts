@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { AUDIT_ACTIONS, AUDIT_MODULES } from '@/lib/constants'
-import { autoSourceOrderConfirmed } from '@/lib/utils/supplier-assignment'
+import { autoSourceOrderConfirmed, proposeRefundsForFailedItems } from '@/lib/utils/supplier-assignment'
 
 export async function POST(
   _request: Request,
@@ -73,6 +73,9 @@ export async function POST(
   // no se capturó la oferta, los ítems quedan 'pending' y se asignan luego desde
   // "Captura de oferta" (operator/cycle/[id]/assign).
   const result = await autoSourceOrderConfirmed(adminClient, orderId)
+
+  // Fase 3: ítems sin stock en pedido pagado → propuesta de reembolso + aviso.
+  await proposeRefundsForFailedItems(adminClient, orderId)
 
   return NextResponse.json({ success: true, ...result })
 }

@@ -57,7 +57,7 @@ export function SourcingPanel({ cycles, suppliers, products }: Props) {
       const res = await fetch(`/api/operator/cycle/${cycleId}/assign`, { method: 'POST' })
       const d = await res.json()
       if (!res.ok) { setError(typeof d.error === 'string' ? d.error : 'Error al asignar'); return }
-      setAssignResult(`Pedidos: ${d.orders}. Ítems asignados: ${d.assigned}, fallidos: ${d.failed}, pendientes: ${d.pending}.`)
+      setAssignResult(`Pedidos: ${d.orders}. Ítems asignados: ${d.assigned}, fallidos: ${d.failed}, pendientes: ${d.pending}. Reembolsos propuestos: ${d.refundsProposed ?? 0}.`)
     } catch { setError('Error de conexión') } finally { setBusy(false) }
   }
 

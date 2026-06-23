@@ -6,7 +6,7 @@ import {
   createPublication, createCycle, createOrder,
   type TestUser,
 } from './helpers'
-import { autoSourceOrderConfirmed } from '@/lib/utils/supplier-assignment'
+import { autoSourceOrderConfirmed, proposeRefundsForFailedItems } from '@/lib/utils/supplier-assignment'
 
 async function createOrderItem(
   svc: SupabaseClient,
@@ -111,5 +111,53 @@ describe.skipIf(!INTEGRATION_ENABLED)('autoSourceOrderConfirmed — Fase 2 deman
     // precio 9 > 5 → no se asigna; sin otra oferta el ítem queda pending y el stock intacto.
     expect(await itemStatus(svc, itemId)).toBe('pending')
     expect(await pubQty(svc, pub)).toBe(10)
+  })
+
+  // ── Fase 3: propuesta de reembolso por ítem no disponible ──────────
+  it('propone reembolso PENDIENTE por ítem failed en pedido pagado, e idempotente', async () => {
+    const productId = await createProduct(svc)
+    const orderId = await createOrder(svc, { customerId: customer.id, cycleId, regionId, status: 'confirmed' })
+    const itemId = await createOrderItem(svc, { orderId, productId, quantity: 4 }) // subtotal_frozen = 20
+    await svc.from('order_items').update({ status: 'failed' }).eq('id', itemId)
+
+    const r1 = await proposeRefundsForFailedItems(svc, orderId)
+    expect(r1.proposed).toBe(1)
+
+    const { data: tx } = await svc
+      .from('wallet_transactions')
+      .select('amount, type, status')
+      .eq('reference_order_id', orderId)
+      .eq('type', 'refund')
+    expect(tx).toHaveLength(1)
+    expect(Number(tx![0].amount)).toBe(20)
+    expect(tx![0].status).toBe('pending')
+
+    // Idempotente: segunda corrida no duplica.
+    const r2 = await proposeRefundsForFailedItems(svc, orderId)
+    expect(r2.proposed).toBe(0)
+  })
+
+  it('marca el pedido failed si TODOS los ítems fallaron', async () => {
+    const productId = await createProduct(svc)
+    const orderId = await createOrder(svc, { customerId: customer.id, cycleId, regionId, status: 'confirmed' })
+    const itemId = await createOrderItem(svc, { orderId, productId, quantity: 2 })
+    await svc.from('order_items').update({ status: 'failed' }).eq('id', itemId)
+
+    const r = await proposeRefundsForFailedItems(svc, orderId)
+    expect(r.orderFailed).toBe(true)
+    expect(await orderStatus(svc, orderId)).toBe('failed')
+  })
+
+  it('NO propone reembolso si el pedido aún no está pagado', async () => {
+    const productId = await createProduct(svc)
+    const orderId = await createOrder(svc, { customerId: customer.id, cycleId, regionId, status: 'payment_submitted' })
+    const itemId = await createOrderItem(svc, { orderId, productId, quantity: 2 })
+    await svc.from('order_items').update({ status: 'failed' }).eq('id', itemId)
+
+    const r = await proposeRefundsForFailedItems(svc, orderId)
+    expect(r.proposed).toBe(0)
+    const { data: tx } = await svc
+      .from('wallet_transactions').select('id').eq('reference_order_id', orderId).eq('type', 'refund')
+    expect(tx ?? []).toHaveLength(0)
   })
 })

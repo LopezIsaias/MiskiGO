@@ -324,6 +324,112 @@ export async function autoSourceOrderConfirmed(
   }
 }
 
+/**
+ * Fase 3 (demanda-primero): reconcilia los order_items 'failed' de un pedido YA
+ * PAGADO. Por cada ítem fallido sin reembolso previo crea una propuesta de
+ * reembolso PENDIENTE (wallet_transactions type 'refund', status 'pending') por
+ * su subtotal congelado — el superadmin la aprueba en el módulo de billetera
+ * (respeta §3/§8: no es crédito silencioso). Avisa al cliente y a los operadores.
+ * Si TODOS los ítems del pedido fallaron, marca el pedido 'failed'.
+ * Idempotente: no duplica reembolsos (marcador en notes) ni reavisar sin novedad.
+ */
+export async function proposeRefundsForFailedItems(
+  admin: AdminClientLike,
+  orderId: string,
+): Promise<{ proposed: number; orderFailed: boolean }> {
+  const { data: order } = await admin
+    .from('orders')
+    .select('id, customer_id, status')
+    .eq('id', orderId)
+    .maybeSingle()
+  if (!order) return { proposed: 0, orderFailed: false }
+
+  // "Pagado" = más allá de validación de pago y no cancelado.
+  const paid = !['pending_payment', 'payment_submitted', 'cancelled'].includes(order.status)
+  if (!paid) return { proposed: 0, orderFailed: false }
+
+  const { data: items } = await admin
+    .from('order_items')
+    .select('id, status, subtotal_frozen')
+    .eq('order_id', orderId)
+  const allItems = items ?? []
+  const failed = allItems.filter(i => i.status === 'failed')
+  if (failed.length === 0) return { proposed: 0, orderFailed: false }
+
+  // Reembolsos ya propuestos para este pedido (marcador refund_item:<id> en notes).
+  const { data: existingTx } = await admin
+    .from('wallet_transactions')
+    .select('notes')
+    .eq('reference_order_id', orderId)
+    .eq('type', 'refund')
+  const alreadyRefunded = new Set(
+    (existingTx ?? [])
+      .map(t => /refund_item:([0-9a-f-]+)/.exec(t.notes ?? '')?.[1])
+      .filter((x): x is string => !!x),
+  )
+
+  const { data: customer } = await admin
+    .from('users').select('wallet_balance').eq('id', order.customer_id).maybeSingle()
+  const balance = Number(customer?.wallet_balance ?? 0)
+
+  let proposed = 0
+  for (const item of failed) {
+    if (alreadyRefunded.has(item.id)) continue
+    const amount = Number(item.subtotal_frozen)
+    const { error } = await admin.from('wallet_transactions').insert({
+      user_id: order.customer_id,
+      type: 'refund',
+      amount,
+      balance_before: balance,
+      balance_after: round3(balance + amount),
+      reference_order_id: orderId,
+      status: 'pending',
+      notes: `refund_item:${item.id} — producto no disponible (sin stock)`,
+    })
+    if (!error) proposed++
+  }
+
+  // Si todos los ítems fallaron, el pedido no puede avanzar → 'failed'.
+  const orderFailed = allItems.length > 0 && allItems.every(i => i.status === 'failed')
+  if (orderFailed && order.status !== 'failed') {
+    await admin.from('orders').update({ status: 'failed' }).eq('id', orderId)
+  }
+
+  // Avisos solo si hubo novedad (propuestas nuevas) — evita spam en re-runs.
+  if (proposed > 0) {
+    await admin.from('notifications').insert({
+      recipient_id: order.customer_id,
+      type: 'order_item_unavailable',
+      channel: 'whatsapp',
+      title: 'Producto no disponible en tu pedido',
+      body: `No pudimos conseguir ${proposed} producto(s) de tu pedido #${orderId.slice(0, 8).toUpperCase()}. Te reembolsaremos ese monto a tu billetera Miski GO una vez aprobado. Lamentamos el inconveniente.`,
+      reference_type: 'order',
+      reference_id: orderId,
+      status: 'pending',
+    })
+
+    const { data: ops } = await admin
+      .from('users').select('id').in('role', ['operator', 'superadmin']).eq('status', 'active').limit(5)
+    if (ops && ops.length > 0) {
+      await admin.from('notifications').insert(
+        ops.map((o: { id: string }) => ({
+          recipient_id: o.id,
+          type: 'refund_proposed',
+          channel: 'in_app',
+          title: 'Reembolso por ítem no disponible',
+          body: `Pedido #${orderId.slice(0, 8).toUpperCase()}: ${proposed} reembolso(s) propuesto(s) pendientes de aprobación del superadmin.`,
+          reference_type: 'order',
+          reference_id: orderId,
+          status: 'sent',
+          sent_at: new Date().toISOString(),
+        })),
+      )
+    }
+  }
+
+  return { proposed, orderFailed }
+}
+
 export interface AssignmentResult {
   allAssigned: boolean
   assignedItems: number

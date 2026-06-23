@@ -1,5 +1,23 @@
 # CHANGELOG — Miski GO
 
+## [2026-06-22] — Fase 3 demanda-primero: aviso al cliente + propuesta de reembolso por ítem no disponible
+
+### Contexto
+Cierra el edge case §12: cuando un order_item falla (sin stock/sustituto) en un pedido YA PAGADO, el cliente pagó por algo que no llega. Decisión del usuario: **propuesta de reembolso pendiente** (no crédito silencioso), respetando §3 (superadmin aprueba) y §8.
+
+### Añadido
+- `src/lib/utils/supplier-assignment.ts` → `proposeRefundsForFailedItems(admin, orderId)`: por cada ítem `failed` de un pedido pagado crea un `wallet_transactions` type `refund` status `pending` (monto = subtotal congelado), avisa al cliente (whatsapp) y a los operadores (in_app). Si TODOS los ítems fallaron, marca el pedido `failed`. Idempotente (marcador `refund_item:<id>` en notes; no reavisar sin novedad). El superadmin aprueba la propuesta en el módulo de billetera existente (aplica el saldo, auditado §8).
+- `tests/integration/auto-source.test.ts` — 3 pruebas: propuesta pendiente por monto correcto + idempotencia; pedido→failed si todos fallan; sin propuesta si el pedido no está pagado.
+
+### Modificado
+- `src/app/api/operator/orders/[id]/approve/route.ts` y `src/app/api/operator/cycle/[id]/assign/route.ts` — tras asignar, corren `proposeRefundsForFailedItems`. El endpoint de ciclo devuelve `refundsProposed`.
+- `src/components/operator/sourcing-panel.tsx` — el resultado de "Asignar pedidos" muestra reembolsos propuestos.
+
+### Notas
+- Sin migración (reusa `wallet_transactions` + flujo de aprobación del superadmin).
+- Sustitución (ofrecer producto alternativo) queda como futura (más compleja). MVP = aviso + reembolso propuesto.
+- Validado en local: **unit 72/72, integración 46/46**; tsc + lint limpios.
+
 ## [2026-06-22] — Fase 2 demanda-primero: captura de oferta on-behalf + auto-asignación confirmada
 
 ### Contexto

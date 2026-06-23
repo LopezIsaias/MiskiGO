@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { AUDIT_ACTIONS, AUDIT_MODULES } from '@/lib/constants'
-import { autoSourceOrderConfirmed } from '@/lib/utils/supplier-assignment'
+import { autoSourceOrderConfirmed, proposeRefundsForFailedItems } from '@/lib/utils/supplier-assignment'
 
 // POST: tras capturar la oferta del proveedor (publicaciones on-behalf), asigna
 // todos los pedidos 'confirmed' del ciclo a las publicaciones disponibles
@@ -45,10 +45,13 @@ export async function POST(
     .eq('dispatch_cycle_id', cycleId)
     .eq('status', 'confirmed')
 
-  let assigned = 0, failed = 0, pending = 0
+  let assigned = 0, failed = 0, pending = 0, refundsProposed = 0
   for (const o of orders ?? []) {
     const r = await autoSourceOrderConfirmed(admin, o.id)
     assigned += r.assigned; failed += r.failed; pending += r.pending
+    // Fase 3: ítems sin stock en pedido pagado → propuesta de reembolso + aviso.
+    const rr = await proposeRefundsForFailedItems(admin, o.id)
+    refundsProposed += rr.proposed
   }
 
   await admin.from('audit_log').insert({
@@ -59,8 +62,8 @@ export async function POST(
     region_id: cycle.region_id,
     entity_type: 'dispatch_cycle',
     entity_id: cycleId,
-    new_value: { orders: (orders ?? []).length, items_assigned: assigned, items_failed: failed, items_pending: pending },
+    new_value: { orders: (orders ?? []).length, items_assigned: assigned, items_failed: failed, items_pending: pending, refunds_proposed: refundsProposed },
   })
 
-  return NextResponse.json({ orders: (orders ?? []).length, assigned, failed, pending })
+  return NextResponse.json({ orders: (orders ?? []).length, assigned, failed, pending, refundsProposed })
 }
