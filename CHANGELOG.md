@@ -1,5 +1,13 @@
 # CHANGELOG — Miski GO
 
+## [2026-06-23] — Validación end-to-end del flujo en prod (sin cambios de código)
+
+### Notas
+- **Happy path validado en prod:** ciclo `open` → `cycle_offerings` (catálogo) → publicaciones capturadas on-behalf → pedido pagado (`confirmed`) → asignación (cheapest-first §4, margen, precios congelados, descuento de stock) → `in_transit` (ruta+parada) → `delivered` (recepción c/foto + código + ventana reclamo 2h) → `completed` (query exacta del cron al vencer la ventana). Asignación corrida con `scripts/fix-unassigned-orders.mjs` contra prod (`.env.local`); entrega/cierre replicados fiel a las rutas vía SQL (las rutas usan auth de cookie).
+- **Fase-3 validado en prod:** pedido con ítem de cobertura parcial (pub stock 4 < pedido 10, sin reemplazo) → `autoSourceOrderConfirmed` asigna 4 confirmado, gap no cubrible → `failOrderItemAllOrNothing` (TODO-O-NADA): stock restaurado vía RPC `restore_publication_stock` (4→0→4, pub reactivada), asignación+ítem `failed` → `proposeRefundsForFailedItems`: `wallet_transactions` refund **pending** S/80 (no crédito silencioso, §3/§8), aviso `order_item_unavailable`, pedido → `failed`. Ejercido con script throwaway que replica las dos funciones usando los RPCs reales; script eliminado tras validar.
+- RPCs `decrement_publication_stock` / `restore_publication_stock` confirmados operativos en prod.
+- **Limpieza:** datos de prueba sembrados hoy eliminados; tablas operativas + `audit_log` truncadas (vía MCP; `wallet_transactions`/`audit_log` son inmutables a DELETE — se usó TRUNCATE). Prod de vuelta al baseline (orders/cycles/offerings/pubs/asignaciones/rutas/recepciones/wallet/notifs/audit = 0; users/products/categorías/regiones/system_params conservados).
+
 ## [2026-06-22] — Fix GAP: cierre de pedidos delivered → completed + herramientas de simulación/verificación
 
 ### Corregido
