@@ -208,8 +208,8 @@ export async function POST(request: Request) {
 
     // Demanda-primero: NO se asigna proveedor en el checkout. Las publicaciones
     // (sourcing) pueden no existir aún; el operador captura la oferta real y la
-    // asignación corre en Fase 2 (runSupplierAssignment al aprobar pago / capturar).
-    // Los order_items quedan en 'pending'.
+    // asignación corre en Fase 2 (autoSourceOrderConfirmed: al aprobar pago o
+    // desde "Captura de oferta"). Los order_items quedan en 'pending'.
 
     // Wallet debit (admin client bypasses RLS on wallet_transactions)
     if (walletUsed > 0) {

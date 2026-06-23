@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { AUDIT_ACTIONS, AUDIT_MODULES } from '@/lib/constants'
-import { runSupplierAssignment } from '@/lib/utils/supplier-assignment'
+import { autoSourceOrderConfirmed } from '@/lib/utils/supplier-assignment'
 
 export async function POST(
   _request: Request,
@@ -28,7 +28,7 @@ export async function POST(
 
   const { data: order } = await adminClient
     .from('orders')
-    .select('id, status, dispatch_cycle_id')
+    .select('id, status')
     .eq('id', orderId)
     .maybeSingle()
 
@@ -36,12 +36,6 @@ export async function POST(
   if (order.status !== 'payment_submitted') {
     return NextResponse.json({ error: 'El pedido no está pendiente de validación' }, { status: 400 })
   }
-
-  const { data: cycle } = await adminClient
-    .from('dispatch_cycles')
-    .select('cutoff_at')
-    .eq('id', order.dispatch_cycle_id)
-    .maybeSingle()
 
   // setting payment_approved_at triggers the lock_order_on_payment DB trigger automatically
   const { error: updateErr } = await adminClient
@@ -74,13 +68,11 @@ export async function POST(
     new_value: { status: 'confirmed', approved_by: user.id },
   })
 
-  const result = await runSupplierAssignment({
-    orderId,
-    userId: user.id,
-    userRole: profile!.role,
-    cutoffAt: cycle?.cutoff_at ?? new Date().toISOString(),
-    operatorId: user.id,
-  })
+  // Demanda-primero: el proveedor está offline. Asignamos contra la oferta ya
+  // capturada (publicaciones on-behalf) creando asignaciones CONFIRMED. Si aún
+  // no se capturó la oferta, los ítems quedan 'pending' y se asignan luego desde
+  // "Captura de oferta" (operator/cycle/[id]/assign).
+  const result = await autoSourceOrderConfirmed(adminClient, orderId)
 
   return NextResponse.json({ success: true, ...result })
 }
