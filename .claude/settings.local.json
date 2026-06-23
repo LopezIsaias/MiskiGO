@@ -5,7 +5,21 @@
       "Bash(git commit -m ' *)",
       "PowerShell(npm run *)",
       "PowerShell(git *)",
-      "Bash(npm test *)"
+      "Bash(npm test *)",
+      "PowerShell(npx tsc --noEmit 2>&1 | Select-Object -Last 40)",
+      "PowerShell(npx supabase db push 2>&1 | Select-Object -Last 40)",
+      "Bash(node -e \"const p=require\\('./package.json'\\); console.log\\(JSON.stringify\\(p.scripts,null,2\\)\\); console.log\\('--- deps ---'\\); console.log\\(Object.keys\\({...p.dependencies,...p.devDependencies}\\).filter\\(d=>/playwright|puppeteer|cypress|vitest|jest/i.test\\(d\\)\\).join\\(', '\\)||'none'\\)\")",
+      "Bash(grep -qi \"Ready\\\\|started server\\\\|Local:\" \"C:\\\\Users\\\\ilbsa\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-ilbsa-OneDrive-Documentos-miski-go\\\\aff569dc-f70b-4a6d-9873-73aff2a208ab\\\\tasks\\\\bq5e023hk.output\")",
+      "Bash(break)",
+      "Bash(curl -s -o /dev/null -w \"status=%{http_code} redirect=%{redirect_url}\\\\n\" -L --max-redirs 0 http://localhost:3000/supplier/publications/new)",
+      "PowerShell(npx tsc --noEmit; \"tsc exit=$LASTEXITCODE\")",
+      "PowerShell(npx supabase start)",
+      "PowerShell(npm test *)",
+      "PowerShell(npx supabase migration up --local)",
+      "PowerShell(docker exec *)",
+      "PowerShell(git status --short; \"---branch---\"; git branch --show-current)",
+      "Bash(PGPASSWORD=postgres psql -h 127.0.0.1 -p 54322 -U postgres -d postgres -c \"\\\\d+ public.catalog_availability\")",
+      "Bash(docker exec *)"
     ]
   }
 }
