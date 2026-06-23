@@ -14,7 +14,8 @@
     "db:stop": "supabase stop",
     "db:reset": "supabase db reset",
     "db:env": "node scripts/gen-test-env.mjs",
-    "seed:admin": "node --env-file=.env.local scripts/create-superadmin.mjs"
+    "seed:admin": "node --env-file=.env.local scripts/create-superadmin.mjs",
+    "seed:example": "node --env-file=.env.test.local scripts/seed-example.mjs"
   },
   "dependencies": {
     "@googlemaps/js-api-loader": "^2.0.2",
