@@ -693,10 +693,11 @@ Construir estrictamente en este orden. No avanzar al siguiente paso sin que el a
 
 **Último agente:** Claude Code (claude-opus-4-8)
 **Fecha:** 2026-06-22
-**Pasos completados:** 1 al 20 — MVP completo + mejoras posteriores (ver CHANGELOG). Esta sesión: **Fase 0 seguridad** (🔴 trigger guard en `users`; 🟠 vista `catalog_availability` + drop policy 019) — aplicada a producción. **Fase 1 demanda-primero** (tabla `cycle_offerings`; catálogo/checkout/reserva leen de ofertas; UI operador para sembrar; engine guard sin-oferta→pending) — validada en local, **NO empujada a prod aún**. Modelo de oferta: demanda-primero, catálogo fijo, se mantiene corte/ciclos.
-**Último commit:** Fase 1 (este commit; ver `git log -1`).
-**Migraciones aplicadas:** `030`–`036` en remoto vía `db push`. `037` + `038` SOLO en LOCAL (Fase 1) — pendientes de push coordinado con el sembrado de ofertas.
-**Próximo paso:** (1) Empujar `037`+`038` a prod y abrir un ciclo + sembrar ofertas (sin esto el catálogo queda vacío). (2) **Fase 2**: el operador captura la oferta real del proveedor (publicaciones on-behalf, RLS ya lo permite) y dispara `runSupplierAssignment`; revisar que el approve-path y los pedidos con billetera (que ya no asignan en checkout) se asignen al capturar. (3) **Fase 3**: gap real < pedido → sustitución/aviso al cliente.
+**Pasos completados:** 1 al 20 — MVP completo + mejoras posteriores (ver CHANGELOG). Esta sesión: **Fase 0 seguridad**, **Fase 1 demanda-primero** (catálogo desde `cycle_offerings`), **Fase 2** (captura on-behalf + auto-asignación confirmada). Modelo: demanda-primero, catálogo fijo, se mantiene corte/ciclos; proveedor offline → operador siembra ofertas y captura sourcing.
+**Migraciones aplicadas:** `030`–`038` TODAS en producción vía `db push`. Fase 2 no tiene migración.
+**⚠️ DESPLIEGUE:** el código se despliega por `git push` a main (Vercel CD). Revisar que `origin/main` esté al día con los commits de Fase 0/1/2 — si la BD está migrada pero el código no desplegado, el catálogo del cliente queda vacío (código viejo lee `supplier_publications`).
+**Último commit:** Fase 2 (este commit; ver `git log -1`).
+**Próximo paso:** (1) Operación inicial en prod: abrir un ciclo + sembrar ofertas (*Ofertas del ciclo*); capturar oferta de proveedores (*Captura de oferta*) y asignar. Sin ofertas el catálogo está vacío. (2) **Fase 3**: gap real < pedido → sustitución/aviso al cliente (cierra edge case §12). (3) Revisar: el approve-path de pago aún llama `runSupplierAssignment` (crea PENDING que el proveedor offline no confirma) — evaluar migrarlo a `autoSourceOrderConfirmed` para consistencia con Fase 2.
 **Bugs pendientes (de la batería de pruebas, por prioridad):**
 - ~~MED — cobertura parcial~~ → CORREGIDO 2026-06-15 (TODO-O-NADA: ítem cubierto por cantidad confirmada o falla entero restaurando stock).
 - ~~MED — stock huérfano al rechazar proveedor~~ → CORREGIDO 2026-06-15 (`fail` restaura stock vía RPC).

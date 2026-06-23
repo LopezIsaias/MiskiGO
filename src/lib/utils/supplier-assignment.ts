@@ -227,6 +227,103 @@ export async function fetchReplacementCandidates(
   return (data ?? []) as unknown as ReplacementCandidate[]
 }
 
+/**
+ * Fase 2 (demanda-primero): el proveedor está offline; el operador capturó la
+ * oferta real como supplier_publications on-behalf. Esta función asigna los
+ * order_items 'pending' del pedido a esas publicaciones (cheapest-first §4,
+ * guard de margen) creando asignaciones CONFIRMED directamente (no hay paso de
+ * confirmación del proveedor) y descontando stock atómicamente. La cobertura se
+ * resuelve con resolveOrderItemCoverage (TODO-O-NADA). Un ítem sin NINGUNA
+ * publicación disponible queda 'pending' (no se fuerza a 'failed').
+ */
+export async function autoSourceOrderConfirmed(
+  admin: AdminClientLike,
+  orderId: string,
+): Promise<{ assigned: number; failed: number; pending: number }> {
+  const { data: order } = await admin
+    .from('orders')
+    .select('region_id')
+    .eq('id', orderId)
+    .maybeSingle()
+  const regionId = order?.region_id ?? null
+
+  const { data: rawItems } = await admin
+    .from('order_items')
+    .select('id, quantity, unit_price_frozen, product_id, status')
+    .eq('order_id', orderId)
+    .eq('status', 'pending')
+
+  const items = (rawItems ?? []) as Array<{
+    id: string; quantity: number; unit_price_frozen: number; product_id: string
+  }>
+  const now = new Date().toISOString()
+
+  for (const item of items) {
+    const { data: confirmedAsgs } = await admin
+      .from('order_item_assignments')
+      .select('assigned_quantity')
+      .eq('order_item_id', item.id)
+      .eq('status', 'confirmed')
+    const covered = (confirmedAsgs ?? []).reduce((s, a) => round3(s + Number(a.assigned_quantity)), 0)
+    let remaining = round3(Number(item.quantity) - covered)
+
+    if (remaining > 0.001) {
+      let pubQuery = admin
+        .from('supplier_publications')
+        .select('id, available_quantity, supplier_id, minimum_price, published_at, supplier:users!supplier_id(reputation_score)')
+        .eq('product_id', item.product_id)
+        .eq('status', 'active')
+        .gt('available_quantity', 0)
+      if (regionId) pubQuery = pubQuery.eq('region_id', regionId)
+      const { data: rawPubs } = await pubQuery
+
+      const pubs = ((rawPubs ?? []) as unknown as PublicationWithRep[]).sort(comparePublicationsForAssignment)
+
+      for (const pub of pubs) {
+        if (remaining <= 0.001) break
+        if (pub.minimum_price > item.unit_price_frozen) continue // guard de margen §4
+        const deducted = await decrementPublicationStock(admin, pub.id, remaining)
+        if (deducted <= 0) continue
+        remaining = round3(remaining - deducted)
+        await admin.from('order_item_assignments').insert({
+          order_item_id: item.id,
+          publication_id: pub.id,
+          supplier_id: pub.supplier_id,
+          assigned_quantity: deducted,
+          supplier_price_frozen: pub.minimum_price,
+          platform_margin_frozen: Math.round((item.unit_price_frozen - pub.minimum_price) * 100) / 100,
+          status: 'confirmed',
+          confirmed_at: now,
+        })
+      }
+    }
+
+    // Si el ítem no tiene NINGUNA asignación, no hay oferta capturada → sigue 'pending'.
+    const { data: anyAsg } = await admin
+      .from('order_item_assignments')
+      .select('id')
+      .eq('order_item_id', item.id)
+      .limit(1)
+    if (!anyAsg || anyAsg.length === 0) continue
+
+    await resolveOrderItemCoverage(admin, item.id, 'Sourcing operador: stock insuficiente (TODO-O-NADA)')
+  }
+
+  await tryAdvanceOrderToAssigned(admin, orderId)
+
+  // Recuento final del pedido
+  const { data: finalItems } = await admin
+    .from('order_items')
+    .select('status')
+    .eq('order_id', orderId)
+  const f = finalItems ?? []
+  return {
+    assigned: f.filter(i => i.status === 'assigned').length,
+    failed:   f.filter(i => i.status === 'failed').length,
+    pending:  f.filter(i => i.status === 'pending').length,
+  }
+}
+
 export interface AssignmentResult {
   allAssigned: boolean
   assignedItems: number

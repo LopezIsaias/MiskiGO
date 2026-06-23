@@ -99,6 +99,7 @@ export const AUDIT_ACTIONS = {
   DISPATCH_CYCLE_STATUS_CHANGED: 'dispatch_cycle_status_changed',
   DISPATCH_CYCLE_CREATED:        'dispatch_cycle_created',
   CYCLE_OFFERING_UPSERTED:       'cycle_offering_upserted',
+  SUPPLIER_PUBLICATION_CAPTURED: 'supplier_publication_captured',
   ORDER_DELIVERED:            'order_delivered',
   DELIVERY_INCIDENT:          'delivery_incident',
   CLAIM_RESOLVED:             'claim_resolved',

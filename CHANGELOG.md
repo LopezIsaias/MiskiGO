@@ -1,5 +1,22 @@
 # CHANGELOG — Miski GO
 
+## [2026-06-22] — Fase 2 demanda-primero: captura de oferta on-behalf + auto-asignación confirmada
+
+### Contexto
+El proveedor está offline (no usa la app). El operador captura su oferta real (por teléfono/campo) EN SU NOMBRE como `supplier_publications`, y luego asigna los pedidos del ciclo a esa oferta. Como el proveedor no confirma, las asignaciones se crean CONFIRMED directamente. Cierra el hueco de Fase 1 (order_items quedaban `pending`).
+
+### Añadido
+- `src/lib/utils/supplier-assignment.ts` → `autoSourceOrderConfirmed(admin, orderId)`: asigna los order_items `pending` a publicaciones disponibles (cheapest-first §4 + guard de margen), CONFIRMED, descuento atómico; resuelve cobertura con `resolveOrderItemCoverage` (TODO-O-NADA). Ítem sin NINGUNA publicación → queda `pending` (no se fuerza a `failed`).
+- `src/app/api/operator/publications/route.ts` — POST: captura una publicación EN NOMBRE de un proveedor, atada al ciclo (expires_at = cutoff). Auditado (`supplier_publication_captured`).
+- `src/app/api/operator/cycle/[id]/assign/route.ts` — POST: corre `autoSourceOrderConfirmed` sobre todos los pedidos `confirmed` del ciclo. Auditado.
+- `src/app/(operator)/operator/sourcing/page.tsx` + `src/components/operator/sourcing-panel.tsx` — UI operador: registrar oferta de proveedor + botón "Asignar pedidos del ciclo".
+- `tests/integration/auto-source.test.ts` — 4 pruebas: oferta suficiente→assigned; sin oferta→pending; oferta insuficiente→TODO-O-NADA fail + stock restaurado; guard de margen descarta pub cara.
+- Constante audit `SUPPLIER_PUBLICATION_CAPTURED`; link de nav "Captura de oferta".
+
+### Notas
+- Sin migración (usa `supplier_publications` y `order_item_assignments` existentes).
+- Validado en local: **unit 72/72, integración 43/43**; tsc + lint limpios.
+
 ## [2026-06-22] — Fase 1 demanda-primero: catálogo desacoplado de la publicación del proveedor
 
 ### Contexto
