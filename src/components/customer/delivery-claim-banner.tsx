@@ -24,8 +24,8 @@ export function DeliveryClaimBanner({ orderId, claimWindowExpiresAt }: Props) {
   const limitTime = formatTime(claimWindowExpiresAt)
 
   return (
-    <div className="rounded-xl border border-miski-gold/40 bg-miski-gold-light/20 p-4 space-y-3 mt-3">
-      <p className="text-sm text-amber-800 leading-relaxed">
+    <div className="rounded-xl border border-miski-gold/40 bg-miski-gold-light/25 p-4 space-y-3 mt-3">
+      <p className="text-sm text-miski-forest leading-relaxed">
         {'🌱 ¡Tu pedido ha llegado! Esperamos que estés disfrutando productos frescos directo del campo. '}
         {windowOpen
           ? `Si notas algún inconveniente, tienes hasta las ${limitTime} para reportarlo desde la app. Después de ese plazo no podremos procesar cambios en este pedido. `
@@ -35,12 +35,12 @@ export function DeliveryClaimBanner({ orderId, claimWindowExpiresAt }: Props) {
       {windowOpen ? (
         <Link
           href={`/customer/orders/${orderId}/claim`}
-          className="inline-block px-4 py-2 rounded-lg text-sm font-semibold text-white bg-miski-forest hover:bg-miski-green transition-all active:scale-[0.98]"
+          className="inline-block px-4 py-2 rounded-xl font-display text-sm font-semibold text-white bg-miski-green hover:bg-miski-forest transition-colors"
         >
           Reportar problema
         </Link>
       ) : (
-        <span className="text-xs text-gray-400 font-medium">Plazo de reclamo vencido</span>
+        <span className="text-xs text-miski-muted font-medium">Plazo de reclamo vencido</span>
       )}
     </div>
   )

@@ -76,21 +76,21 @@ export function NotificationBell() {
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute left-0 top-10 z-50 w-80 bg-white rounded-xl shadow-lg border border-miski-sage/40 overflow-hidden">
-            <div className="px-4 py-3 border-b border-miski-sage/20">
-              <p className="text-sm font-semibold text-miski-forest">Notificaciones</p>
+          <div className="absolute left-0 top-10 z-50 w-80 bg-white rounded-2xl shadow-lg border border-miski-border overflow-hidden">
+            <div className="px-4 py-3 border-b border-miski-border bg-miski-green-soft">
+              <p className="font-display text-sm font-bold text-miski-forest">Notificaciones</p>
             </div>
-            <div className="max-h-80 overflow-y-auto divide-y divide-miski-sage/20">
+            <div className="max-h-80 overflow-y-auto divide-y divide-miski-border">
               {data.notifications.length === 0 ? (
-                <p className="text-sm text-gray-400 text-center py-6">Sin notificaciones</p>
+                <p className="text-sm text-miski-muted text-center py-6">Sin notificaciones</p>
               ) : (
                 data.notifications.map(n => (
-                  <div key={n.id} className={`px-4 py-3 ${!n.read_at ? 'bg-miski-lime/10' : ''}`}>
+                  <div key={n.id} className={`px-4 py-3 ${!n.read_at ? 'bg-miski-lime-pale' : ''}`}>
                     {n.title && (
                       <p className="text-xs font-semibold text-miski-forest mb-0.5">{n.title}</p>
                     )}
-                    <p className="text-xs text-gray-600 leading-relaxed line-clamp-3">{n.body}</p>
-                    <p className="text-xs text-gray-400 mt-1">{timeAgo(n.created_at)}</p>
+                    <p className="text-xs text-miski-tinta leading-relaxed line-clamp-3">{n.body}</p>
+                    <p className="text-xs text-miski-muted mt-1">{timeAgo(n.created_at)}</p>
                   </div>
                 ))
               )}

@@ -94,7 +94,7 @@ export function WalletRechargeForm() {
           Tu comprobante está en revisión. El tiempo estimado de validación es de{' '}
           <strong>1 a 3 horas en horario laboral</strong>.
         </p>
-        <p className="text-xs text-miski-olive mt-1">
+        <p className="text-xs text-miski-muted mt-1">
           Te notificaremos cuando tu saldo sea actualizado.
         </p>
       </div>
@@ -102,7 +102,7 @@ export function WalletRechargeForm() {
   }
 
   return (
-    <div className="bg-white rounded-xl border border-miski-sage/40 p-5 space-y-5">
+    <div className="bg-white rounded-xl border border-miski-border p-5 space-y-5">
       <h2 className="text-sm font-semibold text-miski-forest">Recargar billetera</h2>
 
       {/* Amount presets + custom */}
@@ -116,8 +116,8 @@ export function WalletRechargeForm() {
               onClick={() => setAmount(String(p))}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
                 amount === String(p)
-                  ? 'border-miski-lime bg-miski-lime/10 text-miski-forest'
-                  : 'bg-white text-gray-600 border-miski-sage hover:border-miski-sage/80'
+                  ? 'border-miski-green bg-miski-green-soft text-miski-forest'
+                  : 'bg-white text-miski-muted border-miski-border hover:border-miski-green/60'
               }`}
             >
               {formatCurrency(p)}
@@ -131,7 +131,7 @@ export function WalletRechargeForm() {
           value={amount}
           onChange={e => setAmount(e.target.value)}
           placeholder="Otro monto"
-          className="w-40 border border-miski-sage rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-miski-lime/50 focus:border-miski-green transition-colors placeholder:text-gray-300 text-gray-800"
+          className="w-40 tabular border border-miski-border rounded-xl px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-miski-green/40 focus:border-miski-green transition-colors placeholder:text-miski-muted/60 text-miski-tinta"
         />
       </div>
 
@@ -146,8 +146,8 @@ export function WalletRechargeForm() {
               onClick={() => setMethod(m)}
               className={`px-4 py-2 rounded-lg text-xs font-semibold border transition-colors ${
                 method === m
-                  ? 'border-miski-lime bg-miski-lime/10 text-miski-forest'
-                  : 'bg-white text-gray-600 border-miski-sage hover:border-miski-sage/80'
+                  ? 'border-miski-green bg-miski-green-soft text-miski-forest'
+                  : 'bg-white text-miski-muted border-miski-border hover:border-miski-green/60'
               }`}
             >
               {m === 'yape' ? 'Yape' : 'Transferencia'}
@@ -172,7 +172,7 @@ export function WalletRechargeForm() {
             <img
               src={proofPreview}
               alt="Comprobante"
-              className="w-32 h-32 object-cover rounded-lg border border-miski-sage/40"
+              className="w-32 h-32 object-cover rounded-lg border border-miski-border"
             />
             <button
               type="button"
@@ -186,7 +186,7 @@ export function WalletRechargeForm() {
           <button
             type="button"
             onClick={() => inputRef.current?.click()}
-            className="border-2 border-dashed border-miski-sage rounded-lg px-6 py-4 text-sm text-gray-400 hover:border-miski-green hover:text-miski-forest transition-colors"
+            className="border-2 border-dashed border-miski-border rounded-xl px-6 py-4 text-sm text-miski-muted hover:border-miski-green hover:text-miski-forest transition-colors"
           >
             Subir comprobante
           </button>
@@ -201,7 +201,7 @@ export function WalletRechargeForm() {
         type="button"
         onClick={() => void handleSubmit()}
         disabled={!canSubmit}
-        className="px-5 py-2.5 rounded-lg text-sm font-semibold text-white bg-miski-forest hover:bg-miski-green transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+        className="px-5 py-2.5 rounded-xl font-display text-sm font-semibold text-white bg-miski-green hover:bg-miski-forest transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {uploading ? 'Subiendo comprobante…' : saving ? 'Registrando…' : 'Confirmar recarga'}
       </button>

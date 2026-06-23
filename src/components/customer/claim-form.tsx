@@ -154,7 +154,7 @@ export function ClaimForm({ orderId, items, claimWindowExpiresAt, deliveredAt, c
       <div className="bg-miski-lime/15 border border-miski-green/30 rounded-xl p-8 text-center space-y-3">
         <p className="text-3xl">✅</p>
         <p className="text-sm font-semibold text-miski-forest">Reclamo enviado correctamente</p>
-        <p className="text-xs text-miski-olive">El operador revisará tu caso y se comunicará contigo.</p>
+        <p className="text-xs text-miski-muted">El operador revisará tu caso y se comunicará contigo.</p>
         <a href="/customer/orders" className="inline-block mt-2 text-sm text-miski-green underline">
           Volver a mis pedidos
         </a>
@@ -165,8 +165,8 @@ export function ClaimForm({ orderId, items, claimWindowExpiresAt, deliveredAt, c
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Deadline warning */}
-      <div className="bg-miski-gold-light/20 border border-miski-gold/40 rounded-xl px-4 py-3">
-        <p className="text-xs text-amber-800">
+      <div className="bg-miski-gold-light/25 border border-miski-gold/40 rounded-xl px-4 py-3">
+        <p className="text-xs text-miski-forest">
           Puedes reportar problemas hasta las{' '}
           <span className="font-semibold">{formatTime(claimWindowExpiresAt)}</span>
         </p>
@@ -177,7 +177,7 @@ export function ClaimForm({ orderId, items, claimWindowExpiresAt, deliveredAt, c
         <p className="text-sm font-semibold text-miski-forest mb-1">
           Foto del problema <span className="text-red-500">*</span>
         </p>
-        <p className="text-xs text-miski-olive mb-3">
+        <p className="text-xs text-miski-muted mb-3">
           Sube una foto clara del producto recibido que muestre el problema. Usa la foto
           original (con su fecha), no una captura de pantalla ni una imagen editada.
         </p>
@@ -269,10 +269,10 @@ export function ClaimForm({ orderId, items, claimWindowExpiresAt, deliveredAt, c
                   />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-miski-forest">{item.productName}</p>
-                    <p className="text-xs text-miski-olive">{item.orderedQuantity} {item.unit}</p>
+                    <p className="text-xs text-miski-muted">{item.orderedQuantity} {item.unit}</p>
                   </div>
                   {item.alreadyClaimed && (
-                    <span className="text-xs text-miski-olive bg-miski-sage/20 px-2 py-0.5 rounded-full shrink-0">
+                    <span className="text-xs text-miski-muted bg-miski-sage/20 px-2 py-0.5 rounded-full shrink-0">
                       Ya reclamado
                     </span>
                   )}
@@ -291,7 +291,7 @@ export function ClaimForm({ orderId, items, claimWindowExpiresAt, deliveredAt, c
                         step={1}
                         value={state.claimedQuantity}
                         onChange={e => updateField(item.productId, 'claimedQuantity', parseInt(e.target.value, 10) || 1)}
-                        className="w-full border border-miski-sage rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-miski-lime/50 focus:border-miski-green transition-colors text-gray-800"
+                        className="w-full tabular border border-miski-border rounded-xl px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-miski-green/40 focus:border-miski-green transition-colors text-miski-tinta"
                       />
                     </div>
                     <div>
@@ -303,7 +303,7 @@ export function ClaimForm({ orderId, items, claimWindowExpiresAt, deliveredAt, c
                         value={state.reason}
                         onChange={e => updateField(item.productId, 'reason', e.target.value)}
                         placeholder="Ej: llegó en mal estado, incompleto, diferente a lo pedido…"
-                        className="w-full text-sm border border-miski-sage rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-miski-lime/50 focus:border-miski-green transition-colors placeholder:text-gray-300 text-gray-800 resize-none"
+                        className="w-full text-sm border border-miski-border rounded-xl px-3 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-miski-green/40 focus:border-miski-green transition-colors placeholder:text-miski-muted/60 text-miski-tinta resize-none"
                       />
                     </div>
                   </div>
@@ -323,7 +323,7 @@ export function ClaimForm({ orderId, items, claimWindowExpiresAt, deliveredAt, c
       <button
         type="submit"
         disabled={submitting || uploadingPhoto || !photoUrl || selectedCount === 0}
-        className="w-full py-3 rounded-xl text-sm font-semibold text-white bg-miski-forest hover:bg-miski-green disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-[0.98]"
+        className="w-full py-3 rounded-xl font-display text-sm font-semibold text-white bg-miski-green hover:bg-miski-forest disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
       >
         {submitting
           ? 'Enviando…'

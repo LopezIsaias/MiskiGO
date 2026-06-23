@@ -30,8 +30,8 @@ export function OrderStatusBar({ status }: Props) {
 
   if (status === 'in_storage') {
     return (
-      <div className="mt-4 rounded-xl bg-miski-gold-light/20 border border-miski-gold/40 px-4 py-2.5">
-        <p className="text-xs font-semibold text-amber-800">En almacén — esperando coordinación de entrega</p>
+      <div className="mt-4 rounded-xl bg-miski-gold-light/25 border border-miski-gold/40 px-4 py-2.5">
+        <p className="text-xs font-semibold text-miski-forest">En almacén — esperando coordinación de entrega</p>
       </div>
     )
   }
@@ -55,12 +55,12 @@ export function OrderStatusBar({ status }: Props) {
                       ? 'bg-miski-green border-miski-green'
                       : active
                         ? 'bg-white border-miski-green ring-2 ring-miski-lime/40'
-                        : 'bg-white border-miski-sage'
+                        : 'bg-white border-miski-border'
                   }`}
                 />
                 <span
                   className={`mt-1 text-[9px] leading-tight text-center w-14 ${
-                    active ? 'text-miski-forest font-semibold' : done ? 'text-miski-olive' : 'text-gray-400'
+                    active ? 'text-miski-forest font-semibold' : done ? 'text-miski-green' : 'text-miski-muted'
                   }`}
                 >
                   {step.label}
@@ -68,7 +68,7 @@ export function OrderStatusBar({ status }: Props) {
               </div>
               {/* Conector */}
               {!isLast && (
-                <div className={`h-0.5 flex-1 -mt-4 ${i < current ? 'bg-miski-green' : 'bg-miski-sage/50'}`} />
+                <div className={`h-0.5 flex-1 -mt-4 ${i < current ? 'bg-miski-green' : 'bg-miski-border'}`} />
               )}
             </div>
           )

@@ -22,8 +22,8 @@ const TX_STATUS_LABEL: Record<string, string> = {
 }
 
 const TX_STATUS_COLOR: Record<string, string> = {
-  pending:  'bg-miski-gold-light/40 text-amber-800',
-  approved: 'bg-miski-lime/20 text-miski-forest',
+  pending:  'bg-miski-gold-light/50 text-miski-forest',
+  approved: 'bg-miski-green-soft text-miski-forest',
   rejected: 'bg-red-100 text-red-700',
 }
 
@@ -71,19 +71,19 @@ export default async function WalletPage() {
 
   return (
     <div className="max-w-2xl space-y-6">
-      <h1 className="text-2xl font-bold text-miski-forest">Mi billetera</h1>
+      <h1 className="font-display text-2xl font-bold text-miski-forest">Mi billetera</h1>
 
       {/* Balance card */}
-      <div className="bg-white rounded-xl border border-miski-sage/40 shadow-sm p-6">
-        <p className="block text-xs font-semibold text-miski-forest/70 uppercase tracking-wider mb-1.5">Saldo disponible</p>
-        <p className="text-4xl font-bold text-miski-forest">{formatCurrency(walletBalance)}</p>
+      <div className="bg-miski-forest rounded-2xl shadow-sm p-6">
+        <p className="block text-xs font-semibold text-miski-lime uppercase tracking-wider mb-1.5">Saldo disponible</p>
+        <p className="font-display text-4xl font-extrabold tabular text-white">{formatCurrency(walletBalance)}</p>
         {pendingRecharges > 0 && (
-          <p className="text-xs text-yellow-600 mt-2">
+          <p className="text-xs text-miski-lime-light mt-2">
             Tienes {pendingRecharges} recarga{pendingRecharges > 1 ? 's' : ''} en revisión que no están incluidas en este monto.
           </p>
         )}
         {pendingRecharges === 0 && (
-          <p className="text-xs text-gray-400 mt-2">
+          <p className="text-xs text-white/60 mt-2">
             Solo se acredita saldo aprobado.
           </p>
         )}
@@ -97,7 +97,7 @@ export default async function WalletPage() {
           <h2 className="block text-xs font-semibold text-miski-forest/70 uppercase tracking-wider mb-3">
             Historial de movimientos
           </h2>
-          <div className="bg-white rounded-xl border border-miski-sage/40 divide-y divide-miski-sage/20">
+          <div className="bg-white rounded-2xl border border-miski-border divide-y divide-miski-border">
             {transactions.map(tx => {
               const isCredit = ['recharge', 'refund', 'bonus', 'adjustment'].includes(tx.type)
               const orderId  = tx.reference_order?.id.slice(0, 8).toUpperCase()
@@ -109,24 +109,24 @@ export default async function WalletPage() {
                       <span className="text-sm font-medium text-miski-forest">
                         {TX_TYPE_LABEL[tx.type] ?? tx.type}
                       </span>
-                      <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${TX_STATUS_COLOR[tx.status] ?? 'bg-miski-gold-light/40 text-amber-800'}`}>
+                      <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${TX_STATUS_COLOR[tx.status] ?? 'bg-miski-gold-light/50 text-miski-forest'}`}>
                         {TX_STATUS_LABEL[tx.status] ?? tx.status}
                       </span>
                     </div>
-                    <p className="text-xs text-gray-400">{formatDateTime(tx.created_at)}</p>
+                    <p className="text-xs text-miski-muted">{formatDateTime(tx.created_at)}</p>
                     {orderId && (
-                      <p className="text-xs text-gray-400 mt-0.5">Pedido #{orderId}</p>
+                      <p className="text-xs text-miski-muted mt-0.5">Pedido #{orderId}</p>
                     )}
                     {tx.status === 'rejected' && tx.notes && (
                       <p className="text-xs text-red-500 mt-0.5 italic">{tx.notes}</p>
                     )}
                     {tx.status === 'pending' && tx.type === 'recharge' && (
-                      <p className="text-xs text-yellow-600 mt-0.5">
+                      <p className="text-xs text-miski-gold mt-0.5">
                         Tiempo estimado: 1 a 3 horas en horario laboral
                       </p>
                     )}
                   </div>
-                  <span className={`shrink-0 text-base font-bold ${isCredit ? 'text-miski-forest' : 'text-red-500'}`}>
+                  <span className={`shrink-0 tabular text-base font-bold ${isCredit ? 'text-miski-forest' : 'text-red-500'}`}>
                     {isCredit ? '+' : '−'}{formatCurrency(tx.amount)}
                   </span>
                 </div>
@@ -137,7 +137,7 @@ export default async function WalletPage() {
       )}
 
       {transactions.length === 0 && (
-        <p className="text-sm text-gray-400">No hay movimientos en tu billetera aún.</p>
+        <p className="text-sm text-miski-muted">No hay movimientos en tu billetera aún.</p>
       )}
     </div>
   )

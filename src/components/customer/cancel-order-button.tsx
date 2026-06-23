@@ -64,7 +64,7 @@ export function CancelOrderButton({ orderId, alreadyRequested }: Props) {
 
   return (
     <div className="mt-3 rounded-xl border border-red-200 bg-red-50/50 px-4 py-3 space-y-2">
-      <p className="text-xs text-gray-600">
+      <p className="text-xs text-miski-tinta">
         Tu pedido ya está pagado. La cancelación y el reembolso serán revisados y aprobados o denegados por un operador en un plazo máximo de 2 horas.
       </p>
       <textarea
@@ -72,7 +72,7 @@ export function CancelOrderButton({ orderId, alreadyRequested }: Props) {
         onChange={e => setReason(e.target.value)}
         placeholder="Motivo (opcional)"
         rows={2}
-        className="w-full border border-miski-sage rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-miski-lime/50 focus:border-miski-green transition-colors placeholder:text-gray-300 text-gray-800 resize-none"
+        className="w-full border border-miski-border rounded-xl px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-miski-green/40 focus:border-miski-green transition-colors placeholder:text-miski-muted/60 text-miski-tinta resize-none"
       />
       {error && <p className="text-xs text-red-600">{error}</p>}
       <div className="flex gap-2">
@@ -88,7 +88,7 @@ export function CancelOrderButton({ orderId, alreadyRequested }: Props) {
           type="button"
           onClick={() => { setOpen(false); setError(null) }}
           disabled={submitting}
-          className="px-4 py-2 rounded-lg text-xs font-semibold text-gray-600 border border-miski-sage hover:bg-white transition-colors"
+          className="px-4 py-2 rounded-xl text-xs font-semibold text-miski-tinta border border-miski-border hover:bg-white transition-colors"
         >
           Volver
         </button>

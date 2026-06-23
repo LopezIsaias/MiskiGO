@@ -14,8 +14,8 @@ const STATUS_LABEL: Record<string, string> = {
 }
 
 const STATUS_COLOR: Record<string, string> = {
-  pending:            'bg-miski-gold-light/40 text-amber-800',
-  approved:           'bg-miski-lime/20 text-miski-forest',
+  pending:            'bg-miski-gold-light/50 text-miski-forest',
+  approved:           'bg-miski-green-soft text-miski-forest',
   partially_approved: 'bg-miski-lime/20 text-miski-forest',
   rejected:           'bg-red-100 text-red-700',
 }
@@ -61,39 +61,39 @@ export default async function CustomerClaimsPage() {
 
   return (
     <div className="max-w-2xl">
-      <h1 className="text-2xl font-bold text-miski-forest mb-6">Mis reclamos</h1>
+      <h1 className="font-display text-2xl font-bold text-miski-forest mb-6">Mis reclamos</h1>
 
       {claims.length === 0 ? (
-        <p className="text-gray-400 text-sm">Aún no has hecho reclamos.</p>
+        <p className="text-miski-muted text-sm">Aún no has hecho reclamos.</p>
       ) : (
         <div className="space-y-4">
           {claims.map(claim => (
-            <div key={claim.id} className="bg-white rounded-xl border border-miski-sage/40 shadow-sm p-5">
+            <div key={claim.id} className="bg-white rounded-xl border border-miski-border shadow-sm p-5">
               <div className="flex items-start justify-between gap-3 mb-3">
                 <div>
-                  <p className="text-xs text-gray-400">
+                  <p className="text-xs text-miski-muted">
                     {formatDate(claim.created_at)} · Pedido #{claim.order_id.slice(0, 8).toUpperCase()}
                   </p>
                   <p className="text-sm font-semibold text-miski-forest mt-0.5">
                     {claim.product?.name ?? '—'}
-                    <span className="text-gray-400 font-normal ml-1">
+                    <span className="text-miski-muted font-normal ml-1">
                       · {claim.claimed_quantity} {claim.product?.unit ?? ''}
                     </span>
                   </p>
                 </div>
-                <span className={`shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full ${STATUS_COLOR[claim.status] ?? 'bg-gray-100 text-gray-600'}`}>
+                <span className={`shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full ${STATUS_COLOR[claim.status] ?? 'bg-gray-100 text-miski-tinta'}`}>
                   {STATUS_LABEL[claim.status] ?? claim.status}
                 </span>
               </div>
 
-              <p className="text-xs text-gray-600 mb-3">{claim.reason}</p>
+              <p className="text-xs text-miski-tinta mb-3">{claim.reason}</p>
 
               {/* Resolución */}
               {claim.status !== 'pending' && (
-                <div className="border-t border-miski-sage/20 pt-3 space-y-1.5">
+                <div className="border-t border-miski-border pt-3 space-y-1.5">
                   {claim.resolution_type && (
                     <div className="flex justify-between text-xs">
-                      <span className="text-miski-olive">Resolución</span>
+                      <span className="text-miski-muted">Resolución</span>
                       <span className="font-medium text-miski-forest">
                         {RESOLUTION_LABEL[claim.resolution_type] ?? claim.resolution_type}
                       </span>
@@ -101,14 +101,14 @@ export default async function CustomerClaimsPage() {
                   )}
                   {claim.resolution_amount !== null && (
                     <div className="flex justify-between text-xs">
-                      <span className="text-miski-olive">Monto</span>
-                      <span className="font-bold text-miski-forest">{formatCurrency(claim.resolution_amount)}</span>
+                      <span className="text-miski-muted">Monto</span>
+                      <span className="tabular font-bold text-miski-forest">{formatCurrency(claim.resolution_amount)}</span>
                     </div>
                   )}
                   {claim.resolved_at && (
                     <div className="flex justify-between text-xs">
-                      <span className="text-miski-olive">Resuelto</span>
-                      <span className="text-gray-600">{formatDate(claim.resolved_at)}</span>
+                      <span className="text-miski-muted">Resuelto</span>
+                      <span className="text-miski-tinta">{formatDate(claim.resolved_at)}</span>
                     </div>
                   )}
 
@@ -125,7 +125,7 @@ export default async function CustomerClaimsPage() {
                     </a>
                   ) : (
                     (claim.resolution_type === 'wallet_credit' || claim.resolution_type === 'external_refund') && (
-                      <p className="text-xs text-gray-400 mt-2">Comprobante de devolución no disponible.</p>
+                      <p className="text-xs text-miski-muted mt-2">Comprobante de devolución no disponible.</p>
                     )
                   )}
                 </div>
