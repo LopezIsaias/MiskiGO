@@ -43,6 +43,10 @@ export const CUTOFF_HOUR = 12  // mediodía hora Lima
 // Vigencia de una reserva de stock al agregar al carrito (minutos)
 export const RESERVATION_TTL_MINUTES = 30
 
+// Plazo para que el cliente responda una propuesta de sustitución (horas).
+// Al vencer, el cron la marca 'expired' y cae al reembolso de la Fase 3.
+export const SUBSTITUTION_PROPOSAL_TTL_HOURS = 48
+
 // Transiciones permitidas del ciclo de despacho: open → closed → in_progress → completed
 export const CYCLE_TRANSITIONS: Record<string, string> = {
   open:        'closed',

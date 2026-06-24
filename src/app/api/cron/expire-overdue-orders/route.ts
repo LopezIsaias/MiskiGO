@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { AUDIT_ACTIONS, AUDIT_MODULES, ORDER_STATUSES } from '@/lib/constants'
 import { restorePublicationStock } from '@/lib/utils/stock'
+import { expireStaleSubstitutions } from '@/lib/utils/substitution'
 
 // Cron: marca como 'failed' los pedidos que siguen 'confirmed' pese a que su
 // fecha de despacho ya pasó (nunca fueron asignados/entregados). Libera el
@@ -42,6 +43,9 @@ export async function GET(request: Request) {
     })
   }
 
+  // Vencer propuestas de sustitución sin respuesta del cliente (cae al reembolso Fase 3).
+  const { expired: substitutionsExpired } = await expireStaleSubstitutions(adminClient)
+
   // Ciclos cuya fecha de despacho ya pasó
   const { data: cycles } = await adminClient
     .from('dispatch_cycles')
@@ -50,7 +54,7 @@ export async function GET(request: Request) {
 
   const cycleIds = (cycles ?? []).map((c: { id: string }) => c.id)
   if (cycleIds.length === 0) {
-    return NextResponse.json({ success: true, expired: 0, completed })
+    return NextResponse.json({ success: true, expired: 0, completed, substitutionsExpired })
   }
 
   // Pedidos aún 'confirmed' en esos ciclos
@@ -121,5 +125,5 @@ export async function GET(request: Request) {
     expired++
   }
 
-  return NextResponse.json({ success: true, expired, completed })
+  return NextResponse.json({ success: true, expired, completed, substitutionsExpired })
 }

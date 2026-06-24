@@ -1,5 +1,15 @@
 # CHANGELOG — Miski GO
 
+## [2026-06-24d] — Auto-expiración de propuestas de sustitución
+
+### Añadido
+- **`expireStaleSubstitutions`** (en `lib/utils/substitution.ts`): vence las propuestas `proposed` que el cliente no respondió en `SUBSTITUTION_PROPOSAL_TTL_HOURS` (48h) → marca `expired`, audita, y cae al reembolso de la Fase 3 (idempotente) para desatascar el pedido. Helper puro `isProposalExpired` + constante nueva.
+- Integrado en el cron diario existente `expire-overdue-orders` (sin nuevo schedule). Devuelve `substitutionsExpired` en la respuesta.
+- Tests unit: `isProposalExpired` (3 casos, incl. límite). Suite unit 78→81 en verde.
+
+### Nota
+- Tests de integración de sustitución (accept/reject/expire contra BD) pendientes: requieren stack Supabase local (`npm run test:integration`); la lógica de precio y vencimiento está cubierta por unit tests.
+
 ## [2026-06-24c] — Gate de /style-guide en producción
 
 ### Modificado

@@ -1,5 +1,5 @@
 import type { createAdminClient } from '@/lib/supabase/admin'
-import { AUDIT_ACTIONS, AUDIT_MODULES } from '@/lib/constants'
+import { AUDIT_ACTIONS, AUDIT_MODULES, SUBSTITUTION_PROPOSAL_TTL_HOURS } from '@/lib/constants'
 import { decrementPublicationStock, restorePublicationStock } from '@/lib/utils/stock'
 import { proposeRefundsForFailedItems, tryAdvanceOrderToAssigned } from '@/lib/utils/supplier-assignment'
 
@@ -24,6 +24,11 @@ export function validateSubstitutionPrice(
 /** Diferencia a favor del cliente (≥ 0) que se acredita a billetera. */
 export function substitutionPriceDifference(original: number, charged: number, quantity: number): number {
   return round2((original - charged) * quantity)
+}
+
+/** ¿La propuesta venció? (proposedAt + TTL < now). Puro, testeable. */
+export function isProposalExpired(proposedAt: string, now: Date, ttlHours: number): boolean {
+  return new Date(proposedAt).getTime() + ttlHours * 60 * 60 * 1000 < now.getTime()
 }
 
 export interface ProposeResult { ok: boolean; error?: string; substitutionId?: string }
@@ -318,4 +323,49 @@ export async function rejectSubstitution(
   })
 
   return { ok: true }
+}
+
+/**
+ * Cron: vence las propuestas 'proposed' que el cliente no respondió dentro del
+ * plazo (SUBSTITUTION_PROPOSAL_TTL_HOURS) y cae al reembolso de la Fase 3 para
+ * desatascar el pedido. Idempotente (proposeRefundsForFailedItems no duplica).
+ */
+export async function expireStaleSubstitutions(
+  admin: AdminClientLike,
+): Promise<{ expired: number }> {
+  const now = new Date()
+  const cutoff = new Date(now.getTime() - SUBSTITUTION_PROPOSAL_TTL_HOURS * 60 * 60 * 1000).toISOString()
+
+  const { data: stale } = await admin
+    .from('order_item_substitutions')
+    .select('id, order_id, order_item_id')
+    .eq('status', 'proposed')
+    .lt('proposed_at', cutoff)
+
+  const rows = stale ?? []
+  if (rows.length === 0) return { expired: 0 }
+
+  const orderIds = new Set<string>()
+  for (const s of rows) {
+    await admin.from('order_item_substitutions')
+      .update({ status: 'expired', responded_at: now.toISOString() })
+      .eq('id', s.id)
+    await admin.from('audit_log').insert({
+      user_id:      null,
+      role_at_time: 'system',
+      action:       AUDIT_ACTIONS.SUBSTITUTION_REJECTED,
+      module:       AUDIT_MODULES.ORDERS,
+      entity_type:  'order_item',
+      entity_id:    s.order_item_id,
+      new_value:    { substitution_id: s.id, expired: true },
+      notes:        'Propuesta vencida sin respuesta del cliente',
+    })
+    orderIds.add(s.order_id)
+  }
+
+  for (const orderId of orderIds) {
+    await proposeRefundsForFailedItems(admin, orderId)
+  }
+
+  return { expired: rows.length }
 }
