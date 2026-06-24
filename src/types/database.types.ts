@@ -77,57 +77,6 @@ export type Database = {
           },
         ]
       }
-      cycle_offerings: {
-        Row: {
-          id: string
-          dispatch_cycle_id: string
-          product_id: string
-          expected_quantity: number
-          sale_price: number
-          status: string
-          created_by: string | null
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          dispatch_cycle_id: string
-          product_id: string
-          expected_quantity: number
-          sale_price: number
-          status?: string
-          created_by?: string | null
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          dispatch_cycle_id?: string
-          product_id?: string
-          expected_quantity?: number
-          sale_price?: number
-          status?: string
-          created_by?: string | null
-          created_at?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "cycle_offerings_dispatch_cycle_id_fkey"
-            columns: ["dispatch_cycle_id"]
-            isOneToOne: false
-            referencedRelation: "dispatch_cycles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "cycle_offerings_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "products"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       claims: {
         Row: {
           claimed_quantity: number
@@ -136,12 +85,15 @@ export type Database = {
           id: string
           is_justified: boolean | null
           order_id: string
+          photo_metadata: Json | null
+          photo_taken_at: string | null
           photo_url: string
+          photo_verification: string | null
           product_id: string
           reason: string
           resolution_amount: number | null
-          resolution_type: string | null
           resolution_proof_url: string | null
+          resolution_type: string | null
           resolved_at: string | null
           resolved_by: string | null
           status: string
@@ -153,12 +105,15 @@ export type Database = {
           id?: string
           is_justified?: boolean | null
           order_id: string
+          photo_metadata?: Json | null
+          photo_taken_at?: string | null
           photo_url: string
+          photo_verification?: string | null
           product_id: string
           reason: string
           resolution_amount?: number | null
-          resolution_type?: string | null
           resolution_proof_url?: string | null
+          resolution_type?: string | null
           resolved_at?: string | null
           resolved_by?: string | null
           status?: string
@@ -170,12 +125,15 @@ export type Database = {
           id?: string
           is_justified?: boolean | null
           order_id?: string
+          photo_metadata?: Json | null
+          photo_taken_at?: string | null
           photo_url?: string
+          photo_verification?: string | null
           product_id?: string
           reason?: string
           resolution_amount?: number | null
-          resolution_type?: string | null
           resolution_proof_url?: string | null
+          resolution_type?: string | null
           resolved_at?: string | null
           resolved_by?: string | null
           status?: string
@@ -207,6 +165,64 @@ export type Database = {
             columns: ["resolved_by"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cycle_offerings: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          dispatch_cycle_id: string
+          expected_quantity: number
+          id: string
+          product_id: string
+          sale_price: number
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          dispatch_cycle_id: string
+          expected_quantity: number
+          id?: string
+          product_id: string
+          sale_price: number
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          dispatch_cycle_id?: string
+          expected_quantity?: number
+          id?: string
+          product_id?: string
+          sale_price?: number
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cycle_offerings_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cycle_offerings_dispatch_cycle_id_fkey"
+            columns: ["dispatch_cycle_id"]
+            isOneToOne: false
+            referencedRelation: "dispatch_cycles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cycle_offerings_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
             referencedColumns: ["id"]
           },
         ]
@@ -475,6 +491,102 @@ export type Database = {
           },
         ]
       }
+      order_item_substitutions: {
+        Row: {
+          charged_unit_price: number
+          created_at: string
+          expires_at: string | null
+          id: string
+          notes: string | null
+          order_id: string
+          order_item_id: string
+          original_unit_price: number
+          price_difference: number
+          proposed_at: string
+          proposed_by: string
+          publication_id: string
+          quantity: number
+          responded_at: string | null
+          status: string
+          substitute_product_id: string
+          updated_at: string
+        }
+        Insert: {
+          charged_unit_price: number
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          notes?: string | null
+          order_id: string
+          order_item_id: string
+          original_unit_price: number
+          price_difference?: number
+          proposed_at?: string
+          proposed_by: string
+          publication_id: string
+          quantity: number
+          responded_at?: string | null
+          status?: string
+          substitute_product_id: string
+          updated_at?: string
+        }
+        Update: {
+          charged_unit_price?: number
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          notes?: string | null
+          order_id?: string
+          order_item_id?: string
+          original_unit_price?: number
+          price_difference?: number
+          proposed_at?: string
+          proposed_by?: string
+          publication_id?: string
+          quantity?: number
+          responded_at?: string | null
+          status?: string
+          substitute_product_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_item_substitutions_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_item_substitutions_order_item_id_fkey"
+            columns: ["order_item_id"]
+            isOneToOne: false
+            referencedRelation: "order_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_item_substitutions_proposed_by_fkey"
+            columns: ["proposed_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_item_substitutions_publication_id_fkey"
+            columns: ["publication_id"]
+            isOneToOne: false
+            referencedRelation: "supplier_publications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_item_substitutions_substitute_product_id_fkey"
+            columns: ["substitute_product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       order_items: {
         Row: {
           created_at: string
@@ -525,14 +637,16 @@ export type Database = {
       }
       orders: {
         Row: {
-          cancellation_requested_at: string | null
           cancellation_reason: string | null
+          cancellation_requested_at: string | null
           claim_window_expires_at: string | null
           created_at: string
           customer_id: string
           customer_note: string | null
           delivered_at: string | null
           delivery_address: string
+          delivery_attempts: number
+          delivery_confirmation_code: string | null
           delivery_fee: number
           delivery_lat: number | null
           delivery_lng: number | null
@@ -546,9 +660,9 @@ export type Database = {
           payment_approved_by: string | null
           payment_method: string | null
           payment_proof_url: string | null
-          receipt_type: string | null
           receipt_document: string | null
           receipt_name: string | null
+          receipt_type: string | null
           region_id: string
           status: string
           subtotal: number
@@ -556,14 +670,16 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          cancellation_requested_at?: string | null
           cancellation_reason?: string | null
+          cancellation_requested_at?: string | null
           claim_window_expires_at?: string | null
           created_at?: string
           customer_id: string
           customer_note?: string | null
           delivered_at?: string | null
           delivery_address: string
+          delivery_attempts?: number
+          delivery_confirmation_code?: string | null
           delivery_fee?: number
           delivery_lat?: number | null
           delivery_lng?: number | null
@@ -577,9 +693,9 @@ export type Database = {
           payment_approved_by?: string | null
           payment_method?: string | null
           payment_proof_url?: string | null
-          receipt_type?: string | null
           receipt_document?: string | null
           receipt_name?: string | null
+          receipt_type?: string | null
           region_id: string
           status?: string
           subtotal?: number
@@ -587,14 +703,16 @@ export type Database = {
           updated_at?: string
         }
         Update: {
-          cancellation_requested_at?: string | null
           cancellation_reason?: string | null
+          cancellation_requested_at?: string | null
           claim_window_expires_at?: string | null
           created_at?: string
           customer_id?: string
           customer_note?: string | null
           delivered_at?: string | null
           delivery_address?: string
+          delivery_attempts?: number
+          delivery_confirmation_code?: string | null
           delivery_fee?: number
           delivery_lat?: number | null
           delivery_lng?: number | null
@@ -608,9 +726,9 @@ export type Database = {
           payment_approved_by?: string | null
           payment_method?: string | null
           payment_proof_url?: string | null
-          receipt_type?: string | null
           receipt_document?: string | null
           receipt_name?: string | null
+          receipt_type?: string | null
           region_id?: string
           status?: string
           subtotal?: number
@@ -654,6 +772,7 @@ export type Database = {
           id: string
           method: string
           order_id: string
+          photo_metadata: Json | null
           proof_url: string
           rejection_reason: string | null
           reviewed_at: string | null
@@ -666,6 +785,7 @@ export type Database = {
           id?: string
           method: string
           order_id: string
+          photo_metadata?: Json | null
           proof_url: string
           rejection_reason?: string | null
           reviewed_at?: string | null
@@ -678,6 +798,7 @@ export type Database = {
           id?: string
           method?: string
           order_id?: string
+          photo_metadata?: Json | null
           proof_url?: string
           rejection_reason?: string | null
           reviewed_at?: string | null
@@ -849,6 +970,84 @@ export type Database = {
           },
         ]
       }
+      receipt_counters: {
+        Row: {
+          last_number: number
+          series: string
+        }
+        Insert: {
+          last_number?: number
+          series: string
+        }
+        Update: {
+          last_number?: number
+          series?: string
+        }
+        Relationships: []
+      }
+      receipts: {
+        Row: {
+          correlative: number
+          created_at: string
+          customer_id: string
+          customer_name: string
+          document: string
+          id: string
+          issued_at: string
+          number: string
+          order_id: string
+          series: string
+          subtotal: number
+          total: number
+          type: string
+        }
+        Insert: {
+          correlative: number
+          created_at?: string
+          customer_id: string
+          customer_name: string
+          document: string
+          id?: string
+          issued_at?: string
+          number: string
+          order_id: string
+          series: string
+          subtotal: number
+          total: number
+          type: string
+        }
+        Update: {
+          correlative?: number
+          created_at?: string
+          customer_id?: string
+          customer_name?: string
+          document?: string
+          id?: string
+          issued_at?: string
+          number?: string
+          order_id?: string
+          series?: string
+          subtotal?: number
+          total?: number
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "receipts_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "receipts_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: true
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reception_records: {
         Row: {
           created_at: string
@@ -856,6 +1055,7 @@ export type Database = {
           dispatch_cycle_id: string
           expected_quantity: number
           id: string
+          photo_metadata: Json | null
           photo_url: string
           product_id: string
           received_quantity: number
@@ -870,6 +1070,7 @@ export type Database = {
           dispatch_cycle_id: string
           expected_quantity: number
           id?: string
+          photo_metadata?: Json | null
           photo_url: string
           product_id: string
           received_quantity: number
@@ -884,6 +1085,7 @@ export type Database = {
           dispatch_cycle_id?: string
           expected_quantity?: number
           id?: string
+          photo_metadata?: Json | null
           photo_url?: string
           product_id?: string
           received_quantity?: number
@@ -1010,6 +1212,54 @@ export type Database = {
           },
         ]
       }
+      stock_reservations: {
+        Row: {
+          created_at: string
+          customer_id: string
+          expires_at: string
+          id: string
+          product_id: string
+          quantity: number
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          customer_id: string
+          expires_at: string
+          id?: string
+          product_id: string
+          quantity: number
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          customer_id?: string
+          expires_at?: string
+          id?: string
+          product_id?: string
+          quantity?: number
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_reservations_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_reservations_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       supplier_publications: {
         Row: {
           available_quantity: number
@@ -1074,6 +1324,41 @@ export type Database = {
           },
         ]
       }
+      system_params: {
+        Row: {
+          description: string | null
+          key: string
+          label: string
+          updated_at: string | null
+          updated_by: string | null
+          value: string
+        }
+        Insert: {
+          description?: string | null
+          key: string
+          label: string
+          updated_at?: string | null
+          updated_by?: string | null
+          value: string
+        }
+        Update: {
+          description?: string | null
+          key?: string
+          label?: string
+          updated_at?: string | null
+          updated_by?: string | null
+          value?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "system_params_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       users: {
         Row: {
           created_at: string
@@ -1085,6 +1370,7 @@ export type Database = {
           must_change_password: boolean
           phone: string | null
           region_id: string | null
+          reliability_score: number | null
           reputation_score: number
           role: string
           ruc: string | null
@@ -1102,6 +1388,7 @@ export type Database = {
           must_change_password?: boolean
           phone?: string | null
           region_id?: string | null
+          reliability_score?: number | null
           reputation_score?: number
           role: string
           ruc?: string | null
@@ -1119,6 +1406,7 @@ export type Database = {
           must_change_password?: boolean
           phone?: string | null
           region_id?: string | null
+          reliability_score?: number | null
           reputation_score?: number
           role?: string
           ruc?: string | null
@@ -1146,6 +1434,7 @@ export type Database = {
           created_at: string
           id: string
           notes: string | null
+          photo_metadata: Json | null
           proof_url: string | null
           reference_order_id: string | null
           status: string
@@ -1161,6 +1450,7 @@ export type Database = {
           created_at?: string
           id?: string
           notes?: string | null
+          photo_metadata?: Json | null
           proof_url?: string | null
           reference_order_id?: string | null
           status?: string
@@ -1176,6 +1466,7 @@ export type Database = {
           created_at?: string
           id?: string
           notes?: string | null
+          photo_metadata?: Json | null
           proof_url?: string | null
           reference_order_id?: string | null
           status?: string
@@ -1206,191 +1497,51 @@ export type Database = {
           },
         ]
       }
-      system_params: {
+    }
+    Views: {
+      catalog_availability: {
         Row: {
-          key: string
-          value: string
-          label: string
+          category_name: string | null
           description: string | null
-          updated_by: string | null
-          updated_at: string
-        }
-        Insert: {
-          key: string
-          value: string
-          label: string
-          description?: string | null
-          updated_by?: string | null
-          updated_at?: string
-        }
-        Update: {
-          key?: string
-          value?: string
-          label?: string
-          description?: string | null
-          updated_by?: string | null
-          updated_at?: string
+          image_url: string | null
+          name: string | null
+          nearest_cutoff: string | null
+          product_id: string | null
+          region_id: string | null
+          sale_price: number | null
+          total_available: number | null
+          unit: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "system_params_updated_by_fkey"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      receipts: {
-        Row: {
-          id: string
-          order_id: string
-          customer_id: string
-          type: string
-          series: string
-          correlative: number
-          number: string
-          document: string
-          customer_name: string
-          subtotal: number
-          total: number
-          issued_at: string
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          order_id: string
-          customer_id: string
-          type: string
-          series: string
-          correlative: number
-          number: string
-          document: string
-          customer_name: string
-          subtotal: number
-          total: number
-          issued_at?: string
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          order_id?: string
-          customer_id?: string
-          type?: string
-          series?: string
-          correlative?: number
-          number?: string
-          document?: string
-          customer_name?: string
-          subtotal?: number
-          total?: number
-          issued_at?: string
-          created_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "receipts_order_id_fkey"
-            columns: ["order_id"]
-            isOneToOne: true
-            referencedRelation: "orders"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "receipts_customer_id_fkey"
-            columns: ["customer_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      receipt_counters: {
-        Row: {
-          series: string
-          last_number: number
-        }
-        Insert: {
-          series: string
-          last_number?: number
-        }
-        Update: {
-          series?: string
-          last_number?: number
-        }
-        Relationships: []
-      }
-      stock_reservations: {
-        Row: {
-          id: string
-          customer_id: string
-          product_id: string
-          quantity: number
-          expires_at: string
-          status: string
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          customer_id: string
-          product_id: string
-          quantity: number
-          expires_at: string
-          status?: string
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          customer_id?: string
-          product_id?: string
-          quantity?: number
-          expires_at?: string
-          status?: string
-          created_at?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "stock_reservations_customer_id_fkey"
-            columns: ["customer_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "stock_reservations_product_id_fkey"
+            foreignKeyName: "cycle_offerings_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "dispatch_cycles_region_id_fkey"
+            columns: ["region_id"]
+            isOneToOne: false
+            referencedRelation: "regions"
+            referencedColumns: ["id"]
+          },
         ]
       }
     }
-    Views: {
-      catalog_availability: {
-        Row: {
-          product_id: string
-          name: string
-          unit: string
-          image_url: string | null
-          description: string | null
-          category_name: string
-          total_available: number
-          sale_price: number
-          nearest_cutoff: string
-          region_id: string
-        }
-        Relationships: []
-      }
-    }
     Functions: {
+      decrement_publication_stock: {
+        Args: { p_pub_id: string; p_qty: number }
+        Returns: number
+      }
       get_user_region_id: { Args: never; Returns: string }
       get_user_role: { Args: never; Returns: string }
       next_receipt_correlative: { Args: { p_series: string }; Returns: number }
-      decrement_publication_stock: { Args: { p_pub_id: string; p_qty: number }; Returns: number }
-      restore_publication_stock: { Args: { p_pub_id: string; p_qty: number }; Returns: number }
+      restore_publication_stock: {
+        Args: { p_pub_id: string; p_qty: number }
+        Returns: number
+      }
     }
     Enums: {
       [_ in never]: never
@@ -1592,3 +1743,8 @@ export type ClaimInsert               = DBTables['claims']['Insert']
 export type ReputationEventInsert     = DBTables['reputation_events']['Insert']
 export type NotificationInsert        = DBTables['notifications']['Insert']
 export type ProductSuggestionInsert   = DBTables['product_suggestions']['Insert']
+
+// ─── Sustitución (migración 040) ─────────────────────────────────────────────
+export type SubstitutionStatus       = 'proposed' | 'accepted' | 'rejected' | 'expired'
+export type OrderItemSubstitution    = DBTables['order_item_substitutions']['Row']
+export type OrderItemSubstitutionInsert = DBTables['order_item_substitutions']['Insert']

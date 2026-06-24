@@ -7,6 +7,7 @@ import { formatDate, formatCurrency } from '@/lib/utils'
 import { DeliveryClaimBanner } from '@/components/customer/delivery-claim-banner'
 import { OrderStatusBar } from '@/components/customer/order-status-bar'
 import { CancelOrderButton } from '@/components/customer/cancel-order-button'
+import { SubstitutionProposalBanner, type SubstitutionProposal } from '@/components/customer/substitution-proposal-banner'
 
 export const metadata: Metadata = { title: 'Mis pedidos' }
 
@@ -79,6 +80,39 @@ export default async function OrdersPage() {
 
   const orders = (rawOrders ?? []) as unknown as RawOrder[]
 
+  // Propuestas de sustitución pendientes (Fase 3) para los pedidos del cliente.
+  const orderIds = orders.map(o => o.id)
+  const proposalsByOrder: Record<string, SubstitutionProposal[]> = {}
+  if (orderIds.length > 0) {
+    const { data: rawSubs } = await adminClient
+      .from('order_item_substitutions')
+      .select(`
+        id, order_id, quantity, charged_unit_price, price_difference,
+        substitute:products!substitute_product_id(name, unit),
+        order_item:order_items!order_item_id(product:products!product_id(name))
+      `)
+      .in('order_id', orderIds)
+      .eq('status', 'proposed')
+
+    type RawSub = {
+      id: string; order_id: string; quantity: number; charged_unit_price: number; price_difference: number
+      substitute: { name: string; unit: string } | null
+      order_item: { product: { name: string } | null } | null
+    }
+    for (const s of (rawSubs ?? []) as unknown as RawSub[]) {
+      ;(proposalsByOrder[s.order_id] ??= []).push({
+        id:               s.id,
+        orderId:          s.order_id,
+        originalName:     s.order_item?.product?.name ?? 'un producto',
+        substituteName:   s.substitute?.name ?? 'un producto alternativo',
+        quantity:         Number(s.quantity),
+        unit:             s.substitute?.unit ?? '',
+        chargedUnitPrice: Number(s.charged_unit_price),
+        priceDifference:  Number(s.price_difference),
+      })
+    }
+  }
+
   return (
     <div className="max-w-2xl">
       <h1 className="font-display text-2xl font-bold text-miski-forest mb-6">Mis pedidos</h1>
@@ -125,6 +159,11 @@ export default async function OrdersPage() {
 
               {/* Barra de estado del pedido */}
               <OrderStatusBar status={order.status} />
+
+              {/* Propuestas de sustitución pendientes */}
+              {(proposalsByOrder[order.id] ?? []).map(p => (
+                <SubstitutionProposalBanner key={p.id} proposal={p} />
+              ))}
 
               {/* Aviso neutral para pedidos vencidos aún sin resolver */}
               {isOverdue && (

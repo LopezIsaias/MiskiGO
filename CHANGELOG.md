@@ -1,5 +1,32 @@
 # CHANGELOG — Miski GO
 
+## [2026-06-24b] — Sustitución de ítem fallido (producto alternativo)
+
+### Añadido
+- **Sustitución (§4):** por un `order_item` 'failed' (sin stock, TODO-O-NADA) el operador puede PROPONER un producto alternativo en vez de solo reembolsar (Fase 3). El cliente lo ACEPTA o RECHAZA desde la app (consentimiento → respeta inmutabilidad post-pago).
+- **Migración 040** `order_item_substitutions` (+ RLS, índice único de propuesta activa por ítem, CHECK `charged_unit_price <= original_unit_price`). **Aplicada en prod** vía MCP; tipos regenerados.
+- **`src/lib/utils/substitution.ts`**: `proposeSubstitution`, `acceptSubstitution`, `rejectSubstitution` + helpers puros `validateSubstitutionPrice` / `substitutionPriceDifference` (testeados).
+- **API**: `POST /api/operator/orders/[id]/substitute` (propone), `GET .../substitute/candidates` (publicaciones activas con stock en la región), `POST /api/customer/orders/[id]/substitution` (accept/reject).
+- **UI**: operador `SubstitutionProposer` (bajo los ítems fallidos en `order-card`); cliente `SubstitutionProposalBanner` (lista de pedidos).
+- 3 acciones de `audit_log`: `substitution_proposed/accepted/rejected`.
+- Test `tests/substitution.test.ts` (6 casos: tope de precio + diferencia). Suite unit 72→78 en verde.
+
+### Reglas de negocio
+- **Tope de precio:** el sustituto nunca cuesta más que el ítem original (`charged ≤ original`). Si es menor, la diferencia se acredita a billetera como reembolso PENDIENTE que aprueba el superadmin (§3). Nunca se cobra de más → no se reabre flujo de pago.
+- **Al aceptar:** descuento atómico de stock (RPC) → asignación `confirmed` (precio/margen congelados) → repunta el `order_item` (product_id/precio/subtotal, status `assigned`) → cancela el reembolso Fase-3 del ítem → crédito por diferencia pendiente → avanza el pedido. `orders.total_amount` NO cambia (= lo pagado); la diferencia se devuelve por billetera.
+- **Al rechazar/expirar:** cae al reembolso de la Fase 3 (idempotente).
+- Guard de margen: `charged ≥ publication.minimum_price`.
+
+### Archivos afectados
+- supabase/migrations/20260624000040_order_item_substitutions.sql (nuevo, aplicado en prod)
+- src/lib/utils/substitution.ts (nuevo)
+- src/app/api/operator/orders/[id]/substitute/route.ts, .../substitute/candidates/route.ts (nuevos)
+- src/app/api/customer/orders/[id]/substitution/route.ts (nuevo)
+- src/components/operator/substitution-proposer.tsx, src/components/customer/substitution-proposal-banner.tsx (nuevos)
+- src/components/operator/order-card.tsx, src/app/(customer)/customer/orders/page.tsx (wiring)
+- src/lib/constants/index.ts (3 audit actions), src/types/database.types.ts (regen + alias)
+- tests/substitution.test.ts (nuevo)
+
 ## [2026-06-24] — UI: botón reabrir reclamo, drawer móvil, badges de estado semánticos
 
 ### Añadido

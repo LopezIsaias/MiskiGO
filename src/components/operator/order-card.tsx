@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { formatCurrency, timeAgo, toWANumber } from '@/lib/utils'
 import { StarRating } from '@/components/ui/star-rating'
+import { SubstitutionProposer } from './substitution-proposer'
 
 export interface SupplierAssignment {
   id: string
@@ -314,7 +315,10 @@ export function OrderCard({ order }: { order: Order }) {
                         </div>
                       ))}
                       {item.itemStatus === 'failed' && (
-                        <ManualAssignPanel orderId={order.id} item={item} />
+                        <>
+                          <ManualAssignPanel orderId={order.id} item={item} />
+                          <SubstitutionProposer orderId={order.id} item={item} />
+                        </>
                       )}
                     </td>
                     <td className="py-2 text-right">
