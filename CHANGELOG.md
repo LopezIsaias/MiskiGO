@@ -1,5 +1,22 @@
 # CHANGELOG — Miski GO
 
+## [2026-06-23c] — Identidad visual "Selva alta" en toda la app
+
+### Añadido
+- **Sistema de identidad de marca** ("Selva alta", dirección fresco/agrícola anclada en quechua + selva alta de San Martín + promesa "sin escalas"):
+  - Paleta en tokens `@theme` (`globals.css`): `miski-forest #1B4D32`, `miski-green #3E8E4F`, `miski-lime #9FC131`, `miski-gold` (maíz) `#E0A53B`, `miski-hueso #F6F8F1` (fondo), `miski-tinta #16241B`, `miski-border #DCE2D2`, `miski-green-soft`, `miski-muted`. Se conservaron los nombres `miski-*` previos (refinando hex) para no romper clases existentes.
+  - Tipografía (`layout.tsx`): **Bricolage Grotesque** (display), **Hanken Grotesk** (cuerpo), **Geist Mono** (cifras tabulares de S/ y kg). `lang="es"`.
+  - Componentes base en `src/components/ui/`: `Button` (4 variantes), `Input` (forwardRef), `Card`, `Badge` (6 tonos), `PriceTag` (maíz + mono tabular), `SinEscalasRule` (signature "campo ●──● mesa"), helper `cn`.
+  - `/style-guide`: showcase vivo de la identidad (bypass de middleware **solo en dev**; prod protegido).
+- **`POST /api/admin/orders/[id]/reopen-claim`** (de la sesión 23b, ya en main).
+
+### Modificado
+- **Identidad aplicada a TODA la app** (auth + 5 roles): login, registro, cambiar contraseña; cliente completo (catálogo, carrito, checkout, pedidos, billetera, reclamos, comprobante y todos sus componentes); operador (10 páginas + 11 componentes); proveedor, repartidor y admin. Patrón: fondo hueso, sidebars forest con marca Bricolage, botones verde→forest, bordes/texto a la paleta (`border`/`muted`/`tinta`), headings en display, dinero en mono tabular; lima conservado como acento "fresco". **Lógica intacta** en todos los casos. Lint + tsc en verde.
+- Piezas de marca destacadas: tarjeta de saldo (billetera) y código de confirmación de entrega como bloques forest+lima; precios en maíz mono.
+
+### Commits
+`9b7c852` (reopen-claim) · `fc318a3` `a94d6c3` `1df2c5c` `216929b` `59a82d4` (sistema + cliente + auth) · `a548cfb` (operador) · `dee1135` (proveedor+repartidor+admin).
+
 ## [2026-06-23b] — Validación integral de caminos + endpoint reabrir reclamo
 
 ### Añadido
