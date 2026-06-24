@@ -1,5 +1,10 @@
 # CHANGELOG — Miski GO
 
+## [2026-06-24c] — Gate de /style-guide en producción
+
+### Modificado
+- `middleware.ts`: `/style-guide` queda **solo para superadmin en producción** (antes lo veía cualquier usuario autenticado). En desarrollo sigue abierto sin login. Referencia interna de marca, no para clientes/proveedores.
+
 ## [2026-06-24b] — Sustitución de ítem fallido (producto alternativo)
 
 ### Añadido

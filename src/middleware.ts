@@ -29,8 +29,17 @@ export async function middleware(request: NextRequest) {
   // API routes manage their own auth
   if (pathname.startsWith('/api')) return supabaseResponse
 
-  // Preview de identidad visual — accesible sin login SOLO en desarrollo.
-  if (pathname === '/style-guide' && process.env.NODE_ENV !== 'production') return supabaseResponse
+  // Preview de identidad visual: abierto en desarrollo; en producción solo
+  // superadmin (referencia interna de marca, no para clientes/proveedores).
+  if (pathname === '/style-guide') {
+    if (process.env.NODE_ENV !== 'production') return supabaseResponse
+    if (!user) return redirectTo('/login', request, supabaseResponse)
+    const { data } = await supabase.from('users').select('role').eq('id', user.id).maybeSingle()
+    if (data?.role !== 'superadmin') {
+      return redirectTo(ROLE_DASHBOARD[data?.role ?? 'customer'] ?? '/customer', request, supabaseResponse)
+    }
+    return supabaseResponse
+  }
 
   // Public auth routes: redirect authenticated users to dashboard
   if (PUBLIC_PATHS.has(pathname)) {
