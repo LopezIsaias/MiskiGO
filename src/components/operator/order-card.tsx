@@ -51,7 +51,7 @@ interface PubOption {
 
 const METHOD_LABEL: Record<string, string> = { yape: 'Yape', transfer: 'Transferencia', wallet: 'Billetera' }
 const ITEM_STATUS_BADGE: Record<string, string> = {
-  pending:  'bg-miski-gold-light/40 text-amber-800',
+  pending:  'bg-miski-gold-light/40 text-miski-forest',
   assigned: 'bg-miski-lime/20 text-miski-forest',
   failed:   'bg-red-100 text-red-700',
   delivered:'bg-miski-forest/10 text-miski-forest',
@@ -122,13 +122,13 @@ function ManualAssignPanel({ orderId, item }: { orderId: string; item: OrderItem
       <button
         onClick={fetchPubs}
         disabled={loading}
-        className="text-xs font-medium border border-miski-sage text-miski-forest rounded px-2 py-1 hover:bg-miski-sage/30 disabled:opacity-50"
+        className="text-xs font-medium border border-miski-border text-miski-forest rounded px-2 py-1 hover:bg-miski-green-soft disabled:opacity-50"
       >
         {loading ? 'Buscando…' : 'Buscar proveedor alternativo'}
       </button>
       {error && <p className="text-xs text-red-600">{error}</p>}
       {open && !loading && (
-        <div className="mt-1 space-y-1 border border-miski-sage/40 rounded-lg p-2 bg-miski-cream/30">
+        <div className="mt-1 space-y-1 border border-miski-border rounded-lg p-2 bg-miski-cream/30">
           {pubs.length === 0 ? (
             <p className="text-xs text-red-600">Sin stock disponible actualmente</p>
           ) : (
@@ -136,13 +136,13 @@ function ManualAssignPanel({ orderId, item }: { orderId: string; item: OrderItem
               const deduct = Math.min(pub.availableQty, neededQty)
               return (
                 <div key={pub.id} className="flex items-center gap-2 text-xs flex-wrap">
-                  <span className="font-medium text-gray-800">{pub.supplierName}</span>
+                  <span className="font-medium text-miski-tinta">{pub.supplierName}</span>
                   <span className="text-gray-500">{pub.availableQty} {item.unit} disp.</span>
                   <span className="text-gray-500">{formatCurrency(pub.minimumPrice)}/{item.unit}</span>
                   <button
                     onClick={() => doAssign(pub.id)}
                     disabled={!!assigningId}
-                    className="ml-auto border border-miski-sage text-miski-forest rounded px-2 py-0.5 hover:bg-miski-sage/30 disabled:opacity-50"
+                    className="ml-auto border border-miski-border text-miski-forest rounded px-2 py-0.5 hover:bg-miski-green-soft disabled:opacity-50"
                   >
                     {assigningId === pub.id ? 'Asignando…' : `Asignar ${deduct} ${item.unit}`}
                   </button>
@@ -188,7 +188,7 @@ function CancelRequestPanel({ orderId, reason }: { orderId: string; reason: stri
   return (
     <div className="p-4 bg-red-50/60">
       <p className="text-xs font-semibold text-red-700">El cliente solicitó cancelar este pedido</p>
-      {reason && <p className="text-xs text-gray-600 mt-1">Motivo: {reason}</p>}
+      {reason && <p className="text-xs text-miski-tinta mt-1">Motivo: {reason}</p>}
       <p className="text-xs text-gray-500 mt-1">
         Al cancelar se libera el stock reservado. El reembolso se procesa manualmente (billetera o medio original).
       </p>
@@ -247,7 +247,7 @@ export function OrderCard({ order }: { order: Order }) {
   ]
 
   return (
-    <div className={`bg-white rounded-xl border overflow-hidden shadow-sm ${hasFailed ? 'border-miski-gold' : 'border-miski-sage/40'}`}>
+    <div className={`bg-white rounded-xl border overflow-hidden shadow-sm ${hasFailed ? 'border-miski-gold' : 'border-miski-border'}`}>
       {/* Header */}
       <div
         className="px-4 py-3 flex items-center gap-3 cursor-pointer hover:bg-miski-cream/30 transition-colors"
@@ -257,10 +257,10 @@ export function OrderCard({ order }: { order: Order }) {
           <div className="flex items-center gap-2 flex-wrap">
             <span className="font-semibold text-miski-forest text-sm">{order.customerName}</span>
             {order.customerPhone && (
-              <span className="text-xs text-gray-400 font-mono">{order.customerPhone}</span>
+              <span className="text-xs text-miski-muted font-mono">{order.customerPhone}</span>
             )}
             {hasFailed && (
-              <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-miski-gold-light/40 text-amber-800">⚠ Stock</span>
+              <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-miski-gold-light/40 text-miski-forest">⚠ Stock</span>
             )}
             {cancellationRequested && (
               <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-red-100 text-red-700">Cancelación solicitada</span>
@@ -269,19 +269,19 @@ export function OrderCard({ order }: { order: Order }) {
           <div className="flex items-center gap-3 mt-0.5 text-xs text-gray-500">
             <span className="font-bold text-miski-forest">{formatCurrency(order.totalAmount)}</span>
             {order.paymentMethod && (
-              <span className="px-1.5 py-0.5 rounded bg-gray-100 text-gray-600">
+              <span className="px-1.5 py-0.5 rounded bg-gray-100 text-miski-tinta">
                 {METHOD_LABEL[order.paymentMethod] ?? order.paymentMethod}
               </span>
             )}
-            <span className="font-mono text-gray-400">#{idShort}</span>
+            <span className="font-mono text-miski-muted">#{idShort}</span>
             <span>{timeAgo(order.createdAt)}</span>
           </div>
         </div>
-        <span className="text-gray-400 text-xs select-none">{expanded ? '▲' : '▼'}</span>
+        <span className="text-miski-muted text-xs select-none">{expanded ? '▲' : '▼'}</span>
       </div>
 
       {expanded && (
-        <div className="border-t border-miski-sage/20 divide-y divide-miski-sage/20">
+        <div className="border-t border-miski-border divide-y divide-miski-border">
           {cancellationRequested && (
             <CancelRequestPanel orderId={order.id} reason={order.cancellationReason} />
           )}
@@ -297,12 +297,12 @@ export function OrderCard({ order }: { order: Order }) {
                   <th className="text-right pb-2 font-medium">Estado</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-miski-sage/10">
+              <tbody className="divide-y divide-miski-border">
                 {order.items.map(item => (
                   <tr key={item.id} className="align-top">
-                    <td className="py-2 pr-2 text-gray-800">
+                    <td className="py-2 pr-2 text-miski-tinta">
                       {item.productName}
-                      <span className="text-gray-400 ml-1">/{item.unit}</span>
+                      <span className="text-miski-muted ml-1">/{item.unit}</span>
                     </td>
                     <td className="py-2 text-right text-gray-700">{item.quantity}</td>
                     <td className="py-2 text-right text-gray-700">{formatCurrency(item.unitPrice)}</td>
@@ -318,7 +318,7 @@ export function OrderCard({ order }: { order: Order }) {
                       )}
                     </td>
                     <td className="py-2 text-right">
-                      <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${ITEM_STATUS_BADGE[item.itemStatus] ?? 'bg-gray-100 text-gray-600'}`}>
+                      <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${ITEM_STATUS_BADGE[item.itemStatus] ?? 'bg-gray-100 text-miski-tinta'}`}>
                         {ITEM_STATUS_LABEL[item.itemStatus] ?? item.itemStatus}
                       </span>
                     </td>
@@ -335,7 +335,7 @@ export function OrderCard({ order }: { order: Order }) {
               {order.customerPhone && (
                 <button
                   onClick={() => copyText(order.customerPhone!, 'phone')}
-                  className="text-xs text-miski-forest/70 hover:text-miski-forest font-mono border border-miski-sage rounded px-2 py-0.5"
+                  className="text-xs text-miski-forest/70 hover:text-miski-forest font-mono border border-miski-border rounded px-2 py-0.5"
                 >
                   {copiedKey === 'phone' ? '¡Copiado!' : order.customerPhone}
                 </button>
@@ -343,13 +343,13 @@ export function OrderCard({ order }: { order: Order }) {
             </div>
             <div className="grid grid-cols-1 gap-2">
               {WA_MESSAGES.map(({ key, label, msg, highlight }) => (
-                <div key={key} className={`rounded-lg border p-3 space-y-2 ${highlight ? 'border-miski-green bg-miski-lime/10' : 'border-miski-sage/40'}`}>
+                <div key={key} className={`rounded-lg border p-3 space-y-2 ${highlight ? 'border-miski-green bg-miski-lime/10' : 'border-miski-border'}`}>
                   <p className="text-xs font-semibold text-miski-forest">{label}</p>
                   <p className="text-xs text-gray-700 leading-relaxed whitespace-pre-wrap">{msg}</p>
                   <div className="flex gap-2">
                     <button
                       onClick={() => copyText(msg, key)}
-                      className="text-xs border border-miski-sage text-miski-forest hover:bg-miski-sage/30 rounded px-2 py-1 transition-colors"
+                      className="text-xs border border-miski-border text-miski-forest hover:bg-miski-green-soft rounded px-2 py-1 transition-colors"
                     >
                       {copiedKey === key ? '¡Copiado!' : 'Copiar'}
                     </button>

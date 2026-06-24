@@ -112,8 +112,8 @@ export function PaymentActions({
     <div className="space-y-6">
       {/* Action area */}
       {isPending && (
-        <section className="bg-white rounded-xl border border-miski-sage/40 shadow-sm overflow-hidden">
-          <div className="px-4 py-3 border-b border-miski-sage/20 bg-miski-forest/5">
+        <section className="bg-white rounded-xl border border-miski-border shadow-sm overflow-hidden">
+          <div className="px-4 py-3 border-b border-miski-border bg-miski-forest/5">
             <h2 className="text-sm font-semibold text-miski-forest">Validación de pago</h2>
           </div>
           <div className="p-4 space-y-4">
@@ -145,7 +145,7 @@ export function PaymentActions({
                     value={rejectReason}
                     onChange={e => setRejectReason(e.target.value)}
                     placeholder="Ej: imagen ilegible, monto incorrecto, comprobante falso..."
-                    className="w-full border border-miski-sage rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-miski-lime/50 focus:border-miski-green transition-colors placeholder:text-gray-300 text-gray-800"
+                    className="w-full border border-miski-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-miski-green/40 focus:border-miski-green transition-colors placeholder:text-miski-muted/60 text-miski-tinta"
                     disabled={isLoading}
                   />
                   <div className="flex gap-3 pt-1">
@@ -173,11 +173,11 @@ export function PaymentActions({
       )}
 
       {/* WhatsApp notification */}
-      <section className="bg-white rounded-xl border border-miski-sage/40 shadow-sm overflow-hidden">
-        <div className="px-4 py-3 border-b border-miski-sage/20 bg-miski-forest/5 flex items-center justify-between">
+      <section className="bg-white rounded-xl border border-miski-border shadow-sm overflow-hidden">
+        <div className="px-4 py-3 border-b border-miski-border bg-miski-forest/5 flex items-center justify-between">
           <h2 className="text-sm font-semibold text-miski-forest">Notificar por WhatsApp</h2>
           {customerPhone && (
-            <span className="text-xs text-miski-olive">
+            <span className="text-xs text-miski-muted">
               Número:&nbsp;
               <span className="font-mono font-medium text-miski-forest select-all">{customerPhone}</span>
             </span>
@@ -191,13 +191,13 @@ export function PaymentActions({
           )}
 
           {/* Approval message */}
-          <div className={`rounded-lg border p-3 space-y-2 ${state === 'approved' ? 'border-miski-green bg-miski-lime/10' : 'border-miski-sage/40'}`}>
+          <div className={`rounded-lg border p-3 space-y-2 ${state === 'approved' ? 'border-miski-green bg-miski-lime/10' : 'border-miski-border'}`}>
             <p className="text-xs font-semibold text-miski-forest">Mensaje de aprobación</p>
             <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{approveMsg}</p>
             <div className="flex gap-2 pt-1">
               <button
                 onClick={() => copyText(approveMsg, 'approve')}
-                className="text-xs border border-miski-sage text-miski-forest hover:bg-miski-sage/30 rounded px-2 py-1 transition-colors"
+                className="text-xs border border-miski-border text-miski-forest hover:bg-miski-green-soft rounded px-2 py-1 transition-colors"
               >
                 {copiedKey === 'approve' ? '¡Copiado!' : 'Copiar'}
               </button>
@@ -215,13 +215,13 @@ export function PaymentActions({
           </div>
 
           {/* Rejection message */}
-          <div className={`rounded-lg border p-3 space-y-2 ${state === 'rejected' ? 'border-red-300 bg-red-50' : 'border-miski-sage/40'}`}>
+          <div className={`rounded-lg border p-3 space-y-2 ${state === 'rejected' ? 'border-red-300 bg-red-50' : 'border-miski-border'}`}>
             <p className="text-xs font-semibold text-miski-forest">Mensaje de rechazo</p>
             <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{rejectMsg}</p>
             <div className="flex gap-2 pt-1">
               <button
                 onClick={() => copyText(rejectMsg, 'reject')}
-                className="text-xs border border-miski-sage text-miski-forest hover:bg-miski-sage/30 rounded px-2 py-1 transition-colors"
+                className="text-xs border border-miski-border text-miski-forest hover:bg-miski-green-soft rounded px-2 py-1 transition-colors"
               >
                 {copiedKey === 'reject' ? '¡Copiado!' : 'Copiar'}
               </button>
@@ -230,7 +230,7 @@ export function PaymentActions({
                   href={`https://wa.me/${waNumber}?text=${encodeURIComponent(rejectMsg)}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-xs border border-miski-sage text-miski-forest hover:bg-miski-sage/30 rounded px-2 py-1 transition-colors"
+                  className="text-xs border border-miski-border text-miski-forest hover:bg-miski-green-soft rounded px-2 py-1 transition-colors"
                 >
                   Abrir en WhatsApp
                 </a>

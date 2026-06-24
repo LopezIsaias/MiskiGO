@@ -101,8 +101,8 @@ export default async function ClaimsPage() {
   return (
     <div className="max-w-3xl">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-miski-forest">Reclamos</h1>
-        <p className="text-sm text-miski-olive mt-1">
+        <h1 className="font-display text-2xl font-bold text-miski-forest">Reclamos</h1>
+        <p className="text-sm text-miski-muted mt-1">
           {pending.length > 0
             ? `${pending.length} reclamo${pending.length > 1 ? 's' : ''} pendiente${pending.length > 1 ? 's' : ''} de resolución`
             : 'Todos los reclamos están resueltos'}

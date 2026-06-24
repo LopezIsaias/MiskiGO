@@ -117,7 +117,7 @@ export default async function OperatorOrdersPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-miski-forest mb-6">Gestión de pedidos</h1>
+      <h1 className="font-display text-2xl font-bold text-miski-forest mb-6">Gestión de pedidos</h1>
       <OrdersBoard orders={orders} />
     </div>
   )

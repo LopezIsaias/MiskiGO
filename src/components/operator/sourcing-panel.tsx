@@ -24,7 +24,7 @@ export function SourcingPanel({ cycles, suppliers, products }: Props) {
   const [assignResult, setAssignResult] = useState('')
 
   if (cycles.length === 0) {
-    return <p className="text-sm text-miski-olive">No hay ciclos abiertos. Abre uno en “Ofertas del ciclo”.</p>
+    return <p className="text-sm text-miski-muted">No hay ciclos abiertos. Abre uno en “Ofertas del ciclo”.</p>
   }
 
   async function capture() {
@@ -61,27 +61,27 @@ export function SourcingPanel({ cycles, suppliers, products }: Props) {
     } catch { setError('Error de conexión') } finally { setBusy(false) }
   }
 
-  const field = 'mt-1 w-full border border-miski-sage/50 rounded-lg px-3 py-2 text-sm'
+  const field = 'mt-1 w-full border border-miski-border rounded-lg px-3 py-2 text-sm'
 
   return (
     <div className="max-w-xl space-y-5">
-      <label className="block text-xs text-miski-olive">
+      <label className="block text-xs text-miski-muted">
         Ciclo
         <select value={cycleId} onChange={e => setCycleId(e.target.value)} className={field}>
           {cycles.map(c => <option key={c.id} value={c.id}>Despacho {c.dispatch_date}</option>)}
         </select>
       </label>
 
-      <div className="bg-white rounded-xl border border-miski-sage/40 p-5 space-y-3">
+      <div className="bg-white rounded-xl border border-miski-border p-5 space-y-3">
         <h2 className="text-sm font-bold text-miski-forest">Registrar oferta de proveedor</h2>
-        <label className="block text-xs text-miski-olive">
+        <label className="block text-xs text-miski-muted">
           Proveedor
           <select value={supplierId} onChange={e => setSupplierId(e.target.value)} className={field}>
             <option value="">— elige —</option>
             {suppliers.map(s => <option key={s.id} value={s.id}>{s.full_name}</option>)}
           </select>
         </label>
-        <label className="block text-xs text-miski-olive">
+        <label className="block text-xs text-miski-muted">
           Producto
           <select value={productId} onChange={e => setProductId(e.target.value)} className={field}>
             <option value="">— elige —</option>
@@ -89,25 +89,25 @@ export function SourcingPanel({ cycles, suppliers, products }: Props) {
           </select>
         </label>
         <div className="flex gap-3">
-          <label className="flex-1 text-xs text-miski-olive">
+          <label className="flex-1 text-xs text-miski-muted">
             Cantidad
             <input type="number" min="0" step="0.001" value={qty} onChange={e => setQty(e.target.value)} className={field} />
           </label>
-          <label className="flex-1 text-xs text-miski-olive">
+          <label className="flex-1 text-xs text-miski-muted">
             Precio mínimo (proveedor)
             <input type="number" min="0" step="0.01" value={price} onChange={e => setPrice(e.target.value)} className={field} />
           </label>
         </div>
         <button onClick={capture} disabled={busy}
-          className="py-2 px-4 rounded-lg text-sm font-semibold text-white bg-miski-forest hover:bg-miski-green disabled:opacity-50">
+          className="py-2 px-4 rounded-lg text-sm font-semibold text-white bg-miski-green hover:bg-miski-forest disabled:opacity-50">
           {busy ? '…' : 'Registrar oferta'}
         </button>
         {msg && <p className="text-xs text-miski-forest bg-miski-lime/20 border border-miski-lime/40 rounded-lg px-3 py-1.5">{msg}</p>}
       </div>
 
-      <div className="bg-white rounded-xl border border-miski-sage/40 p-5 space-y-3">
+      <div className="bg-white rounded-xl border border-miski-border p-5 space-y-3">
         <h2 className="text-sm font-bold text-miski-forest">Asignar pedidos del ciclo</h2>
-        <p className="text-xs text-miski-olive">Asigna los pedidos confirmados a la oferta capturada (cheapest-first).</p>
+        <p className="text-xs text-miski-muted">Asigna los pedidos confirmados a la oferta capturada (cheapest-first).</p>
         <button onClick={assignCycle} disabled={busy}
           className="py-2 px-4 rounded-lg text-sm font-semibold text-white bg-miski-green hover:bg-miski-forest disabled:opacity-50">
           {busy ? '…' : 'Asignar pedidos'}

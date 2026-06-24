@@ -45,8 +45,8 @@ export default async function OperatorSourcingPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-miski-forest mb-2">Captura de oferta (sourcing)</h1>
-      <p className="text-sm text-miski-olive mb-6">
+      <h1 className="font-display text-2xl font-bold text-miski-forest mb-2">Captura de oferta (sourcing)</h1>
+      <p className="text-sm text-miski-muted mb-6">
         Registra la oferta real de cada proveedor (por teléfono o en campo) en su nombre.
         Luego asigna los pedidos del ciclo a esa oferta.
       </p>

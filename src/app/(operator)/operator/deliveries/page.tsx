@@ -110,8 +110,8 @@ export default async function DeliveriesPage({
   return (
     <div className="max-w-2xl space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-miski-forest">Repartidores activos</h1>
-        <p className="text-sm text-miski-olive mt-1">
+        <h1 className="font-display text-2xl font-bold text-miski-forest">Repartidores activos</h1>
+        <p className="text-sm text-miski-muted mt-1">
           {cycle
             ? `Ciclo del ${cycle.dispatch_date} — ${deliveryPeople.length} repartidor${deliveryPeople.length !== 1 ? 'es' : ''}`
             : 'No hay ciclos registrados todavía'}
@@ -130,7 +130,7 @@ export default async function DeliveriesPage({
                 className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
                   active
                     ? 'bg-miski-green text-white border-miski-green'
-                    : 'bg-white text-miski-olive border-miski-sage/40 hover:border-miski-green'
+                    : 'bg-white text-miski-muted border-miski-border hover:border-miski-green'
                 }`}
               >
                 {c.dispatch_date} · {CYCLE_STATUS_LABEL[c.status] ?? c.status}

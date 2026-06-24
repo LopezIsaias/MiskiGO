@@ -19,7 +19,7 @@ const STATUS_GROUPS = [
 export function OrdersBoard({ orders }: Props) {
   if (orders.length === 0) {
     return (
-      <p className="text-sm text-miski-olive py-12 text-center bg-white rounded-xl border border-miski-sage/40 shadow-sm">
+      <p className="text-sm text-miski-muted py-12 text-center bg-white rounded-xl border border-miski-border shadow-sm">
         No hay pedidos en el ciclo activo
       </p>
     )

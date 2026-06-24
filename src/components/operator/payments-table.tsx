@@ -65,14 +65,14 @@ export function PaymentsTable({ pending, confirmed }: Props) {
         </div>
 
         {pending.length === 0 ? (
-          <p className="text-sm text-miski-olive py-6 text-center bg-white rounded-xl border border-miski-sage/40 shadow-sm">
+          <p className="text-sm text-miski-muted py-6 text-center bg-white rounded-xl border border-miski-border shadow-sm">
             Sin comprobantes pendientes
           </p>
         ) : (
-          <div className="overflow-hidden rounded-xl border border-miski-sage/40 bg-white shadow-sm">
+          <div className="overflow-hidden rounded-xl border border-miski-border bg-white shadow-sm">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-miski-sage/20 bg-miski-forest/5">
+                <tr className="border-b border-miski-border bg-miski-forest/5">
                   <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider text-miski-forest/60">Cliente</th>
                   <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider text-miski-forest/60">Monto pedido</th>
                   <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider text-miski-forest/60">Comprobante</th>
@@ -81,30 +81,30 @@ export function PaymentsTable({ pending, confirmed }: Props) {
                   <th className="px-4 py-3" />
                 </tr>
               </thead>
-              <tbody className="divide-y divide-miski-sage/20">
+              <tbody className="divide-y divide-miski-border">
                 {pending.map(order => {
                   const pv = order.payment_verifications?.[0]
                   return (
                     <tr key={order.id} className="hover:bg-miski-cream/30 transition-colors">
-                      <td className="px-4 py-3 border-b border-miski-sage/20">
+                      <td className="px-4 py-3 border-b border-miski-border">
                         <p className="font-medium text-gray-700">{order.customer?.full_name ?? '—'}</p>
                         {order.customer?.phone && (
-                          <p className="text-xs text-gray-400">{order.customer.phone}</p>
+                          <p className="text-xs text-miski-muted">{order.customer.phone}</p>
                         )}
                       </td>
-                      <td className="px-4 py-3 font-bold text-miski-forest border-b border-miski-sage/20">
+                      <td className="px-4 py-3 font-bold text-miski-forest border-b border-miski-border">
                         {formatCurrency(order.total_amount)}
                       </td>
-                      <td className="px-4 py-3 text-gray-700 text-sm border-b border-miski-sage/20">
+                      <td className="px-4 py-3 text-gray-700 text-sm border-b border-miski-border">
                         {pv ? formatCurrency(pv.amount) : '—'}
                       </td>
-                      <td className="px-4 py-3 text-gray-700 text-sm border-b border-miski-sage/20">
+                      <td className="px-4 py-3 text-gray-700 text-sm border-b border-miski-border">
                         {METHOD_LABEL[order.payment_method ?? ''] ?? order.payment_method ?? '—'}
                       </td>
-                      <td className="px-4 py-3 text-gray-700 text-sm border-b border-miski-sage/20">
+                      <td className="px-4 py-3 text-gray-700 text-sm border-b border-miski-border">
                         {pv ? timeAgo(pv.submitted_at) : timeAgo(order.created_at)}
                       </td>
-                      <td className="px-4 py-3 text-right border-b border-miski-sage/20">
+                      <td className="px-4 py-3 text-right border-b border-miski-border">
                         <Link
                           href={`/operator/payments/${order.id}`}
                           className="bg-miski-forest text-white hover:bg-miski-green text-xs font-semibold px-4 py-2 rounded-lg transition-all active:scale-[0.98]"
@@ -126,14 +126,14 @@ export function PaymentsTable({ pending, confirmed }: Props) {
         <h2 className="text-sm font-semibold text-miski-forest mb-3">Pedidos confirmados — ciclo actual</h2>
 
         {confirmed.length === 0 ? (
-          <p className="text-sm text-miski-olive py-6 text-center bg-white rounded-xl border border-miski-sage/40 shadow-sm">
+          <p className="text-sm text-miski-muted py-6 text-center bg-white rounded-xl border border-miski-border shadow-sm">
             Sin pedidos confirmados en el ciclo actual
           </p>
         ) : (
-          <div className="overflow-hidden rounded-xl border border-miski-sage/40 bg-white shadow-sm">
+          <div className="overflow-hidden rounded-xl border border-miski-border bg-white shadow-sm">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-miski-sage/20 bg-miski-forest/5">
+                <tr className="border-b border-miski-border bg-miski-forest/5">
                   <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider text-miski-forest/60">Cliente</th>
                   <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider text-miski-forest/60">Total</th>
                   <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider text-miski-forest/60">Método</th>
@@ -141,27 +141,27 @@ export function PaymentsTable({ pending, confirmed }: Props) {
                   <th className="px-4 py-3" />
                 </tr>
               </thead>
-              <tbody className="divide-y divide-miski-sage/20">
+              <tbody className="divide-y divide-miski-border">
                 {confirmed.map(order => (
                   <tr key={order.id} className="hover:bg-miski-cream/30 transition-colors">
-                    <td className="px-4 py-3 border-b border-miski-sage/20">
+                    <td className="px-4 py-3 border-b border-miski-border">
                       <p className="font-medium text-gray-700">{order.customer?.full_name ?? '—'}</p>
                       {order.customer?.phone && (
-                        <p className="text-xs text-gray-400">{order.customer.phone}</p>
+                        <p className="text-xs text-miski-muted">{order.customer.phone}</p>
                       )}
                     </td>
-                    <td className="px-4 py-3 font-bold text-miski-forest border-b border-miski-sage/20">
+                    <td className="px-4 py-3 font-bold text-miski-forest border-b border-miski-border">
                       {formatCurrency(order.total_amount)}
                     </td>
-                    <td className="px-4 py-3 text-gray-700 text-sm border-b border-miski-sage/20">
+                    <td className="px-4 py-3 text-gray-700 text-sm border-b border-miski-border">
                       {METHOD_LABEL[order.payment_method ?? ''] ?? order.payment_method ?? '—'}
                     </td>
-                    <td className="px-4 py-3 border-b border-miski-sage/20">
-                      <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${STATUS_COLOR[order.status] ?? 'bg-miski-gold-light/40 text-amber-800'}`}>
+                    <td className="px-4 py-3 border-b border-miski-border">
+                      <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${STATUS_COLOR[order.status] ?? 'bg-miski-gold-light/40 text-miski-forest'}`}>
                         {STATUS_LABEL[order.status] ?? order.status}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-right border-b border-miski-sage/20">
+                    <td className="px-4 py-3 text-right border-b border-miski-border">
                       <Link
                         href={`/operator/payments/${order.id}`}
                         className="text-xs text-miski-green hover:text-miski-forest font-semibold"

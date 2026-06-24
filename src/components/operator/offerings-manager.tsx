@@ -90,22 +90,22 @@ export function OfferingsManager({ cycles, products, initialOfferings, canCreate
 
   if (cycles.length === 0) {
     return (
-      <div className="max-w-md bg-white rounded-xl border border-miski-sage/40 p-5">
-        <p className="text-sm text-miski-olive mb-3">No hay un ciclo abierto.</p>
+      <div className="max-w-md bg-white rounded-2xl border border-miski-border p-5">
+        <p className="text-sm text-miski-muted mb-3">No hay un ciclo abierto.</p>
         {canCreateCycle ? (
           <div className="flex items-end gap-2">
-            <label className="flex-1 text-xs text-miski-olive">
+            <label className="flex-1 text-xs text-miski-muted">
               Fecha de despacho
               <input type="date" value={newDate} onChange={e => setNewDate(e.target.value)}
-                className="mt-1 w-full border border-miski-sage/50 rounded-lg px-3 py-2 text-sm" />
+                className="mt-1 w-full border border-miski-border rounded-lg px-3 py-2 text-sm" />
             </label>
             <button onClick={createCycle} disabled={creating || !newDate}
-              className="py-2 px-4 rounded-lg text-sm font-semibold text-white bg-miski-forest hover:bg-miski-green disabled:opacity-50">
+              className="py-2 px-4 rounded-lg text-sm font-semibold text-white bg-miski-green hover:bg-miski-forest disabled:opacity-50">
               {creating ? 'Abriendo…' : 'Abrir ciclo'}
             </button>
           </div>
         ) : (
-          <p className="text-xs text-miski-olive">Un operador debe abrir un ciclo para su región.</p>
+          <p className="text-xs text-miski-muted">Un operador debe abrir un ciclo para su región.</p>
         )}
         {error && <p className="mt-2 text-xs text-red-600">{error}</p>}
       </div>
@@ -114,19 +114,19 @@ export function OfferingsManager({ cycles, products, initialOfferings, canCreate
 
   return (
     <div className="space-y-4">
-      <label className="block max-w-xs text-xs text-miski-olive">
+      <label className="block max-w-xs text-xs text-miski-muted">
         Ciclo
         <select value={cycleId} onChange={e => selectCycle(e.target.value)}
-          className="mt-1 w-full border border-miski-sage/50 rounded-lg px-3 py-2 text-sm">
+          className="mt-1 w-full border border-miski-border rounded-lg px-3 py-2 text-sm">
           {cycles.map(c => <option key={c.id} value={c.id}>Despacho {c.dispatch_date}</option>)}
         </select>
       </label>
 
       {error && <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-1.5">{error}</p>}
 
-      <div className="bg-white rounded-xl border border-miski-sage/40 overflow-hidden">
+      <div className="bg-white rounded-2xl border border-miski-border overflow-hidden">
         <table className="w-full text-sm">
-          <thead className="bg-miski-sage/10 text-miski-olive text-xs">
+          <thead className="bg-miski-green-soft text-miski-forest/70 text-xs uppercase tracking-wide">
             <tr>
               <th className="text-left px-4 py-2">Producto</th>
               <th className="text-left px-4 py-2 w-32">Cantidad</th>
@@ -138,21 +138,21 @@ export function OfferingsManager({ cycles, products, initialOfferings, canCreate
             {products.map(p => {
               const row = rows[p.id] ?? { qty: '', price: '' }
               return (
-                <tr key={p.id} className="border-t border-miski-sage/20">
-                  <td className="px-4 py-2 text-miski-forest">{p.name} <span className="text-xs text-miski-olive">/{p.unit}</span></td>
+                <tr key={p.id} className="border-t border-miski-border">
+                  <td className="px-4 py-2 text-miski-forest">{p.name} <span className="text-xs text-miski-muted">/{p.unit}</span></td>
                   <td className="px-4 py-2">
                     <input type="number" min="0" step="0.001" value={row.qty}
                       onChange={e => setRow(p.id, { qty: e.target.value })}
-                      className="w-28 border border-miski-sage/50 rounded px-2 py-1" />
+                      className="w-28 border border-miski-border rounded px-2 py-1" />
                   </td>
                   <td className="px-4 py-2">
                     <input type="number" min="0" step="0.01" value={row.price}
                       onChange={e => setRow(p.id, { price: e.target.value })}
-                      className="w-28 border border-miski-sage/50 rounded px-2 py-1" />
+                      className="w-28 border border-miski-border rounded px-2 py-1" />
                   </td>
                   <td className="px-4 py-2 text-right">
                     <button onClick={() => saveRow(p.id)} disabled={savingId === p.id}
-                      className="py-1 px-3 rounded-lg text-xs font-semibold text-white bg-miski-forest hover:bg-miski-green disabled:opacity-50">
+                      className="py-1 px-3 rounded-lg text-xs font-semibold text-white bg-miski-green hover:bg-miski-forest disabled:opacity-50">
                       {savingId === p.id ? '…' : savedId === p.id ? '✓' : 'Guardar'}
                     </button>
                   </td>

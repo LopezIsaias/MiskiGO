@@ -26,7 +26,7 @@ const STOP_STATUS_LABEL: Record<string, string> = {
 }
 
 const STOP_STATUS_COLOR: Record<string, string> = {
-  pending:   'bg-miski-gold-light/40 text-amber-800',
+  pending:   'bg-miski-gold-light/40 text-miski-forest',
   arrived:   'bg-blue-100 text-blue-700',
   delivered: 'bg-miski-lime/20 text-miski-forest',
   failed:    'bg-red-100 text-red-700',
@@ -84,8 +84,8 @@ export function DeliveriesBoard({ initialData, realtime = true }: Props) {
 
   if (data.length === 0) {
     return (
-      <div className="bg-white rounded-xl border border-miski-sage/40 shadow-sm p-8 text-center">
-        <p className="text-sm text-miski-olive">No hay repartidores activos en el ciclo actual.</p>
+      <div className="bg-white rounded-xl border border-miski-border shadow-sm p-8 text-center">
+        <p className="text-sm text-miski-muted">No hay repartidores activos en el ciclo actual.</p>
       </div>
     )
   }
@@ -98,18 +98,18 @@ export function DeliveriesBoard({ initialData, realtime = true }: Props) {
         const total     = person.stops.length
 
         return (
-          <div key={person.personId} className="bg-white rounded-xl border border-miski-sage/40 shadow-sm overflow-hidden">
+          <div key={person.personId} className="bg-white rounded-xl border border-miski-border shadow-sm overflow-hidden">
             {/* Person header */}
-            <div className="px-5 py-4 border-b border-miski-sage/20 flex items-center justify-between gap-4">
+            <div className="px-5 py-4 border-b border-miski-border flex items-center justify-between gap-4">
               <div>
                 <p className="text-sm font-semibold text-miski-forest">{person.personName}</p>
-                <p className="text-xs text-miski-olive mt-0.5">
+                <p className="text-xs text-miski-muted mt-0.5">
                   {delivered} entregados · {pending} pendientes · {total} total
                 </p>
               </div>
               <div className="flex items-center gap-3 shrink-0">
                 {/* Progress bar */}
-                <div className="w-32 h-2 bg-miski-sage/30 rounded-full overflow-hidden">
+                <div className="w-32 h-2 bg-miski-green-soft rounded-full overflow-hidden">
                   <div
                     className="h-full bg-miski-green transition-all duration-500"
                     style={{ width: total > 0 ? `${(delivered / total) * 100}%` : '0%' }}
@@ -123,14 +123,14 @@ export function DeliveriesBoard({ initialData, realtime = true }: Props) {
 
             {/* Stops list */}
             {person.stops.length > 0 && (
-              <div className="divide-y divide-miski-sage/10">
+              <div className="divide-y divide-miski-border">
                 {person.stops.map(stop => (
                   <div key={stop.stopId} className="px-5 py-2.5 flex items-center gap-3">
-                    <span className="text-xs text-miski-olive w-4 shrink-0 font-medium">{stop.stopOrder}</span>
+                    <span className="text-xs text-miski-muted w-4 shrink-0 font-medium">{stop.stopOrder}</span>
                     <span className="text-xs text-gray-700 font-mono flex-1 truncate">
                       #{stop.orderId.slice(0, 8).toUpperCase()}
                     </span>
-                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${STOP_STATUS_COLOR[stop.status] ?? 'bg-miski-gold-light/40 text-amber-800'}`}>
+                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${STOP_STATUS_COLOR[stop.status] ?? 'bg-miski-gold-light/40 text-miski-forest'}`}>
                       {STOP_STATUS_LABEL[stop.status] ?? stop.status}
                     </span>
                   </div>

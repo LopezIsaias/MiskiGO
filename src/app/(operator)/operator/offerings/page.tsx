@@ -49,8 +49,8 @@ export default async function OperatorOfferingsPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-miski-forest mb-2">Ofertas del ciclo</h1>
-      <p className="text-sm text-miski-olive mb-6">
+      <h1 className="font-display text-2xl font-bold text-miski-forest mb-2">Ofertas del ciclo</h1>
+      <p className="text-sm text-miski-muted mb-6">
         Define qué productos se ofrecen este ciclo, la cantidad esperada y el precio de venta.
         El catálogo del cliente se arma desde aquí.
       </p>

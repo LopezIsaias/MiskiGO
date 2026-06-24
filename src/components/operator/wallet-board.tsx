@@ -58,14 +58,14 @@ function RechargeCard({ tx }: CardProps) {
 
   if (done) {
     return (
-      <div className="bg-miski-cream/30 rounded-xl border border-miski-sage/40 px-5 py-3">
-        <p className="text-xs text-miski-olive">Recarga procesada.</p>
+      <div className="bg-miski-cream/30 rounded-xl border border-miski-border px-5 py-3">
+        <p className="text-xs text-miski-muted">Recarga procesada.</p>
       </div>
     )
   }
 
   return (
-    <div className="bg-white rounded-xl border border-miski-sage/40 shadow-sm overflow-hidden">
+    <div className="bg-white rounded-xl border border-miski-border shadow-sm overflow-hidden">
       {/* Header */}
       <div className="px-5 py-4 flex items-start gap-4">
         {tx.proof_url && (
@@ -74,26 +74,26 @@ function RechargeCard({ tx }: CardProps) {
             <img
               src={tx.proof_url}
               alt="Comprobante"
-              className="w-20 h-20 object-cover rounded-lg border border-miski-sage/40 hover:opacity-80 transition-opacity"
+              className="w-20 h-20 object-cover rounded-lg border border-miski-border hover:opacity-80 transition-opacity"
             />
           </a>
         )}
         <div className="flex-1 min-w-0">
           <p className="text-sm font-semibold text-miski-forest">{tx.customer?.full_name ?? '—'}</p>
-          <p className="text-xs text-miski-olive mt-0.5">{methodLabel} · {formatDateTime(tx.created_at)}</p>
+          <p className="text-xs text-miski-muted mt-0.5">{methodLabel} · {formatDateTime(tx.created_at)}</p>
           <p className="text-lg font-bold text-miski-forest mt-1">{formatCurrency(tx.amount)}</p>
         </div>
       </div>
 
       {/* Actions */}
-      <div className="px-5 pb-4 space-y-3 border-t border-miski-sage/20 pt-3">
+      <div className="px-5 pb-4 space-y-3 border-t border-miski-border pt-3">
         {!rejecting ? (
           <div className="flex gap-2">
             <button
               type="button"
               onClick={() => void handle('approve')}
               disabled={saving}
-              className="px-4 py-2 rounded-lg text-sm font-semibold text-white bg-miski-forest hover:bg-miski-green disabled:opacity-50 transition-all active:scale-[0.98]"
+              className="px-4 py-2 rounded-lg text-sm font-semibold text-white bg-miski-green hover:bg-miski-forest disabled:opacity-50 transition-all active:scale-[0.98]"
             >
               {saving ? 'Procesando…' : 'Aprobar'}
             </button>
@@ -101,7 +101,7 @@ function RechargeCard({ tx }: CardProps) {
               type="button"
               onClick={() => setRejecting(true)}
               disabled={saving}
-              className="px-4 py-2 rounded-lg text-sm font-medium border border-miski-sage text-miski-forest hover:bg-miski-sage/30 transition-colors"
+              className="px-4 py-2 rounded-lg text-sm font-medium border border-miski-border text-miski-forest hover:bg-miski-green-soft transition-colors"
             >
               Rechazar
             </button>
@@ -113,7 +113,7 @@ function RechargeCard({ tx }: CardProps) {
               value={rejectionReason}
               onChange={e => setRejectionReason(e.target.value)}
               placeholder="Motivo del rechazo…"
-              className="w-full border border-miski-sage rounded-lg px-3 py-2.5 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-miski-lime/50 focus:border-miski-green transition-colors placeholder:text-gray-300 text-gray-800"
+              className="w-full border border-miski-border rounded-lg px-3 py-2.5 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-miski-green/40 focus:border-miski-green transition-colors placeholder:text-miski-muted/60 text-miski-tinta"
             />
             <div className="flex gap-2">
               <button
@@ -127,7 +127,7 @@ function RechargeCard({ tx }: CardProps) {
               <button
                 type="button"
                 onClick={() => { setRejecting(false); setError('') }}
-                className="px-4 py-2 rounded-lg text-sm font-medium border border-miski-sage text-miski-forest hover:bg-miski-sage/30 transition-colors"
+                className="px-4 py-2 rounded-lg text-sm font-medium border border-miski-border text-miski-forest hover:bg-miski-green-soft transition-colors"
               >
                 Cancelar
               </button>
@@ -151,7 +151,7 @@ export function WalletBoard({ pending }: Props) {
   return (
     <div className="space-y-4">
       {pending.length === 0 ? (
-        <p className="text-sm text-miski-olive bg-white rounded-xl border border-miski-sage/40 shadow-sm p-6 text-center">
+        <p className="text-sm text-miski-muted bg-white rounded-xl border border-miski-border shadow-sm p-6 text-center">
           No hay recargas pendientes de revisión.
         </p>
       ) : (

@@ -45,7 +45,7 @@ export default async function OperatorPaymentsPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-miski-forest mb-6">Aprobación de pagos</h1>
+      <h1 className="font-display text-2xl font-bold text-miski-forest mb-6">Aprobación de pagos</h1>
       <PaymentsTable
         pending={(rawPending ?? []) as unknown as PendingOrder[]}
         confirmed={rawConfirmed as unknown as ConfirmedOrder[]}

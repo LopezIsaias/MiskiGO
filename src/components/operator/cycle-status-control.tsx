@@ -12,7 +12,7 @@ const STATUS_LABELS: Record<string, string> = {
 
 const STATUS_COLORS: Record<string, string> = {
   open:        'bg-miski-lime/20 border border-miski-lime/40 text-miski-forest',
-  closed:      'bg-miski-gold-light/40 text-amber-800',
+  closed:      'bg-miski-gold-light/40 text-miski-forest',
   in_progress: 'bg-miski-green/15 text-miski-forest',
   completed:   'bg-miski-forest/10 text-miski-forest',
 }
@@ -78,10 +78,10 @@ export function CycleStatusControl({ cycleId, currentStatus, dispatchDate }: Pro
   }
 
   return (
-    <div className="bg-white rounded-xl border border-miski-sage/40 shadow-sm p-5">
+    <div className="bg-white rounded-xl border border-miski-border shadow-sm p-5">
       <div className="flex items-start justify-between gap-4 mb-4">
         <div>
-          <p className="text-xs text-miski-olive mb-0.5">Fecha de despacho</p>
+          <p className="text-xs text-miski-muted mb-0.5">Fecha de despacho</p>
           <p className="text-sm font-bold text-miski-forest capitalize">{formattedDate}</p>
         </div>
         <span className={`text-xs font-semibold px-3 py-1 rounded-full shrink-0 ${STATUS_COLORS[optimisticStatus] ?? 'bg-miski-forest/10 text-miski-forest'}`}>
@@ -94,7 +94,7 @@ export function CycleStatusControl({ cycleId, currentStatus, dispatchDate }: Pro
           <button
             onClick={handleTransition}
             disabled={loading}
-            className="w-full py-2.5 rounded-lg text-sm font-semibold text-white bg-miski-forest hover:bg-miski-green disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-[0.98]"
+            className="w-full py-2.5 rounded-lg text-sm font-semibold text-white bg-miski-green hover:bg-miski-forest disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-[0.98]"
           >
             {loading ? 'Actualizando…' : NEXT_LABEL[currentStatus]}
           </button>
@@ -105,7 +105,7 @@ export function CycleStatusControl({ cycleId, currentStatus, dispatchDate }: Pro
           )}
         </div>
       ) : (
-        <p className="text-xs text-miski-olive">Este ciclo ha sido completado.</p>
+        <p className="text-xs text-miski-muted">Este ciclo ha sido completado.</p>
       )}
     </div>
   )
