@@ -74,16 +74,16 @@ export default async function ClaimPage({
         <Link href="/customer/orders" className="text-sm text-miski-green hover:underline">
           ← Mis pedidos
         </Link>
-        <h1 className="text-2xl font-bold text-miski-forest mt-2">Reportar problema</h1>
-        <p className="text-sm text-miski-olive mt-1">
+        <h1 className="font-display text-2xl font-bold text-miski-forest mt-2">Reportar problema</h1>
+        <p className="text-sm text-miski-muted mt-1">
           Pedido del {formatDate(order.created_at)} · {order.delivery_address}
         </p>
       </div>
 
       {!windowOpen ? (
-        <div className="bg-miski-sage/20 border border-miski-sage/40 rounded-xl p-8 text-center space-y-2">
-          <p className="text-miski-forest text-sm font-medium">Plazo de reclamo vencido</p>
-          <p className="text-xs text-miski-olive">
+        <div className="bg-miski-green-soft border border-miski-border rounded-2xl p-8 text-center space-y-2">
+          <p className="text-miski-forest text-sm font-semibold">Plazo de reclamo vencido</p>
+          <p className="text-xs text-miski-muted">
             El período de 2 horas para reportar problemas en este pedido ha finalizado.
           </p>
           <Link href="/customer/orders" className="inline-block mt-2 text-sm text-miski-green underline">
