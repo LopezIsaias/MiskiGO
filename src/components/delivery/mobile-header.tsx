@@ -20,7 +20,7 @@ export function MobileHeader({ title, subtitle }: Props) {
   return (
     <header className="sticky top-0 z-10 bg-miski-forest px-4 py-3 flex items-center justify-between shadow-sm">
       <div className="min-w-0">
-        <span className="text-sm font-bold text-white block">Miski GO</span>
+        <span className="font-display text-sm font-extrabold text-white block">Miski GO</span>
         <span className="text-xs text-white/60 block leading-none">Repartidor</span>
       </div>
       <div className="text-center min-w-0 px-2">

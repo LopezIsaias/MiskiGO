@@ -24,9 +24,9 @@ const ROLE_LABELS: Record<string, string> = {
 }
 
 const inputCls =
-  'w-full border border-miski-sage rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-miski-lime/50 focus:border-miski-green transition-colors placeholder:text-gray-300 text-gray-800'
+  'w-full border border-miski-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-miski-green/40 focus:border-miski-green transition-colors placeholder:text-miski-muted/60 text-miski-tinta'
 const readonlyCls =
-  'w-full border border-miski-sage/50 rounded-lg px-3 py-2.5 text-sm bg-miski-sage/10 text-gray-500'
+  'w-full border border-miski-border rounded-lg px-3 py-2.5 text-sm bg-miski-green-soft text-gray-500'
 
 const labelCls = 'block text-xs font-semibold text-miski-forest/70 uppercase tracking-wider mb-1.5'
 
@@ -139,10 +139,10 @@ function CreateUserForm() {
 
       {isConflict && (
         <div className="bg-miski-gold-light/20 border border-miski-gold/30 rounded-lg px-4 py-3">
-          <p className="text-sm font-medium text-amber-800">
+          <p className="text-sm font-medium text-miski-forest">
             Este DNI ya está registrado como cliente
           </p>
-          <p className="text-xs text-amber-800/80 mt-0.5">
+          <p className="text-xs text-miski-forest/80 mt-0.5">
             Los datos han sido autocompletados. Edítalos si es necesario y confirma la conversión.
           </p>
         </div>
@@ -170,7 +170,7 @@ function CreateUserForm() {
             placeholder="12345678"
             maxLength={8}
           />
-          {dniChecking && <p className="text-gray-400 text-xs mt-1">Verificando...</p>}
+          {dniChecking && <p className="text-miski-muted text-xs mt-1">Verificando...</p>}
           {!dniChecking && errors.dni && (
             <p className="text-red-500 text-xs mt-1">{errors.dni.message}</p>
           )}
@@ -214,7 +214,7 @@ function CreateUserForm() {
       </div>
 
       {!isConflict && (
-        <p className="text-xs text-miski-olive">
+        <p className="text-xs text-miski-muted">
           El usuario deberá cambiar la contraseña en su primer inicio de sesión.
         </p>
       )}
@@ -241,7 +241,7 @@ function CreateUserForm() {
         <button
           type="button"
           onClick={() => router.push('/admin/users')}
-          className="border border-miski-sage text-miski-forest hover:bg-miski-sage/30 rounded-lg px-4 py-2.5 text-sm font-medium transition-colors"
+          className="border border-miski-border text-miski-forest hover:bg-miski-green-soft rounded-lg px-4 py-2.5 text-sm font-medium transition-colors"
         >
           Cancelar
         </button>
@@ -372,7 +372,7 @@ function EditUserForm({ user }: { user: User }) {
           <button
             type="button"
             onClick={() => router.push('/admin/users')}
-            className="border border-miski-sage text-miski-forest hover:bg-miski-sage/30 rounded-lg px-4 py-2.5 text-sm font-medium transition-colors"
+            className="border border-miski-border text-miski-forest hover:bg-miski-green-soft rounded-lg px-4 py-2.5 text-sm font-medium transition-colors"
           >
             Cancelar
           </button>
@@ -380,7 +380,7 @@ function EditUserForm({ user }: { user: User }) {
       </form>
 
       {/* Status */}
-      <div className="border-t border-miski-sage/30 pt-6">
+      <div className="border-t border-miski-border pt-6">
         <h3 className="text-sm font-medium text-miski-forest mb-3">Estado de la cuenta</h3>
         <div className="flex items-center gap-4">
           <span

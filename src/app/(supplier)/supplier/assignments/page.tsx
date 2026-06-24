@@ -65,8 +65,8 @@ export default async function SupplierAssignmentsPage() {
   return (
     <div className="max-w-2xl space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-miski-forest">Pedidos asignados</h1>
-        <p className="text-sm text-miski-olive mt-1">
+        <h1 className="font-display text-2xl font-bold text-miski-forest">Pedidos asignados</h1>
+        <p className="text-sm text-miski-muted mt-1">
           {assignments.length > 0
             ? `${assignments.length} pedido${assignments.length > 1 ? 's' : ''} pendiente${assignments.length > 1 ? 's' : ''} de confirmación`
             : 'Sin pedidos pendientes de confirmación'}
@@ -90,14 +90,14 @@ export default async function SupplierAssignmentsPage() {
               <div
                 key={n.id}
                 className={`bg-white rounded-xl border px-4 py-3 ${
-                  !n.read_at ? 'border-miski-green/30' : 'border-miski-sage/30'
+                  !n.read_at ? 'border-miski-green/30' : 'border-miski-border'
                 }`}
               >
                 {n.title && (
                   <p className="text-xs font-semibold text-miski-forest">{n.title}</p>
                 )}
                 <p className="text-xs text-gray-700 mt-0.5">{n.body}</p>
-                <p className="text-[10px] text-miski-olive/60 mt-1">
+                <p className="text-[10px] text-miski-muted/60 mt-1">
                   {new Date(n.created_at).toLocaleDateString('es-PE', {
                     day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
                   })}

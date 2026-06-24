@@ -27,8 +27,8 @@ function Card({ label, value, accent }: { label: string; value: string; accent?:
     accent === 'amber' ? 'text-miski-gold font-bold'   :
     'text-miski-forest font-bold'
   return (
-    <div className="bg-white rounded-xl border border-miski-sage/40 shadow-sm p-5">
-      <p className="text-miski-olive text-xs uppercase tracking-wide font-medium">{label}</p>
+    <div className="bg-white rounded-xl border border-miski-border shadow-sm p-5">
+      <p className="text-miski-muted text-xs uppercase tracking-wide font-medium">{label}</p>
       <p className={`text-2xl mt-1 ${cls}`}>{value}</p>
     </div>
   )
@@ -38,7 +38,7 @@ function Card({ label, value, accent }: { label: string; value: string; accent?:
 function CustomTooltip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null
   return (
-    <div className="bg-white border border-miski-sage/40 rounded-xl shadow-lg px-4 py-3 text-xs space-y-1">
+    <div className="bg-white border border-miski-border rounded-xl shadow-lg px-4 py-3 text-xs space-y-1">
       <p className="font-semibold text-miski-forest mb-1">{label}</p>
       {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
       {payload.map((p: any) => (
@@ -64,7 +64,7 @@ export function ProfitabilitySection({ grossMargin, opCost, netProfit, cycles }:
 
       {/* Bar chart by cycle */}
       {cycles.length > 0 && (
-        <div className="bg-white rounded-xl border border-miski-sage/40 shadow-sm p-5">
+        <div className="bg-white rounded-xl border border-miski-border shadow-sm p-5">
           <p className="text-xs font-semibold text-miski-forest/60 uppercase tracking-wider mb-4">Por ciclo de despacho</p>
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={cycles} margin={{ top: 0, right: 8, left: 8, bottom: 0 }}>
@@ -82,7 +82,7 @@ export function ProfitabilitySection({ grossMargin, opCost, netProfit, cycles }:
           </ResponsiveContainer>
           <div className="flex gap-4 justify-center mt-2">
             {[['#BED348', 'Margen bruto'], ['#C9B151', 'Costos op.'], ['#469C53', 'Ganancia neta']].map(([color, label]) => (
-              <span key={label} className="flex items-center gap-1 text-[10px] text-miski-olive">
+              <span key={label} className="flex items-center gap-1 text-[10px] text-miski-muted">
                 <span className="w-2.5 h-2.5 rounded-sm inline-block" style={{ background: color }} />
                 {label}
               </span>

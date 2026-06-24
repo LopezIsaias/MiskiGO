@@ -13,7 +13,7 @@ interface Props {
 }
 
 const inputCls =
-  'w-full border border-miski-sage rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-miski-lime/50 focus:border-miski-green transition-colors placeholder:text-gray-300 text-gray-800'
+  'w-full border border-miski-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-miski-green/40 focus:border-miski-green transition-colors placeholder:text-miski-muted/60 text-miski-tinta'
 
 const labelCls = 'block text-xs font-semibold text-miski-forest/70 uppercase tracking-wider mb-1.5'
 
@@ -48,7 +48,7 @@ export function AuditFilters({ fromDate, toDate, action, module: mod, userName }
     <form
       ref={formRef}
       onSubmit={handleSubmit}
-      className="bg-white rounded-xl border border-miski-sage/40 p-4 space-y-3"
+      className="bg-white rounded-xl border border-miski-border p-4 space-y-3"
     >
       <p className="text-xs font-semibold text-miski-forest/70 uppercase tracking-wider">Filtros</p>
 
@@ -123,7 +123,7 @@ export function AuditFilters({ fromDate, toDate, action, module: mod, userName }
         <button
           type="button"
           onClick={handleClear}
-          className="border border-miski-sage text-miski-forest hover:bg-miski-sage/30 rounded-lg px-4 py-2.5 text-sm font-medium transition-colors"
+          className="border border-miski-border text-miski-forest hover:bg-miski-green-soft rounded-lg px-4 py-2.5 text-sm font-medium transition-colors"
         >
           Limpiar
         </button>

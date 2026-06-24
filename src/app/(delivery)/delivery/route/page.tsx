@@ -129,7 +129,7 @@ export default async function DeliveryRoutePage() {
         <MobileHeader title="Ruta" />
         <DeliveryNav />
         <div className="p-6 text-center">
-          <p className="text-miski-olive text-sm mt-8">
+          <p className="text-miski-muted text-sm mt-8">
             No hay ciclo activo en progreso. El operador debe iniciar el despacho primero.
           </p>
         </div>
@@ -195,7 +195,7 @@ export default async function DeliveryRoutePage() {
         <MobileHeader title="Ruta" subtitle={cycleLabel} />
         <DeliveryNav />
         <div className="p-6 text-center">
-          <p className="text-miski-olive text-sm mt-4">
+          <p className="text-miski-muted text-sm mt-4">
             No hay pedidos asignados para entregar en este ciclo.
           </p>
         </div>
@@ -286,8 +286,8 @@ export default async function DeliveryRoutePage() {
     <div>
       <MobileHeader title="Ruta" subtitle={cycleLabel} />
       <DeliveryNav />
-      <div className="px-4 py-2 bg-white border-b border-miski-sage/20">
-        <p className="text-xs text-miski-olive">
+      <div className="px-4 py-2 bg-white border-b border-miski-border">
+        <p className="text-xs text-miski-muted">
           {stops.length} paradas · {pendingCount} pendientes · {deliveredCount} entregadas
         </p>
       </div>

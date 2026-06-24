@@ -13,7 +13,7 @@ export function DeliveryNav() {
   const pathname = usePathname()
 
   return (
-    <nav className="flex border-b border-miski-sage/40 bg-white">
+    <nav className="flex border-b border-miski-border bg-white">
       {TABS.map(({ label, href }) => {
         const isActive = pathname.startsWith(href)
         return (
@@ -23,7 +23,7 @@ export function DeliveryNav() {
             className={`flex-1 text-center py-2.5 text-xs font-semibold transition-colors border-b-2 ${
               isActive
                 ? 'border-miski-lime text-miski-forest'
-                : 'border-transparent text-gray-400 hover:text-miski-forest'
+                : 'border-transparent text-miski-muted hover:text-miski-forest'
             }`}
           >
             {label}

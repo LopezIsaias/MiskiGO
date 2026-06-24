@@ -33,16 +33,16 @@ export function SalesChart({ data, isWeekComparison }: Props) {
   const interval = data.length > 14 ? Math.floor(data.length / 7) : 0
 
   return (
-    <div className="bg-white rounded-xl border border-miski-sage/40 shadow-sm p-5">
+    <div className="bg-white rounded-xl border border-miski-border shadow-sm p-5">
       <h3 className="text-lg font-semibold text-miski-forest mb-4">
         Ventas diarias (S/)
         {isWeekComparison && (
-          <span className="ml-2 text-xs font-normal text-miski-olive">— semana actual vs anterior</span>
+          <span className="ml-2 text-xs font-normal text-miski-muted">— semana actual vs anterior</span>
         )}
       </h3>
 
       {data.length === 0 ? (
-        <p className="text-xs text-miski-olive text-center py-12">Sin ventas en el período</p>
+        <p className="text-xs text-miski-muted text-center py-12">Sin ventas en el período</p>
       ) : (
         <ResponsiveContainer width="100%" height={240}>
           <LineChart data={formatted} margin={{ top: 5, right: 20, bottom: 5, left: 10 }}>

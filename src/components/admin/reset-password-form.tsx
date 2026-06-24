@@ -10,7 +10,7 @@ interface ResetPasswordFormProps {
 }
 
 const inputCls =
-  'w-full border border-miski-sage rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-miski-lime/50 focus:border-miski-green transition-colors placeholder:text-gray-300 text-gray-800'
+  'w-full border border-miski-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-miski-green/40 focus:border-miski-green transition-colors placeholder:text-miski-muted/60 text-miski-tinta'
 
 const labelCls = 'block text-xs font-semibold text-miski-forest/70 uppercase tracking-wider mb-1.5'
 
@@ -48,9 +48,9 @@ export function ResetPasswordForm({ userId }: ResetPasswordFormProps) {
   }
 
   return (
-    <div className="border-t border-miski-sage/30 pt-6">
+    <div className="border-t border-miski-border pt-6">
       <h3 className="text-lg font-semibold text-miski-forest mb-1">Resetear contraseña</h3>
-      <p className="text-sm text-miski-olive mb-4">
+      <p className="text-sm text-miski-muted mb-4">
         El usuario deberá cambiar la contraseña en su próximo inicio de sesión.
       </p>
 

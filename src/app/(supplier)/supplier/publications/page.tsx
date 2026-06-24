@@ -4,7 +4,7 @@ import { CancelPublicationButton } from '@/components/supplier/cancel-publicatio
 
 const STATUS_STYLES: Record<string, string> = {
   active:    'bg-miski-lime/20 text-miski-forest',
-  reserved:  'bg-miski-gold-light/40 text-amber-800',
+  reserved:  'bg-miski-gold-light/40 text-miski-forest',
   fulfilled: 'bg-miski-green/15 text-miski-forest',
   expired:   'bg-gray-100 text-gray-500',
 }
@@ -40,7 +40,7 @@ export default async function PublicationsPage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-miski-forest">Mis publicaciones</h1>
+        <h1 className="font-display text-2xl font-bold text-miski-forest">Mis publicaciones</h1>
         <Link
           href="/supplier/publications/new"
           className="bg-miski-forest text-white hover:bg-miski-green rounded-lg px-4 py-2.5 text-sm font-semibold transition-all active:scale-[0.98]"
@@ -51,7 +51,7 @@ export default async function PublicationsPage() {
 
       {!publications?.length ? (
         <div className="text-center py-16">
-          <p className="text-miski-olive text-sm mb-4">Aún no tienes publicaciones.</p>
+          <p className="text-miski-muted text-sm mb-4">Aún no tienes publicaciones.</p>
           <Link
             href="/supplier/publications/new"
             className="bg-miski-forest text-white hover:bg-miski-green rounded-lg px-5 py-2.5 text-sm font-semibold transition-all active:scale-[0.98]"
@@ -60,7 +60,7 @@ export default async function PublicationsPage() {
           </Link>
         </div>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-miski-sage/40 bg-white">
+        <div className="overflow-hidden rounded-xl border border-miski-border bg-white">
           <table className="w-full text-sm">
             <thead className="bg-miski-forest/5">
               <tr>
@@ -82,22 +82,22 @@ export default async function PublicationsPage() {
 
                 return (
                   <tr key={pub.id} className="hover:bg-miski-cream/30">
-                    <td className="px-4 py-3 border-b border-miski-sage/20 font-medium text-gray-700">
+                    <td className="px-4 py-3 border-b border-miski-border font-medium text-gray-700">
                       {product?.name ?? '—'}
-                      <span className="ml-1 text-xs text-miski-olive">
+                      <span className="ml-1 text-xs text-miski-muted">
                         ({UNIT_LABEL[product?.unit ?? ''] ?? product?.unit})
                       </span>
                     </td>
-                    <td className="px-4 py-3 border-b border-miski-sage/20 text-gray-700 text-sm">
+                    <td className="px-4 py-3 border-b border-miski-border text-gray-700 text-sm">
                       {region ? `${region.name} — ${region.city}` : '—'}
                     </td>
-                    <td className="px-4 py-3 border-b border-miski-sage/20 text-right text-gray-700 text-sm">
+                    <td className="px-4 py-3 border-b border-miski-border text-right text-gray-700 text-sm">
                       {pub.available_quantity.toLocaleString('es-PE')}
                     </td>
-                    <td className="px-4 py-3 border-b border-miski-sage/20 text-right text-gray-700 text-sm">
+                    <td className="px-4 py-3 border-b border-miski-border text-right text-gray-700 text-sm">
                       S/ {pub.minimum_price.toFixed(2)}
                     </td>
-                    <td className="px-4 py-3 border-b border-miski-sage/20 text-gray-700 text-sm whitespace-nowrap">
+                    <td className="px-4 py-3 border-b border-miski-border text-gray-700 text-sm whitespace-nowrap">
                       {expiresDate.toLocaleDateString('es-PE', {
                         day: '2-digit',
                         month: '2-digit',
@@ -105,14 +105,14 @@ export default async function PublicationsPage() {
                         timeZone: 'America/Lima',
                       })}
                     </td>
-                    <td className="px-4 py-3 border-b border-miski-sage/20 text-center">
+                    <td className="px-4 py-3 border-b border-miski-border text-center">
                       <span
                         className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${STATUS_STYLES[pub.status] ?? 'bg-gray-100 text-gray-500'}`}
                       >
                         {STATUS_LABEL[pub.status] ?? pub.status}
                       </span>
                     </td>
-                    <td className="px-4 py-3 border-b border-miski-sage/20 text-right">
+                    <td className="px-4 py-3 border-b border-miski-border text-right">
                       <div className="flex justify-end gap-3">
                         {isActive && (
                           <>

@@ -73,30 +73,30 @@ function AssignmentCard({ assignment: a }: CardProps) {
         }`}>
           {doneAction === 'confirmed' ? '✓ Confirmado correctamente' : '✕ Rechazo registrado'}
         </p>
-        <p className="text-xs text-miski-olive mt-0.5">{product?.name ?? '—'}</p>
+        <p className="text-xs text-miski-muted mt-0.5">{product?.name ?? '—'}</p>
       </div>
     )
   }
 
   return (
-    <div className="bg-white rounded-xl border border-miski-sage/40 shadow-sm p-5 space-y-3">
+    <div className="bg-white rounded-xl border border-miski-border shadow-sm p-5 space-y-3">
       <div className="flex items-start justify-between gap-2">
         <div>
-          <p className="text-sm font-semibold text-gray-800">{product?.name ?? '—'}</p>
-          <p className="text-xs text-miski-olive mt-0.5">
+          <p className="text-sm font-semibold text-miski-tinta">{product?.name ?? '—'}</p>
+          <p className="text-xs text-miski-muted mt-0.5">
             {a.assigned_quantity} {product?.unit} · {formatCurrency(a.supplier_price_frozen)} por unidad
           </p>
         </div>
         {cycleDate && (
           <div className="text-right shrink-0">
-            <p className="text-[10px] text-miski-olive/70 font-medium uppercase tracking-wide">Entrega</p>
+            <p className="text-[10px] text-miski-muted/70 font-medium uppercase tracking-wide">Entrega</p>
             <p className="text-xs font-semibold text-miski-forest">{formatDate(cycleDate + 'T12:00:00')}</p>
           </div>
         )}
       </div>
 
       {order && (
-        <p className="text-[11px] text-miski-olive/60">
+        <p className="text-[11px] text-miski-muted/60">
           Pedido #{order.id.slice(0, 8).toUpperCase()}
         </p>
       )}
@@ -118,7 +118,7 @@ function AssignmentCard({ assignment: a }: CardProps) {
             type="button"
             onClick={() => handleAction('confirm')}
             disabled={saving}
-            className="flex-1 py-2.5 rounded-xl text-xs font-semibold text-white bg-miski-forest hover:bg-miski-green disabled:opacity-50 transition-colors"
+            className="flex-1 py-2.5 rounded-xl text-xs font-semibold text-white bg-miski-green hover:bg-miski-forest disabled:opacity-50 transition-colors"
           >
             {saving ? 'Guardando…' : 'Confirmar'}
           </button>
@@ -131,13 +131,13 @@ function AssignmentCard({ assignment: a }: CardProps) {
             onChange={e => setReason(e.target.value)}
             placeholder="Motivo por el que no puedes cumplir (obligatorio)…"
             autoFocus
-            className="w-full text-sm border border-miski-sage rounded-xl px-3 py-2 focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-200 resize-none text-gray-800 placeholder:text-gray-300"
+            className="w-full text-sm border border-miski-border rounded-xl px-3 py-2 focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-200 resize-none text-miski-tinta placeholder:text-miski-muted/60"
           />
           <div className="flex gap-2">
             <button
               type="button"
               onClick={() => { setShowReject(false); setReason(''); setError('') }}
-              className="flex-1 py-2.5 rounded-xl text-xs font-medium border border-miski-sage text-miski-forest hover:bg-miski-sage/30 transition-colors"
+              className="flex-1 py-2.5 rounded-xl text-xs font-medium border border-miski-border text-miski-forest hover:bg-miski-green-soft transition-colors"
             >
               Cancelar
             </button>
@@ -161,8 +161,8 @@ interface Props { assignments: AssignmentRow[] }
 export function AssignmentsBoard({ assignments }: Props) {
   if (assignments.length === 0) {
     return (
-      <div className="bg-white rounded-xl border border-miski-sage/40 shadow-sm p-8 text-center">
-        <p className="text-sm text-miski-olive">No tienes pedidos pendientes de confirmación.</p>
+      <div className="bg-white rounded-xl border border-miski-border shadow-sm p-8 text-center">
+        <p className="text-sm text-miski-muted">No tienes pedidos pendientes de confirmación.</p>
       </div>
     )
   }

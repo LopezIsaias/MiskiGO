@@ -84,7 +84,7 @@ export default async function DeliveryHistoryPage() {
         <MobileHeader title="Historial" />
         <DeliveryNav />
         <div className="p-6 text-center">
-          <p className="text-miski-olive text-sm mt-8">
+          <p className="text-miski-muted text-sm mt-8">
             Aún no tienes pedidos entregados.
           </p>
         </div>
@@ -136,8 +136,8 @@ export default async function DeliveryHistoryPage() {
     <div>
       <MobileHeader title="Historial" />
       <DeliveryNav />
-      <div className="px-4 py-2 bg-white border-b border-miski-sage/20">
-        <p className="text-xs text-miski-olive">
+      <div className="px-4 py-2 bg-white border-b border-miski-border">
+        <p className="text-xs text-miski-muted">
           {entries.length} pedido{entries.length > 1 ? 's' : ''} entregado{entries.length > 1 ? 's' : ''}
         </p>
       </div>
@@ -145,17 +145,17 @@ export default async function DeliveryHistoryPage() {
         {entries.map(e => (
           <div
             key={e.orderId}
-            className="bg-white rounded-xl border border-miski-sage/30 p-4 shadow-sm"
+            className="bg-white rounded-xl border border-miski-border p-4 shadow-sm"
           >
             <div className="flex items-start justify-between gap-2">
               <p className="font-semibold text-miski-forest text-sm">{e.customerName}</p>
               {e.cycleDate && (
-                <span className="text-[11px] text-miski-olive whitespace-nowrap">
+                <span className="text-[11px] text-miski-muted whitespace-nowrap">
                   {formatDate(e.cycleDate + 'T12:00:00')}
                 </span>
               )}
             </div>
-            <p className="text-xs text-miski-olive mt-0.5">{e.deliveryAddress}</p>
+            <p className="text-xs text-miski-muted mt-0.5">{e.deliveryAddress}</p>
             {e.deliveredAt && (
               <p className="text-[11px] text-miski-lime mt-1">
                 Entregado: {formatDateTime(e.deliveredAt)}
@@ -163,7 +163,7 @@ export default async function DeliveryHistoryPage() {
             )}
             <ul className="mt-2 space-y-0.5">
               {e.items.map((it, i) => (
-                <li key={i} className="text-xs text-gray-600">
+                <li key={i} className="text-xs text-miski-tinta">
                   {it.quantity} {it.unit} · {it.productName}
                 </li>
               ))}

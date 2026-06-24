@@ -14,8 +14,8 @@ function Card({ label, value, accent }: CardProps) {
     'text-miski-forest font-bold'
 
   return (
-    <div className="bg-white rounded-xl border border-miski-sage/40 shadow-sm p-5">
-      <p className="text-miski-olive text-xs uppercase tracking-wide font-medium">{label}</p>
+    <div className="bg-white rounded-xl border border-miski-border shadow-sm p-5">
+      <p className="text-miski-muted text-xs uppercase tracking-wide font-medium">{label}</p>
       <p className={`text-2xl mt-1 ${valueClass}`}>{value}</p>
     </div>
   )

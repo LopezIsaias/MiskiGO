@@ -45,7 +45,7 @@ export default async function UsersPage() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-xl font-bold text-miski-forest">Usuarios</h1>
-          <p className="text-sm text-miski-olive mt-0.5">Todos los usuarios del sistema</p>
+          <p className="text-sm text-miski-muted mt-0.5">Todos los usuarios del sistema</p>
         </div>
         <Link
           href="/admin/users/new"
@@ -56,7 +56,7 @@ export default async function UsersPage() {
       </div>
 
       {users.length === 0 ? (
-        <div className="text-center py-12 text-miski-olive text-sm">
+        <div className="text-center py-12 text-miski-muted text-sm">
           No hay operadores ni repartidores creados.
         </div>
       ) : (
@@ -64,13 +64,13 @@ export default async function UsersPage() {
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                <th className="text-left px-4 py-3 font-medium text-gray-600">Nombre</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-600">DNI</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-600">Email</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-600">Rol</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-600">Confiabilidad</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-600">Estado</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-600">Contraseña</th>
+                <th className="text-left px-4 py-3 font-medium text-miski-tinta">Nombre</th>
+                <th className="text-left px-4 py-3 font-medium text-miski-tinta">DNI</th>
+                <th className="text-left px-4 py-3 font-medium text-miski-tinta">Email</th>
+                <th className="text-left px-4 py-3 font-medium text-miski-tinta">Rol</th>
+                <th className="text-left px-4 py-3 font-medium text-miski-tinta">Confiabilidad</th>
+                <th className="text-left px-4 py-3 font-medium text-miski-tinta">Estado</th>
+                <th className="text-left px-4 py-3 font-medium text-miski-tinta">Contraseña</th>
                 <th className="px-4 py-3" />
               </tr>
             </thead>
@@ -78,12 +78,12 @@ export default async function UsersPage() {
               {users.map((u) => (
                 <tr key={u.id} className="hover:bg-gray-50">
                   <td className="px-4 py-3 font-medium text-gray-900">{u.full_name}</td>
-                  <td className="px-4 py-3 text-gray-600">{u.dni ?? '—'}</td>
-                  <td className="px-4 py-3 text-gray-600">{u.email}</td>
+                  <td className="px-4 py-3 text-miski-tinta">{u.dni ?? '—'}</td>
+                  <td className="px-4 py-3 text-miski-tinta">{u.email}</td>
                   <td className="px-4 py-3">
                     <span
                       className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-                        ROLE_BADGE[u.role] ?? 'bg-gray-100 text-gray-600'
+                        ROLE_BADGE[u.role] ?? 'bg-gray-100 text-miski-tinta'
                       }`}
                     >
                       {ROLE_LABELS[u.role] ?? u.role}
@@ -113,7 +113,7 @@ export default async function UsersPage() {
                         Debe cambiar
                       </span>
                     ) : (
-                      <span className="text-gray-400 text-xs">OK</span>
+                      <span className="text-miski-muted text-xs">OK</span>
                     )}
                   </td>
                   <td className="px-4 py-3 text-right">

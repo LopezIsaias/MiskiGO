@@ -20,7 +20,7 @@ export default async function ProductsPage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-miski-forest">Productos</h1>
+        <h1 className="font-display text-2xl font-bold text-miski-forest">Productos</h1>
         <Link
           href="/admin/products/new"
           className="bg-miski-forest text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-miski-green transition-all"
@@ -30,16 +30,16 @@ export default async function ProductsPage() {
       </div>
 
       {!products?.length ? (
-        <p className="text-miski-olive text-sm">No hay productos aún.</p>
+        <p className="text-miski-muted text-sm">No hay productos aún.</p>
       ) : (
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                <th className="text-left px-4 py-3 font-medium text-gray-600">Nombre</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-600">Categoría</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-600">Unidad</th>
-                <th className="text-center px-4 py-3 font-medium text-gray-600">Estado</th>
+                <th className="text-left px-4 py-3 font-medium text-miski-tinta">Nombre</th>
+                <th className="text-left px-4 py-3 font-medium text-miski-tinta">Categoría</th>
+                <th className="text-left px-4 py-3 font-medium text-miski-tinta">Unidad</th>
+                <th className="text-center px-4 py-3 font-medium text-miski-tinta">Estado</th>
                 <th className="px-4 py-3" />
               </tr>
             </thead>
@@ -49,8 +49,8 @@ export default async function ProductsPage() {
                 return (
                   <tr key={p.id} className="hover:bg-gray-50">
                     <td className="px-4 py-3 font-medium text-gray-900">{p.name}</td>
-                    <td className="px-4 py-3 text-gray-600">{cat?.name ?? '—'}</td>
-                    <td className="px-4 py-3 text-gray-600">{UNIT_LABEL[p.unit] ?? p.unit}</td>
+                    <td className="px-4 py-3 text-miski-tinta">{cat?.name ?? '—'}</td>
+                    <td className="px-4 py-3 text-miski-tinta">{UNIT_LABEL[p.unit] ?? p.unit}</td>
                     <td className="px-4 py-3 text-center">
                       <ToggleButton id={p.id} isActive={p.is_active} endpoint="products" />
                     </td>

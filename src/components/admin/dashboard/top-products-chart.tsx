@@ -16,11 +16,11 @@ function truncate(s: string, n = 15): string {
 
 export function TopProductsChart({ data }: Props) {
   return (
-    <div className="bg-white rounded-xl border border-miski-sage/40 shadow-sm p-5">
+    <div className="bg-white rounded-xl border border-miski-border shadow-sm p-5">
       <h3 className="text-lg font-semibold text-miski-forest mb-4">Top 5 productos más vendidos</h3>
 
       {data.length === 0 ? (
-        <p className="text-xs text-miski-olive text-center py-12">Sin datos en el período</p>
+        <p className="text-xs text-miski-muted text-center py-12">Sin datos en el período</p>
       ) : (
         <ResponsiveContainer width="100%" height={220}>
           <BarChart

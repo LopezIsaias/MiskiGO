@@ -45,7 +45,7 @@ const PRESETS: { key: Preset; label: string }[] = [
 ]
 
 const inputCls =
-  'border border-miski-sage rounded-lg px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-miski-lime/50 focus:border-miski-green transition-colors text-gray-800'
+  'border border-miski-border rounded-lg px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-miski-green/40 focus:border-miski-green transition-colors text-miski-tinta'
 
 interface Props { preset: string; from: string; to: string }
 
@@ -74,7 +74,7 @@ export function DateFilter({ preset, from, to }: Props) {
           className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
             preset === key
               ? 'bg-miski-forest text-white border-miski-forest'
-              : 'bg-white border-miski-sage text-miski-forest hover:bg-miski-cream/50'
+              : 'bg-white border-miski-border text-miski-forest hover:bg-miski-cream/50'
           }`}
         >
           {label}
@@ -89,7 +89,7 @@ export function DateFilter({ preset, from, to }: Props) {
             onChange={e => setCustomFrom(e.target.value)}
             className={inputCls}
           />
-          <span className="text-xs text-miski-olive">→</span>
+          <span className="text-xs text-miski-muted">→</span>
           <input
             type="date"
             value={customTo}

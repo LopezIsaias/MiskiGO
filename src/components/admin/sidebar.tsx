@@ -28,7 +28,7 @@ export function AdminSidebar() {
     <aside className="w-58 shrink-0 h-screen bg-miski-forest flex flex-col">
       {/* Marca */}
       <div className="px-5 py-5 border-b border-white/10">
-        <span className="text-base font-bold text-white tracking-wide">Miski GO</span>
+        <span className="font-display text-base font-extrabold text-white tracking-wide">Miski GO</span>
         <div className="mt-2">
           <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold bg-miski-lime/15 text-miski-lime tracking-wide">
             Superadmin

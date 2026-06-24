@@ -127,7 +127,7 @@ export default async function AuditPage({
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-miski-forest">Log de auditoría</h1>
-          <p className="text-sm text-miski-olive mt-1">
+          <p className="text-sm text-miski-muted mt-1">
             {total > 0
               ? `${total.toLocaleString('es-PE')} registro${total !== 1 ? 's' : ''}${totalPages > 1 ? ` · Página ${page} de ${totalPages}` : ''}`
               : 'Sin registros para los filtros seleccionados'}

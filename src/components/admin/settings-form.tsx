@@ -25,7 +25,7 @@ interface SettingsFormProps {
 }
 
 const inputCls =
-  'w-full border border-miski-sage rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-miski-lime/50 focus:border-miski-green transition-colors placeholder:text-gray-300 text-gray-800'
+  'w-full border border-miski-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-miski-green/40 focus:border-miski-green transition-colors placeholder:text-miski-muted/60 text-miski-tinta'
 
 const labelCls = 'block text-xs font-semibold text-miski-forest/70 uppercase tracking-wider mb-1.5'
 
@@ -90,10 +90,10 @@ export function SettingsForm({ params, categories }: SettingsFormProps) {
       )}
 
       {/* Global params */}
-      <section className="bg-white border border-miski-sage/40 rounded-xl p-6 space-y-5 shadow-sm">
+      <section className="bg-white border border-miski-border rounded-xl p-6 space-y-5 shadow-sm">
         <div>
           <h2 className="text-lg font-semibold text-miski-forest">Ciclos de despacho</h2>
-          <p className="text-sm text-miski-olive mt-0.5">
+          <p className="text-sm text-miski-muted mt-0.5">
             Afecta la hora de cierre de pedidos y el cálculo de fechas de entrega.
           </p>
         </div>
@@ -115,7 +115,7 @@ export function SettingsForm({ params, categories }: SettingsFormProps) {
             {errors.cutoff_hour && (
               <p className="text-red-500 text-xs mt-1">{errors.cutoff_hour.message}</p>
             )}
-            <p className="text-xs text-miski-olive/70 mt-1">
+            <p className="text-xs text-miski-muted/70 mt-1">
               Valor actual: {paramMap['cutoff_hour']}:00 — los pedidos del ciclo cierran a esta hora el día anterior al despacho.
             </p>
           </div>
@@ -136,7 +136,7 @@ export function SettingsForm({ params, categories }: SettingsFormProps) {
             {errors.claim_window_hours && (
               <p className="text-red-500 text-xs mt-1">{errors.claim_window_hours.message}</p>
             )}
-            <p className="text-xs text-miski-olive/70 mt-1">
+            <p className="text-xs text-miski-muted/70 mt-1">
               Tiempo que tiene el cliente para reportar un problema tras recibir su pedido.
             </p>
           </div>
@@ -144,10 +144,10 @@ export function SettingsForm({ params, categories }: SettingsFormProps) {
       </section>
 
       {/* Category params */}
-      <section className="bg-white border border-miski-sage/40 rounded-xl p-6 space-y-5 shadow-sm">
+      <section className="bg-white border border-miski-border rounded-xl p-6 space-y-5 shadow-sm">
         <div>
           <h2 className="text-lg font-semibold text-miski-forest">Parámetros por categoría</h2>
-          <p className="text-sm text-miski-olive mt-0.5">
+          <p className="text-sm text-miski-muted mt-0.5">
             Se usan para calcular el precio de venta sugerido. Los porcentajes van de 0 a 99.
           </p>
         </div>
@@ -173,7 +173,7 @@ export function SettingsForm({ params, categories }: SettingsFormProps) {
                 <div className="flex items-center gap-2 min-w-0 pt-1">
                   <span className="text-sm font-medium text-miski-forest truncate">{cat?.name}</span>
                   {!cat?.is_active && (
-                    <span className="text-xs bg-miski-sage/30 text-miski-forest/60 px-1.5 py-0.5 rounded shrink-0">
+                    <span className="text-xs bg-miski-green-soft text-miski-forest/60 px-1.5 py-0.5 rounded shrink-0">
                       inactiva
                     </span>
                   )}
@@ -228,7 +228,7 @@ export function SettingsForm({ params, categories }: SettingsFormProps) {
           })}
 
           {fields.length === 0 && (
-            <p className="text-sm text-miski-olive py-4 text-center">
+            <p className="text-sm text-miski-muted py-4 text-center">
               No hay categorías creadas.
             </p>
           )}
@@ -244,7 +244,7 @@ export function SettingsForm({ params, categories }: SettingsFormProps) {
           {isSubmitting ? 'Guardando...' : 'Guardar cambios'}
         </button>
         {!isDirty && !saved && (
-          <span className="text-xs text-miski-olive">Sin cambios pendientes</span>
+          <span className="text-xs text-miski-muted">Sin cambios pendientes</span>
         )}
       </div>
     </form>

@@ -176,11 +176,11 @@ export function SupplierReceptionForm({ supplier, cycleId, deliveryPersonId, onS
             <img
               src={photoPreview}
               alt="Foto del lote"
-              className="w-full h-40 object-cover rounded-xl border border-miski-sage/40"
+              className="w-full h-40 object-cover rounded-xl border border-miski-border"
             />
             {uploadingPhoto && (
               <div className="absolute inset-0 bg-white/70 flex items-center justify-center rounded-xl">
-                <span className="text-sm text-miski-olive">Subiendo…</span>
+                <span className="text-sm text-miski-muted">Subiendo…</span>
               </div>
             )}
             {!uploadingPhoto && photoUrl && (
@@ -191,7 +191,7 @@ export function SupplierReceptionForm({ supplier, cycleId, deliveryPersonId, onS
             <button
               type="button"
               onClick={() => { setPhotoPreview(null); setPhotoUrl(null) }}
-              className="absolute top-2 right-2 bg-white/80 text-gray-600 rounded-full w-7 h-7 text-xs flex items-center justify-center border border-miski-sage/40"
+              className="absolute top-2 right-2 bg-white/80 text-miski-tinta rounded-full w-7 h-7 text-xs flex items-center justify-center border border-miski-border"
             >
               ✕
             </button>
@@ -200,7 +200,7 @@ export function SupplierReceptionForm({ supplier, cycleId, deliveryPersonId, onS
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            className="w-full h-24 rounded-xl border-2 border-dashed border-miski-sage bg-miski-cream/20 hover:bg-miski-cream/40 flex flex-col items-center justify-center gap-1 text-miski-olive transition-colors"
+            className="w-full h-24 rounded-xl border-2 border-dashed border-miski-border bg-miski-cream/20 hover:bg-miski-cream/40 flex flex-col items-center justify-center gap-1 text-miski-muted transition-colors"
           >
             <span className="text-2xl">📷</span>
             <span className="text-xs font-medium">Tomar o seleccionar foto</span>
@@ -225,11 +225,11 @@ export function SupplierReceptionForm({ supplier, cycleId, deliveryPersonId, onS
           const diff = Math.round((state.receivedQty + state.rejectedQty - item.expectedQty) * 1000) / 1000
 
           return (
-            <div key={item.productId} className="bg-white rounded-xl border border-miski-sage/40 shadow-sm p-4 space-y-3">
+            <div key={item.productId} className="bg-white rounded-xl border border-miski-border shadow-sm p-4 space-y-3">
               <div className="flex items-start justify-between gap-2">
                 <div>
                   <p className="text-sm font-semibold text-miski-forest">{item.productName}</p>
-                  <p className="text-xs text-miski-olive">
+                  <p className="text-xs text-miski-muted">
                     Esperado: <span className="font-medium text-gray-700">{item.expectedQty} {item.unit}</span>
                   </p>
                 </div>
@@ -239,7 +239,7 @@ export function SupplierReceptionForm({ supplier, cycleId, deliveryPersonId, onS
                   </span>
                 )}
                 {sumOk && hasRejection && (
-                  <span className="bg-miski-gold-light/40 text-amber-800 font-semibold text-xs px-2.5 py-1 rounded-full shrink-0">
+                  <span className="bg-miski-gold-light/40 text-miski-forest font-semibold text-xs px-2.5 py-1 rounded-full shrink-0">
                     {state.rejectedQty} {item.unit} rechazado
                   </span>
                 )}
@@ -258,9 +258,9 @@ export function SupplierReceptionForm({ supplier, cycleId, deliveryPersonId, onS
                     step={item.unit === 'kg' || item.unit === 'liter' ? '0.1' : '1'}
                     value={state.receivedQty}
                     onChange={e => updateItem(item.productId, 'receivedQty', parseFloat(e.target.value) || 0)}
-                    className={`w-full text-center text-base font-semibold border rounded-lg py-3 focus:outline-none focus:ring-2 transition-colors text-gray-800 ${
+                    className={`w-full text-center text-base font-semibold border rounded-lg py-3 focus:outline-none focus:ring-2 transition-colors text-miski-tinta ${
                       sumOk
-                        ? 'border-miski-sage focus:ring-miski-lime/50 focus:border-miski-green'
+                        ? 'border-miski-border focus:ring-miski-green/40 focus:border-miski-green'
                         : 'border-red-300 bg-red-50 focus:ring-red-200 focus:border-red-400'
                     }`}
                   />
@@ -276,19 +276,19 @@ export function SupplierReceptionForm({ supplier, cycleId, deliveryPersonId, onS
                     step={item.unit === 'kg' || item.unit === 'liter' ? '0.1' : '1'}
                     value={state.rejectedQty}
                     onChange={e => updateItem(item.productId, 'rejectedQty', parseFloat(e.target.value) || 0)}
-                    className={`w-full text-center text-base font-semibold border rounded-lg py-3 focus:outline-none focus:ring-2 transition-colors text-gray-800 ${
+                    className={`w-full text-center text-base font-semibold border rounded-lg py-3 focus:outline-none focus:ring-2 transition-colors text-miski-tinta ${
                       hasRejection && sumOk
                         ? 'border-amber-300 bg-amber-50 text-amber-700 focus:ring-amber-200 focus:border-amber-400'
                         : !sumOk
                           ? 'border-red-300 bg-red-50 focus:ring-red-200 focus:border-red-400'
-                          : 'border-miski-sage focus:ring-miski-lime/50 focus:border-miski-green'
+                          : 'border-miski-border focus:ring-miski-green/40 focus:border-miski-green'
                     }`}
                   />
                 </div>
               </div>
 
               {/* Sum hint */}
-              <p className={`text-xs ${sumOk ? 'text-miski-olive' : 'text-red-600 font-medium'}`}>
+              <p className={`text-xs ${sumOk ? 'text-miski-muted' : 'text-red-600 font-medium'}`}>
                 Suma: {Math.round((state.receivedQty + state.rejectedQty) * 1000) / 1000} / {item.expectedQty} {item.unit}
                 {sumOk ? ' ✓' : ' — debe coincidir con lo esperado'}
               </p>
@@ -304,7 +304,7 @@ export function SupplierReceptionForm({ supplier, cycleId, deliveryPersonId, onS
                     value={state.rejectionReason}
                     onChange={e => updateItem(item.productId, 'rejectionReason', e.target.value)}
                     placeholder="Ej: producto en mal estado, color oscuro, presencia de hongos…"
-                    className="w-full border border-miski-sage rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-miski-lime/50 focus:border-miski-green transition-colors text-gray-800 resize-none bg-amber-50 placeholder:text-amber-300"
+                    className="w-full border border-miski-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-miski-green/40 focus:border-miski-green transition-colors text-miski-tinta resize-none bg-amber-50 placeholder:text-amber-300"
                   />
                 </div>
               )}
@@ -328,7 +328,7 @@ export function SupplierReceptionForm({ supplier, cycleId, deliveryPersonId, onS
       </button>
 
       {(!photoUrl && !uploadingPhoto) && (
-        <p className="text-center text-xs text-miski-olive">Agrega la foto para continuar</p>
+        <p className="text-center text-xs text-miski-muted">Agrega la foto para continuar</p>
       )}
       {photoUrl && !allSumsValid && (
         <p className="text-center text-xs text-red-500">Verifica que la suma de cantidades coincida con lo esperado</p>

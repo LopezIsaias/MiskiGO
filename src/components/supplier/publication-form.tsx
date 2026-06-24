@@ -32,7 +32,7 @@ const UNIT_LABEL: Record<string, string> = {
 }
 
 const inputCls =
-  'w-full border border-miski-sage rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-miski-lime/50 focus:border-miski-green transition-colors placeholder:text-gray-300 text-gray-800'
+  'w-full border border-miski-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-miski-green/40 focus:border-miski-green transition-colors placeholder:text-miski-muted/60 text-miski-tinta'
 
 function normalize(text: string): string {
   return text.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
@@ -88,21 +88,21 @@ function ProductSearchSelect({ products, value, onChange }: ProductSearchSelectP
         autoComplete="off"
       />
       {open && (
-        <ul className="absolute z-10 mt-1 w-full max-h-60 overflow-auto bg-white border border-miski-sage rounded-lg shadow-lg py-1">
+        <ul className="absolute z-10 mt-1 w-full max-h-60 overflow-auto bg-white border border-miski-border rounded-lg shadow-lg py-1">
           {filtered.length === 0 ? (
-            <li className="px-3 py-2 text-sm text-gray-400">Sin resultados</li>
+            <li className="px-3 py-2 text-sm text-miski-muted">Sin resultados</li>
           ) : (
             filtered.map(p => (
               <li key={p.id}>
                 <button
                   type="button"
                   onClick={() => pick(p.id)}
-                  className={`w-full text-left px-3 py-2 text-sm hover:bg-miski-sage/20 transition-colors ${
-                    p.id === value ? 'bg-miski-lime/15 text-miski-forest font-medium' : 'text-gray-800'
+                  className={`w-full text-left px-3 py-2 text-sm hover:bg-miski-green-soft transition-colors ${
+                    p.id === value ? 'bg-miski-lime/15 text-miski-forest font-medium' : 'text-miski-tinta'
                   }`}
                 >
-                  {p.name} <span className="text-gray-400">({UNIT_LABEL[p.unit] ?? p.unit})</span>
-                  {p.category ? <span className="text-gray-400"> · {p.category.name}</span> : ''}
+                  {p.name} <span className="text-miski-muted">({UNIT_LABEL[p.unit] ?? p.unit})</span>
+                  {p.category ? <span className="text-miski-muted"> · {p.category.name}</span> : ''}
                 </button>
               </li>
             ))
@@ -173,9 +173,9 @@ export function PublicationForm({ products, regions, cutoffs, publication }: Pub
       <div>
         <label className="block text-xs font-semibold text-miski-forest/70 uppercase tracking-wider mb-1.5">Producto</label>
         {isEdit ? (
-          <div className="w-full border border-miski-sage/40 rounded-lg px-3 py-2.5 text-sm bg-miski-sage/10 text-gray-500">
+          <div className="w-full border border-miski-border rounded-lg px-3 py-2.5 text-sm bg-miski-green-soft text-gray-500">
             {publication!.product?.name ?? '—'}{' '}
-            <span className="text-gray-400">
+            <span className="text-miski-muted">
               ({UNIT_LABEL[publication!.product?.unit ?? ''] ?? publication!.product?.unit})
             </span>
           </div>
@@ -202,7 +202,7 @@ export function PublicationForm({ products, regions, cutoffs, publication }: Pub
       <div>
         <label className="block text-xs font-semibold text-miski-forest/70 uppercase tracking-wider mb-1.5">Región</label>
         {isEdit ? (
-          <div className="w-full border border-miski-sage/40 rounded-lg px-3 py-2.5 text-sm bg-miski-sage/10 text-gray-500">
+          <div className="w-full border border-miski-border rounded-lg px-3 py-2.5 text-sm bg-miski-green-soft text-gray-500">
             {publication!.region?.name} — {publication!.region?.city}
           </div>
         ) : (
@@ -261,7 +261,7 @@ export function PublicationForm({ products, regions, cutoffs, publication }: Pub
       <div>
         <label className="block text-xs font-semibold text-miski-forest/70 uppercase tracking-wider mb-1.5">Ciclo de despacho</label>
         {isEdit ? (
-          <div className="w-full border border-miski-sage/40 rounded-lg px-3 py-2.5 text-sm bg-miski-sage/10 text-gray-500">
+          <div className="w-full border border-miski-border rounded-lg px-3 py-2.5 text-sm bg-miski-green-soft text-gray-500">
             {cutoffs.find(c => c.isoString === publication!.expires_at)?.label ??
               new Date(publication!.expires_at).toLocaleDateString('es-PE')}
           </div>
@@ -280,7 +280,7 @@ export function PublicationForm({ products, regions, cutoffs, publication }: Pub
             )}
           </>
         )}
-        <p className="text-xs text-miski-olive mt-1">
+        <p className="text-xs text-miski-muted mt-1">
           La oferta se cerrará automáticamente al llegar el corte del ciclo seleccionado.
         </p>
       </div>
@@ -302,7 +302,7 @@ export function PublicationForm({ products, regions, cutoffs, publication }: Pub
         <button
           type="button"
           onClick={() => router.push('/supplier/publications')}
-          className="border border-miski-sage text-miski-forest hover:bg-miski-sage/30 rounded-lg px-5 py-2.5 text-sm font-medium transition-colors"
+          className="border border-miski-border text-miski-forest hover:bg-miski-green-soft rounded-lg px-5 py-2.5 text-sm font-medium transition-colors"
         >
           Cancelar
         </button>

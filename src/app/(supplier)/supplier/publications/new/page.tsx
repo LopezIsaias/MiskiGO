@@ -19,7 +19,7 @@ export default async function NewPublicationPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-miski-forest mb-6">Publicar disponibilidad</h1>
+      <h1 className="font-display text-2xl font-bold text-miski-forest mb-6">Publicar disponibilidad</h1>
       <PublicationForm
         products={products ?? []}
         regions={regions ?? []}

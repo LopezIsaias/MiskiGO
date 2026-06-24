@@ -15,16 +15,16 @@ function Bar({ label, value, description, goodWhen }: BarProps) {
   return (
     <div>
       <div className="flex items-center justify-between mb-1">
-        <span className="text-xs text-gray-600 font-medium">{label}</span>
+        <span className="text-xs text-miski-tinta font-medium">{label}</span>
         <span className={`text-sm font-bold ${numColor}`}>{value.toFixed(1)}%</span>
       </div>
-      <div className="h-2 bg-miski-sage/30 rounded-full overflow-hidden">
+      <div className="h-2 bg-miski-green-soft rounded-full overflow-hidden">
         <div
           className={`h-full rounded-full transition-all ${barColor}`}
           style={{ width: `${Math.min(value, 100)}%` }}
         />
       </div>
-      <p className="text-[11px] text-miski-olive mt-1">{description}</p>
+      <p className="text-[11px] text-miski-muted mt-1">{description}</p>
     </div>
   )
 }
@@ -37,7 +37,7 @@ interface Props {
 
 export function QualityIndicators({ claimRate, supplierFulfillmentRate, onTimeDeliveryRate }: Props) {
   return (
-    <div className="bg-white rounded-xl border border-miski-sage/40 shadow-sm p-5">
+    <div className="bg-white rounded-xl border border-miski-border shadow-sm p-5">
       <h3 className="text-lg font-semibold text-miski-forest mb-5">Indicadores de calidad</h3>
       <div className="space-y-5">
         <Bar

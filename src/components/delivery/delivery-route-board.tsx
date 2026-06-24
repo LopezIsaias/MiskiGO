@@ -83,8 +83,8 @@ function StopCard({ stop, index, routeStarted, isDelivering, onDeliver, onIncide
           {numberLabel}
         </div>
         <div className="flex-1 min-w-0">
-          <p className={`text-sm font-semibold truncate ${isDelivered ? 'text-gray-400' : 'text-miski-forest'}`}>{stop.customerName}</p>
-          <p className={`text-xs truncate ${isDelivered ? 'text-gray-400' : 'text-miski-olive'}`}>{stop.deliveryAddress}</p>
+          <p className={`text-sm font-semibold truncate ${isDelivered ? 'text-miski-muted' : 'text-miski-forest'}`}>{stop.customerName}</p>
+          <p className={`text-xs truncate ${isDelivered ? 'text-miski-muted' : 'text-miski-muted'}`}>{stop.deliveryAddress}</p>
           {isDelivered && stop.deliveredAt && (
             <p className="text-xs text-miski-green mt-0.5">
               Entregado a las {formatTime(stop.deliveredAt)}
@@ -103,14 +103,14 @@ function StopCard({ stop, index, routeStarted, isDelivering, onDeliver, onIncide
             <p className="text-xs text-amber-600 mt-0.5">Intento {stop.deliveryAttempts}/2 fallido</p>
           )}
           {awaitingReception && (
-            <p className="text-xs text-gray-400 mt-0.5">Esperando recepción de productos</p>
+            <p className="text-xs text-miski-muted mt-0.5">Esperando recepción de productos</p>
           )}
         </div>
-        <span className="text-xs text-miski-sage shrink-0 mt-1">{expanded ? '▲' : '▼'}</span>
+        <span className="text-xs text-miski-border shrink-0 mt-1">{expanded ? '▲' : '▼'}</span>
       </button>
 
       {expanded && (
-        <div className="px-4 pb-4 space-y-3 border-t border-miski-sage/20">
+        <div className="px-4 pb-4 space-y-3 border-t border-miski-border">
           <div className="pt-3">
             <p className="text-xs font-semibold text-miski-forest/70 uppercase tracking-wider mb-1.5">Productos a entregar</p>
             <div className="space-y-1">
@@ -125,13 +125,13 @@ function StopCard({ stop, index, routeStarted, isDelivering, onDeliver, onIncide
 
           {stop.customerNote && (
             <div className="bg-miski-gold-light/20 border border-miski-gold/30 rounded-lg px-3 py-2">
-              <p className="text-xs text-amber-800">
+              <p className="text-xs text-miski-forest">
                 <span className="font-semibold">Nota del cliente:</span> {stop.customerNote}
               </p>
             </div>
           )}
           {stop.deliveryNotes && (
-            <div className="bg-miski-sage/20 border border-miski-sage/40 rounded-lg px-3 py-2">
+            <div className="bg-miski-green-soft border border-miski-border rounded-lg px-3 py-2">
               <p className="text-xs text-miski-forest">
                 <span className="font-semibold">Instrucciones:</span> {stop.deliveryNotes}
               </p>
@@ -165,7 +165,7 @@ function StopCard({ stop, index, routeStarted, isDelivering, onDeliver, onIncide
           )}
 
           {!routeStarted && deliverable && (
-            <p className="text-xs text-miski-olive text-center pt-1">
+            <p className="text-xs text-miski-muted text-center pt-1">
               Inicia la ruta para registrar entregas
             </p>
           )}
@@ -383,22 +383,22 @@ export function DeliveryRouteBoard({
           <img src={staticMapUrl} alt="Mapa de ruta" className="w-full h-52 object-cover" />
         ) : (
           <div className="w-full h-52 flex items-center justify-center">
-            <p className="text-xs text-gray-400">Mapa no disponible</p>
+            <p className="text-xs text-miski-muted">Mapa no disponible</p>
           </div>
         )}
         <a
           href={googleMapsUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="absolute bottom-2 right-2 bg-white text-xs text-miski-forest font-semibold px-3 py-1.5 rounded-full shadow-sm border border-miski-sage/40"
+          className="absolute bottom-2 right-2 bg-white text-xs text-miski-forest font-semibold px-3 py-1.5 rounded-full shadow-sm border border-miski-border"
         >
           Abrir en Google Maps
         </a>
       </div>
 
       {/* Action bar */}
-      <div className="px-4 py-3 bg-white border-b border-miski-sage/20 flex items-center justify-between gap-3">
-        <p className="text-xs text-miski-olive">
+      <div className="px-4 py-3 bg-white border-b border-miski-border flex items-center justify-between gap-3">
+        <p className="text-xs text-miski-muted">
           {totalCount} paradas · {pendingCount} pendientes · {deliveredCount} finalizadas
         </p>
         {!routeId && (
@@ -415,7 +415,7 @@ export function DeliveryRouteBoard({
           <span className="bg-miski-lime/20 text-miski-forest text-xs font-semibold px-2.5 py-1 rounded-full">Ruta completada ✓</span>
         )}
         {routeId && !allDone && (
-          <button type="button" onClick={() => router.refresh()} className="shrink-0 text-xs text-miski-olive underline">
+          <button type="button" onClick={() => router.refresh()} className="shrink-0 text-xs text-miski-muted underline">
             Actualizar
           </button>
         )}
@@ -454,7 +454,7 @@ export function DeliveryRouteBoard({
           >
             <div>
               <h3 className="text-base font-semibold text-miski-forest">Confirmar entrega</h3>
-              <p className="text-xs text-miski-olive mt-0.5">
+              <p className="text-xs text-miski-muted mt-0.5">
                 Pide al cliente su código de 6 dígitos y escríbelo abajo.
               </p>
             </div>
@@ -471,7 +471,7 @@ export function DeliveryRouteBoard({
               }}
               placeholder="• • • • • •"
               autoFocus
-              className="w-full text-center text-4xl font-bold tracking-[0.4em] border-2 border-miski-sage rounded-xl py-3 focus:outline-none focus:border-miski-green focus:ring-2 focus:ring-miski-lime/50 transition-colors text-gray-800"
+              className="w-full text-center text-4xl font-bold tracking-[0.4em] border-2 border-miski-border rounded-xl py-3 focus:outline-none focus:border-miski-green focus:ring-2 focus:ring-miski-green/40 transition-colors text-miski-tinta"
             />
 
             {codeError && (
@@ -484,7 +484,7 @@ export function DeliveryRouteBoard({
               <button
                 type="button"
                 onClick={() => { setCodeOrderId(null); setDelivering(null) }}
-                className="flex-1 py-3 rounded-xl text-sm font-medium text-gray-600 bg-gray-100 active:bg-gray-200"
+                className="flex-1 py-3 rounded-xl text-sm font-medium text-miski-tinta bg-gray-100 active:bg-gray-200"
               >
                 Cancelar
               </button>
@@ -516,35 +516,35 @@ export function DeliveryRouteBoard({
                 <span className="text-2xl text-miski-forest">✓</span>
               </div>
               <h3 className="text-base font-semibold text-miski-forest">Entrega confirmada</h3>
-              <p className="text-xs text-miski-olive mt-0.5">Código verificado correctamente</p>
+              <p className="text-xs text-miski-muted mt-0.5">Código verificado correctamente</p>
             </div>
 
-            <div className="rounded-xl border border-miski-sage/40 divide-y divide-miski-sage/20 text-sm">
+            <div className="rounded-xl border border-miski-border divide-y divide-miski-border text-sm">
               <div className="flex justify-between px-4 py-2.5">
-                <span className="text-miski-olive text-xs">Pedido</span>
+                <span className="text-miski-muted text-xs">Pedido</span>
                 <span className="font-mono text-miski-forest">#{receipt.stop.orderId.slice(0, 8).toUpperCase()}</span>
               </div>
               <div className="flex justify-between px-4 py-2.5">
-                <span className="text-miski-olive text-xs">Cliente</span>
+                <span className="text-miski-muted text-xs">Cliente</span>
                 <span className="text-miski-forest font-medium">{receipt.stop.customerName}</span>
               </div>
               <div className="flex justify-between px-4 py-2.5">
-                <span className="text-miski-olive text-xs">Dirección</span>
-                <span className="text-gray-600 text-xs text-right max-w-[60%]">{receipt.stop.deliveryAddress}</span>
+                <span className="text-miski-muted text-xs">Dirección</span>
+                <span className="text-miski-tinta text-xs text-right max-w-[60%]">{receipt.stop.deliveryAddress}</span>
               </div>
               <div className="flex justify-between px-4 py-2.5">
-                <span className="text-miski-olive text-xs">Entregado</span>
+                <span className="text-miski-muted text-xs">Entregado</span>
                 <span className="text-miski-forest">{formatTime(receipt.deliveredAt)}</span>
               </div>
               <div className="flex justify-between px-4 py-2.5">
-                <span className="text-miski-olive text-xs">Ventana de reclamo</span>
+                <span className="text-miski-muted text-xs">Ventana de reclamo</span>
                 <span className="text-miski-forest">hasta {formatTime(receipt.claimWindowExpiresAt)}</span>
               </div>
             </div>
 
             <div>
               <p className="text-xs font-semibold text-miski-forest/70 uppercase tracking-wider mb-1.5">Productos entregados</p>
-              <div className="rounded-xl border border-miski-sage/40 divide-y divide-miski-sage/20">
+              <div className="rounded-xl border border-miski-border divide-y divide-miski-border">
                 {receipt.stop.items.map((item, i) => (
                   <div key={i} className="flex justify-between px-4 py-2 text-xs">
                     <span className="text-gray-700">{item.productName}</span>
@@ -579,7 +579,7 @@ export function DeliveryRouteBoard({
               <h3 className="text-base font-semibold text-miski-forest">
                 {isSecondAttempt ? 'Segundo intento fallido — almacenamiento' : 'Reportar incidencia'}
               </h3>
-              <p className="text-xs text-miski-olive mt-0.5">
+              <p className="text-xs text-miski-muted mt-0.5">
                 {isSecondAttempt
                   ? 'El pedido pasará a estado "En almacén". Sube una foto del lugar de almacenamiento (obligatorio).'
                   : `Pedido ${incidentOrderId?.slice(0, 8).toUpperCase()} · se registrará el primer intento fallido.`}
@@ -593,7 +593,7 @@ export function DeliveryRouteBoard({
               placeholder={isSecondAttempt
                 ? 'Describe el motivo y dónde se almacenó el pedido…'
                 : 'Ej: cliente no se encontraba, dirección incorrecta, portón cerrado…'}
-              className="w-full border border-miski-sage rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-miski-lime/50 focus:border-miski-green transition-colors text-gray-800 resize-none"
+              className="w-full border border-miski-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-miski-green/40 focus:border-miski-green transition-colors text-miski-tinta resize-none"
               autoFocus
             />
 
@@ -617,7 +617,7 @@ export function DeliveryRouteBoard({
                   className={`w-full py-3 rounded-xl text-sm font-medium border-2 border-dashed transition-colors ${
                     incidentPhotoFile
                       ? 'border-miski-green bg-miski-lime/10 text-miski-forest'
-                      : 'border-miski-sage bg-miski-cream/20 text-miski-olive hover:bg-miski-cream/40'
+                      : 'border-miski-border bg-miski-cream/20 text-miski-muted hover:bg-miski-cream/40'
                   }`}
                 >
                   {incidentPhotoFile
@@ -635,7 +635,7 @@ export function DeliveryRouteBoard({
               <button
                 type="button"
                 onClick={() => { setIncidentOrderId(null); setIncidentReason(''); setIncidentPhotoFile(null) }}
-                className="flex-1 py-3 rounded-xl text-sm font-medium text-gray-600 bg-gray-100 active:bg-gray-200"
+                className="flex-1 py-3 rounded-xl text-sm font-medium text-miski-tinta bg-gray-100 active:bg-gray-200"
               >
                 Cancelar
               </button>
