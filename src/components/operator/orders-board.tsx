@@ -9,7 +9,7 @@ interface Props {
 
 const STATUS_GROUPS = [
   { key: 'payment_submitted', label: 'Pendientes de aprobación',           badge: 'bg-blue-100 text-blue-700' },
-  { key: 'confirmed',         label: 'Aprobados — pendientes de asignación', badge: 'bg-miski-lime/20 text-miski-forest' },
+  { key: 'confirmed',         label: 'Aprobados — pendientes de asignación', badge: 'bg-green-100 text-green-800' },
   { key: 'assigned',          label: 'Proveedores asignados',               badge: 'bg-miski-green/15 text-miski-forest' },
   { key: 'in_transit',        label: 'En camino',                           badge: 'bg-miski-green/15 text-miski-forest' },
   { key: 'delivered',         label: 'Entregados',                          badge: 'bg-miski-forest/10 text-miski-forest' },

@@ -24,14 +24,14 @@ const STATUS_LABEL: Record<string, string> = {
 }
 
 const STATUS_COLOR: Record<string, string> = {
-  pending_payment:   'bg-miski-gold-light/50 text-miski-forest',
-  payment_submitted: 'bg-miski-gold-light/50 text-miski-forest',
-  confirmed:         'bg-miski-green-soft text-miski-forest',
+  pending_payment:   'bg-amber-100 text-amber-800',
+  payment_submitted: 'bg-amber-100 text-amber-800',
+  confirmed:         'bg-green-100 text-green-800',
   assigned:          'bg-miski-green-soft text-miski-forest',
-  in_transit:        'bg-miski-lime-pale text-miski-forest',
-  delivered:         'bg-miski-green-soft text-miski-forest',
-  in_storage:        'bg-miski-gold-light/50 text-miski-forest',
-  completed:         'bg-miski-green-soft text-miski-forest',
+  in_transit:        'bg-blue-100 text-blue-700',
+  delivered:         'bg-green-100 text-green-800',
+  in_storage:        'bg-amber-100 text-amber-800',
+  completed:         'bg-green-100 text-green-800',
   cancelled:         'bg-red-100 text-red-700',
   failed:            'bg-red-100 text-red-700',
 }
@@ -102,7 +102,7 @@ export default async function OrdersPage() {
                   </p>
                   <p className="text-sm text-miski-tinta mt-0.5">{order.delivery_address}</p>
                 </div>
-                <span className={`shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full ${STATUS_COLOR[order.status] ?? 'bg-miski-gold-light/50 text-miski-forest'}`}>
+                <span className={`shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full ${STATUS_COLOR[order.status] ?? 'bg-amber-100 text-amber-800'}`}>
                   {STATUS_LABEL[order.status] ?? order.status}
                 </span>
               </div>

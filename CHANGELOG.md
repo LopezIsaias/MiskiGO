@@ -1,5 +1,26 @@
 # CHANGELOG — Miski GO
 
+## [2026-06-24] — UI: botón reabrir reclamo, drawer móvil, badges de estado semánticos
+
+### Añadido
+- **Botón "Reabrir plazo de reclamo"** en el panel de reclamos (`claims-board`), solo superadmin. Llama a `POST /api/admin/orders/[id]/reopen-claim` (ya existía sin UI); pide motivo (`window.prompt`) y refresca. Cierra el wiring pendiente del backlog.
+- **`SidebarShell`** (`src/components/shared/sidebar-shell.tsx`): shell mobile-first reutilizado por los 4 sidebars de rol. En `md+` el panel es estático como antes; en móvil se vuelve un drawer deslizable con barra superior forest + botón hamburguesa y backdrop, y se cierra al tocar un Link o "Cerrar sesión".
+
+### Modificado
+- **Responsive mobile-first** de los shells de escritorio (cliente/operador/proveedor/admin): los 4 sidebars usan `SidebarShell`; los 4 layouts pasan a `md:flex` (bloque + scroll en móvil) con `pt-20` en el `main` para dejar espacio a la barra superior fija. Repartidor sin cambios (no tiene sidebar). Identidad "Selva alta" intacta (la barra reusa forest + lima).
+- **Badges de estado unificados a escala semántica** en 11 archivos: estados de espera→ámbar (`amber-100/800`), positivos/completados→verde (`green-100/800`), fallos→rojo, en curso→`green-soft`/azul. Libera lima/gold para uso de marca (catálogo, precios, navegación, tags de módulo en auditoría). Sin cambios de lógica.
+
+### Archivos afectados
+- src/components/shared/sidebar-shell.tsx (nuevo)
+- src/app/(customer|operator|supplier|admin)/layout.tsx
+- src/components/{customer,operator,supplier,admin}/sidebar.tsx
+- src/components/operator/claims-board.tsx (botón reopen + badges)
+- src/app/(operator)/operator/claims/page.tsx (prop isSuperadmin)
+- src/components/operator/{cycle-status-control,deliveries-board,order-card,orders-board,payments-table}.tsx
+- src/components/admin/dashboard/recent-orders-table.tsx
+- src/app/(customer)/customer/{claims,orders,wallet}/page.tsx
+- src/app/(supplier)/supplier/publications/page.tsx
+
 ## [2026-06-23c] — Identidad visual "Selva alta" en toda la app
 
 ### Añadido

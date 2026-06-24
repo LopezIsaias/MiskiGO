@@ -14,9 +14,9 @@ const STATUS_LABEL: Record<string, string> = {
 }
 
 const STATUS_COLOR: Record<string, string> = {
-  pending:            'bg-miski-gold-light/50 text-miski-forest',
-  approved:           'bg-miski-green-soft text-miski-forest',
-  partially_approved: 'bg-miski-lime/20 text-miski-forest',
+  pending:            'bg-amber-100 text-amber-800',
+  approved:           'bg-green-100 text-green-800',
+  partially_approved: 'bg-green-100 text-green-800',
   rejected:           'bg-red-100 text-red-700',
 }
 

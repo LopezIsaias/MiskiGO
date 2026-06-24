@@ -22,8 +22,8 @@ const TX_STATUS_LABEL: Record<string, string> = {
 }
 
 const TX_STATUS_COLOR: Record<string, string> = {
-  pending:  'bg-miski-gold-light/50 text-miski-forest',
-  approved: 'bg-miski-green-soft text-miski-forest',
+  pending:  'bg-amber-100 text-amber-800',
+  approved: 'bg-green-100 text-green-800',
   rejected: 'bg-red-100 text-red-700',
 }
 
@@ -109,7 +109,7 @@ export default async function WalletPage() {
                       <span className="text-sm font-medium text-miski-forest">
                         {TX_TYPE_LABEL[tx.type] ?? tx.type}
                       </span>
-                      <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${TX_STATUS_COLOR[tx.status] ?? 'bg-miski-gold-light/50 text-miski-forest'}`}>
+                      <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${TX_STATUS_COLOR[tx.status] ?? 'bg-amber-100 text-amber-800'}`}>
                         {TX_STATUS_LABEL[tx.status] ?? tx.status}
                       </span>
                     </div>

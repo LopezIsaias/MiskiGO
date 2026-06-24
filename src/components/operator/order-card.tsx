@@ -51,8 +51,8 @@ interface PubOption {
 
 const METHOD_LABEL: Record<string, string> = { yape: 'Yape', transfer: 'Transferencia', wallet: 'Billetera' }
 const ITEM_STATUS_BADGE: Record<string, string> = {
-  pending:  'bg-miski-gold-light/40 text-miski-forest',
-  assigned: 'bg-miski-lime/20 text-miski-forest',
+  pending:  'bg-amber-100 text-amber-800',
+  assigned: 'bg-green-100 text-green-800',
   failed:   'bg-red-100 text-red-700',
   delivered:'bg-miski-forest/10 text-miski-forest',
   rejected: 'bg-red-100 text-red-700',
@@ -247,7 +247,7 @@ export function OrderCard({ order }: { order: Order }) {
   ]
 
   return (
-    <div className={`bg-white rounded-xl border overflow-hidden shadow-sm ${hasFailed ? 'border-miski-gold' : 'border-miski-border'}`}>
+    <div className={`bg-white rounded-xl border overflow-hidden shadow-sm ${hasFailed ? 'border-amber-300' : 'border-miski-border'}`}>
       {/* Header */}
       <div
         className="px-4 py-3 flex items-center gap-3 cursor-pointer hover:bg-miski-cream/30 transition-colors"
@@ -260,7 +260,7 @@ export function OrderCard({ order }: { order: Order }) {
               <span className="text-xs text-miski-muted font-mono">{order.customerPhone}</span>
             )}
             {hasFailed && (
-              <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-miski-gold-light/40 text-miski-forest">⚠ Stock</span>
+              <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-100 text-amber-800">⚠ Stock</span>
             )}
             {cancellationRequested && (
               <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-red-100 text-red-700">Cancelación solicitada</span>

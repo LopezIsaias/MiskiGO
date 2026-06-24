@@ -3,8 +3,8 @@ import Link from 'next/link'
 import { CancelPublicationButton } from '@/components/supplier/cancel-publication-button'
 
 const STATUS_STYLES: Record<string, string> = {
-  active:    'bg-miski-lime/20 text-miski-forest',
-  reserved:  'bg-miski-gold-light/40 text-miski-forest',
+  active:    'bg-green-100 text-green-800',
+  reserved:  'bg-amber-100 text-amber-800',
   fulfilled: 'bg-miski-green/15 text-miski-forest',
   expired:   'bg-gray-100 text-gray-500',
 }

@@ -26,9 +26,9 @@ const STOP_STATUS_LABEL: Record<string, string> = {
 }
 
 const STOP_STATUS_COLOR: Record<string, string> = {
-  pending:   'bg-miski-gold-light/40 text-miski-forest',
+  pending:   'bg-amber-100 text-amber-800',
   arrived:   'bg-blue-100 text-blue-700',
-  delivered: 'bg-miski-lime/20 text-miski-forest',
+  delivered: 'bg-green-100 text-green-800',
   failed:    'bg-red-100 text-red-700',
 }
 
@@ -130,7 +130,7 @@ export function DeliveriesBoard({ initialData, realtime = true }: Props) {
                     <span className="text-xs text-gray-700 font-mono flex-1 truncate">
                       #{stop.orderId.slice(0, 8).toUpperCase()}
                     </span>
-                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${STOP_STATUS_COLOR[stop.status] ?? 'bg-miski-gold-light/40 text-miski-forest'}`}>
+                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${STOP_STATUS_COLOR[stop.status] ?? 'bg-amber-100 text-amber-800'}`}>
                       {STOP_STATUS_LABEL[stop.status] ?? stop.status}
                     </span>
                   </div>

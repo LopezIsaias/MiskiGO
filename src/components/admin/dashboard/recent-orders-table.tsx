@@ -14,12 +14,12 @@ const STATUS_LABEL: Record<string, string> = {
 
 const STATUS_COLOR: Record<string, string> = {
   pending_payment:   'bg-miski-green-soft text-miski-forest/60',
-  payment_submitted: 'bg-miski-gold-light/40 text-miski-forest',
-  confirmed:         'bg-miski-lime/20 text-miski-forest',
-  assigned:          'bg-miski-lime/20 text-miski-forest',
+  payment_submitted: 'bg-amber-100 text-amber-800',
+  confirmed:         'bg-green-100 text-green-800',
+  assigned:          'bg-miski-green-soft text-miski-forest',
   in_transit:        'bg-blue-100 text-blue-700',
-  delivered:         'bg-miski-lime/20 text-miski-forest',
-  completed:         'bg-miski-lime/20 text-miski-forest',
+  delivered:         'bg-green-100 text-green-800',
+  completed:         'bg-green-100 text-green-800',
   cancelled:         'bg-red-100 text-red-700',
   failed:            'bg-red-100 text-red-700',
 }

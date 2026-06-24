@@ -11,8 +11,8 @@ const STATUS_LABELS: Record<string, string> = {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  open:        'bg-miski-lime/20 border border-miski-lime/40 text-miski-forest',
-  closed:      'bg-miski-gold-light/40 text-miski-forest',
+  open:        'bg-green-100 border border-green-200 text-green-800',
+  closed:      'bg-amber-100 text-amber-800',
   in_progress: 'bg-miski-green/15 text-miski-forest',
   completed:   'bg-miski-forest/10 text-miski-forest',
 }

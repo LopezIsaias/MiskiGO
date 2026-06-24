@@ -36,7 +36,7 @@ const STATUS_LABEL: Record<string, string> = {
 }
 
 const STATUS_COLOR: Record<string, string> = {
-  confirmed: 'bg-miski-lime/20 text-miski-forest',
+  confirmed: 'bg-green-100 text-green-800',
   assigned: 'bg-miski-green/15 text-miski-forest',
   in_transit: 'bg-miski-green/15 text-miski-forest',
   delivered: 'bg-miski-forest/10 text-miski-forest',
@@ -157,7 +157,7 @@ export function PaymentsTable({ pending, confirmed }: Props) {
                       {METHOD_LABEL[order.payment_method ?? ''] ?? order.payment_method ?? '—'}
                     </td>
                     <td className="px-4 py-3 border-b border-miski-border">
-                      <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${STATUS_COLOR[order.status] ?? 'bg-miski-gold-light/40 text-miski-forest'}`}>
+                      <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${STATUS_COLOR[order.status] ?? 'bg-amber-100 text-amber-800'}`}>
                         {STATUS_LABEL[order.status] ?? order.status}
                       </span>
                     </td>

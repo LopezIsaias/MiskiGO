@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useCartStore } from '@/stores/cart'
 import { NotificationBell } from '@/components/customer/notification-bell'
+import { SidebarShell } from '@/components/shared/sidebar-shell'
 
 const NAV = [
   { label: 'Catálogo',     href: '/customer/catalog', exact: false },
@@ -25,7 +26,7 @@ export function CustomerSidebar() {
   }
 
   return (
-    <aside className="w-56 shrink-0 h-screen bg-miski-forest flex flex-col">
+    <SidebarShell>
       <div className="px-5 py-4 border-b border-white/10 flex items-center justify-between">
         <div>
           <span className="font-display text-base font-extrabold tracking-wide text-white">Miski GO</span>
@@ -80,6 +81,6 @@ export function CustomerSidebar() {
           Cerrar sesión
         </button>
       </div>
-    </aside>
+    </SidebarShell>
   )
 }

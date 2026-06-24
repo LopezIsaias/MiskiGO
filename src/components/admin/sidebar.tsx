@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { SidebarShell } from '@/components/shared/sidebar-shell'
 
 const NAV = [
   { label: 'Dashboard',     href: '/admin',            exact: true  },
@@ -25,7 +26,7 @@ export function AdminSidebar() {
   }
 
   return (
-    <aside className="w-58 shrink-0 h-screen bg-miski-forest flex flex-col">
+    <SidebarShell width="w-58">
       {/* Marca */}
       <div className="px-5 py-5 border-b border-white/10">
         <span className="font-display text-base font-extrabold text-white tracking-wide">Miski GO</span>
@@ -68,6 +69,6 @@ export function AdminSidebar() {
           Cerrar sesión
         </button>
       </div>
-    </aside>
+    </SidebarShell>
   )
 }

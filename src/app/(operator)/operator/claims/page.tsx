@@ -108,7 +108,7 @@ export default async function ClaimsPage() {
             : 'Todos los reclamos están resueltos'}
         </p>
       </div>
-      <ClaimsBoard pending={pending} resolved={resolved} />
+      <ClaimsBoard pending={pending} resolved={resolved} isSuperadmin={profile?.role === 'superadmin'} />
     </div>
   )
 }

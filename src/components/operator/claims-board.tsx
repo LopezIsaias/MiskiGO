@@ -34,8 +34,8 @@ const STATUS_LABEL: Record<string, string> = {
 }
 
 const STATUS_COLOR: Record<string, string> = {
-  pending:             'bg-miski-gold-light/40 text-miski-forest',
-  approved:            'bg-miski-lime/20 text-miski-forest',
+  pending:             'bg-amber-100 text-amber-800',
+  approved:            'bg-green-100 text-green-800',
   partially_approved:  'bg-blue-100 text-blue-700',
   rejected:            'bg-red-100 text-red-700',
 }
@@ -48,11 +48,45 @@ const RESOLUTION_LABEL: Record<string, string> = {
 
 // ── Single claim card ────────────────────────────────────────────────────────
 
-interface CardProps { claim: ClaimRow }
+interface CardProps { claim: ClaimRow; isSuperadmin: boolean }
 
-function ClaimCard({ claim }: CardProps) {
+function ClaimCard({ claim, isSuperadmin }: CardProps) {
   const router = useRouter()
   const isPending = claim.status === 'pending'
+
+  // Reapertura de plazo de reclamo — solo superadmin (§4/§8). El endpoint valida
+  // que el pedido esté entregado/cerrado; aquí basta con pedir el motivo (auditado).
+  const [reopening, setReopening] = useState(false)
+  const [reopenError, setReopenError] = useState('')
+  const [reopened, setReopened] = useState(false)
+
+  async function handleReopen() {
+    const orderId = claim.order?.id
+    if (!orderId) return
+    // ponytail: window.prompt para el motivo; basta para una acción rara de superadmin
+    const reason = window.prompt('Motivo para reabrir el plazo de reclamo:')
+    if (!reason || !reason.trim()) return
+    setReopening(true)
+    setReopenError('')
+    try {
+      const res = await fetch(`/api/admin/orders/${orderId}/reopen-claim`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason: reason.trim() }),
+      })
+      if (!res.ok) {
+        const d = await res.json() as { error?: string }
+        setReopenError(d.error ?? 'Error al reabrir el plazo.')
+        return
+      }
+      setReopened(true)
+      router.refresh()
+    } catch {
+      setReopenError('Error de conexión.')
+    } finally {
+      setReopening(false)
+    }
+  }
 
   const proofInputRef = useRef<HTMLInputElement>(null)
 
@@ -146,7 +180,7 @@ function ClaimCard({ claim }: CardProps) {
 
   return (
     <div className={`bg-white rounded-xl border overflow-hidden shadow-sm ${
-      isPending ? 'border-l-4 border-miski-gold' : 'border-miski-border'
+      isPending ? 'border-l-4 border-amber-400' : 'border-miski-border'
     }`}>
       {/* Header */}
       <div className="px-5 py-4 flex items-start gap-4 border-b border-miski-border">
@@ -401,6 +435,25 @@ function ClaimCard({ claim }: CardProps) {
           <p className="text-xs text-miski-forest font-medium">Reclamo resuelto correctamente.</p>
         </div>
       )}
+
+      {/* Reabrir plazo — solo superadmin */}
+      {isSuperadmin && claim.order && (
+        <div className="px-5 py-3 border-t border-miski-border flex items-center gap-3 flex-wrap">
+          {reopened ? (
+            <p className="text-xs text-miski-forest font-medium">Plazo de reclamo reabierto.</p>
+          ) : (
+            <button
+              type="button"
+              onClick={() => void handleReopen()}
+              disabled={reopening}
+              className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-miski-border text-miski-forest hover:bg-miski-green-soft disabled:opacity-50 transition-colors"
+            >
+              {reopening ? 'Reabriendo…' : 'Reabrir plazo de reclamo'}
+            </button>
+          )}
+          {reopenError && <span className="text-xs text-red-600">{reopenError}</span>}
+        </div>
+      )}
     </div>
   )
 }
@@ -410,9 +463,10 @@ function ClaimCard({ claim }: CardProps) {
 interface Props {
   pending:  ClaimRow[]
   resolved: ClaimRow[]
+  isSuperadmin: boolean
 }
 
-export function ClaimsBoard({ pending, resolved }: Props) {
+export function ClaimsBoard({ pending, resolved, isSuperadmin }: Props) {
   return (
     <div className="space-y-8">
       <section>
@@ -425,7 +479,7 @@ export function ClaimsBoard({ pending, resolved }: Props) {
           </p>
         ) : (
           <div className="space-y-4">
-            {pending.map(c => <ClaimCard key={c.id} claim={c} />)}
+            {pending.map(c => <ClaimCard key={c.id} claim={c} isSuperadmin={isSuperadmin} />)}
           </div>
         )}
       </section>
@@ -436,7 +490,7 @@ export function ClaimsBoard({ pending, resolved }: Props) {
             Resueltos ({resolved.length})
           </h2>
           <div className="space-y-3">
-            {resolved.map(c => <ClaimCard key={c.id} claim={c} />)}
+            {resolved.map(c => <ClaimCard key={c.id} claim={c} isSuperadmin={isSuperadmin} />)}
           </div>
         </section>
       )}

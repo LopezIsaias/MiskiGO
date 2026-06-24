@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { SidebarShell } from '@/components/shared/sidebar-shell'
 
 const NAV = [
   { label: 'Aprobación de pagos',   href: '/operator/payments',   exact: false },
@@ -26,7 +27,7 @@ export function OperatorSidebar() {
   }
 
   return (
-    <aside className="w-56 shrink-0 h-screen bg-miski-forest flex flex-col">
+    <SidebarShell>
       <div className="px-5 py-4 border-b border-white/10">
         <span className="font-display text-base font-extrabold tracking-wide text-white">Miski GO</span>
         <p className="mt-0.5">
@@ -63,6 +64,6 @@ export function OperatorSidebar() {
           Cerrar sesión
         </button>
       </div>
-    </aside>
+    </SidebarShell>
   )
 }
