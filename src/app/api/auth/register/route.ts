@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { registerApiSchema } from '@/lib/validations/auth'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { getActiveRegionId } from '@/lib/supabase/region'
 
 export async function POST(request: NextRequest) {
   let body: unknown
@@ -20,6 +21,9 @@ export async function POST(request: NextRequest) {
 
   const { role, full_name, email, phone, dni, ruc, region_id, password } = parsed.data
   const admin = createAdminClient()
+
+  // Región única (MVP): si el form no manda región, asignar la única activa.
+  const resolvedRegionId = region_id || (await getActiveRegionId(admin))
 
   // Pre-chequear DNI antes de crear el auth user (evita auth user huérfano)
   const { data: existing } = await admin
@@ -42,7 +46,7 @@ export async function POST(request: NextRequest) {
     email,
     password,
     email_confirm: true,
-    user_metadata: { full_name, phone: phone ?? '', dni, ruc: ruc ?? '', region_id, role },
+    user_metadata: { full_name, phone: phone ?? '', dni, ruc: ruc ?? '', region_id: resolvedRegionId, role },
   })
 
   if (authError || !authData.user) {

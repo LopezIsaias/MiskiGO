@@ -9,16 +9,6 @@ import { registerSchema, type RegisterInput } from '@/lib/validations/auth'
 import { createClient } from '@/lib/supabase/client'
 import { ROLE_DASHBOARD } from '@/lib/constants'
 
-interface RegionOption {
-  id: string
-  name: string
-  city: string
-}
-
-interface Props {
-  regions: RegionOption[]
-}
-
 const inputCls =
   'w-full border border-miski-border rounded-xl px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-miski-green/40 focus:border-miski-green transition-colors placeholder:text-miski-muted/60 text-miski-tinta'
 
@@ -34,7 +24,7 @@ function Field({ label, error, children }: { label: string; error?: string; chil
   )
 }
 
-export function RegisterForm({ regions }: Props) {
+export function RegisterForm() {
   const router = useRouter()
   const [serverError, setServerError] = useState<string | null>(null)
 
@@ -148,17 +138,6 @@ export function RegisterForm({ regions }: Props) {
               </Field>
             )}
           </div>
-
-          <Field label="Región" error={errors.region_id?.message}>
-            <select {...register('region_id')} className={inputCls}>
-              <option value="">Selecciona tu región</option>
-              {regions.map(r => (
-                <option key={r.id} value={r.id}>
-                  {r.name} — {r.city}
-                </option>
-              ))}
-            </select>
-          </Field>
 
           <Field label="Contraseña" error={errors.password?.message}>
             <input

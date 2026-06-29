@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { getActiveRegionId } from '@/lib/supabase/region'
 import { createUserSchema } from '@/lib/validations/admin'
 import { AUDIT_ACTIONS, AUDIT_MODULES } from '@/lib/constants'
 
@@ -65,12 +66,15 @@ export async function POST(request: Request) {
     )
   }
 
+  // Región única (MVP): el trigger setea users.region_id desde metadata.
+  const regionId = await getActiveRegionId(adminClient)
+
   // Create auth user (trigger creates public.users row automatically)
   const { data: authData, error: authError } = await adminClient.auth.admin.createUser({
     email,
     password,
     email_confirm: true,
-    user_metadata: { full_name, dni, phone: phone || null, role },
+    user_metadata: { full_name, dni, phone: phone || null, role, region_id: regionId },
   })
 
   if (authError) {

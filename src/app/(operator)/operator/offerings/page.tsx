@@ -58,7 +58,7 @@ export default async function OperatorOfferingsPage() {
         cycles={(cycles ?? []) as OfferingCycle[]}
         products={(products ?? []) as OfferingProduct[]}
         initialOfferings={(offerings ?? []) as ExistingOffering[]}
-        canCreateCycle={!isSuperadmin}
+        canCreateCycle={true}
       />
     </div>
   )

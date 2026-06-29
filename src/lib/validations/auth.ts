@@ -23,7 +23,8 @@ const registerBaseSchema = z.object({
     .string()
     .optional()
     .refine(v => !v || /^\d{11}$/.test(v), { message: 'RUC debe tener 11 dígitos (solo números)' }),
-  region_id: z.string().min(1, 'Selecciona una región'),
+  // MVP de región única: el servidor asigna la región activa. Opcional en el form.
+  region_id: z.string().optional(),
   password: z.string().min(8, 'Mínimo 8 caracteres'),
   confirm_password: z.string().min(1, 'Confirma tu contraseña'),
 })

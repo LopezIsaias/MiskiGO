@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { getActiveRegionId } from '@/lib/supabase/region'
 import { AUDIT_ACTIONS, AUDIT_MODULES } from '@/lib/constants'
 
 const bodySchema = z.object({
@@ -36,8 +37,14 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: parsed.error.issues[0]?.message ?? 'Datos inválidos' }, { status: 422 })
   }
 
-  // Operador: su propia región. Superadmin: debe indicar region_id.
-  const regionId = profile!.role === 'operator' ? profile!.region_id : parsed.data.region_id
+  const adminClient = createAdminClient()
+
+  // Operador: su región. Superadmin: region_id del body o, en MVP de región única,
+  // la única región activa.
+  const regionId =
+    profile!.role === 'operator'
+      ? profile!.region_id
+      : (parsed.data.region_id ?? (await getActiveRegionId(adminClient)))
   if (!regionId) {
     return NextResponse.json({ error: 'Región no especificada' }, { status: 400 })
   }
@@ -46,8 +53,6 @@ export async function POST(request: Request) {
   const cutoff = new Date(parsed.data.dispatch_date + 'T00:00:00Z')
   cutoff.setUTCDate(cutoff.getUTCDate() - 1)
   cutoff.setUTCHours(17, 0, 0, 0)
-
-  const adminClient = createAdminClient()
 
   // Idempotencia: si ya existe el ciclo (UNIQUE region+date), devolverlo.
   const { data: existing } = await adminClient
