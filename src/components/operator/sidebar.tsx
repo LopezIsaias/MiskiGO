@@ -16,9 +16,19 @@ const NAV = [
   { label: 'Repartidores activos',  href: '/operator/deliveries', exact: false },
 ] as const
 
-export function OperatorSidebar() {
+interface Props {
+  pendingPayments: number
+  pendingRecharges: number
+}
+
+export function OperatorSidebar({ pendingPayments, pendingRecharges }: Props) {
   const pathname = usePathname()
   const router = useRouter()
+
+  const badges: Record<string, number> = {
+    '/operator/payments': pendingPayments,
+    '/operator/wallet': pendingRecharges,
+  }
 
   async function handleSignOut() {
     const supabase = createClient()
@@ -40,17 +50,25 @@ export function OperatorSidebar() {
       <nav className="flex-1 px-2 py-3 space-y-0.5">
         {NAV.map(({ label, href, exact }) => {
           const isActive = exact ? pathname === href : pathname.startsWith(href)
+          const badge = badges[href] ?? 0
           return (
             <Link
               key={href}
               href={href}
-              className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+              className={`flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-sm transition-colors ${
                 isActive
                   ? 'bg-miski-lime text-miski-forest font-medium'
                   : 'text-white/65 hover:bg-white/10 hover:text-white'
               }`}
             >
-              {label}
+              <span>{label}</span>
+              {badge > 0 && (
+                <span className={`inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full text-xs font-bold tabular ${
+                  isActive ? 'bg-miski-forest text-white' : 'bg-miski-gold text-miski-forest'
+                }`}>
+                  {badge}
+                </span>
+              )}
             </Link>
           )
         })}
