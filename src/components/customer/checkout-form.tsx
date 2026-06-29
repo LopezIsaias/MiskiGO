@@ -44,6 +44,7 @@ export function CheckoutForm({ walletBalance, userId, fullName, dni, ruc }: Prop
   const [receiptType, setReceiptType] = useState<ReceiptType>('boleta')
   const [receiptDocument, setReceiptDocument] = useState(dni)
   const [receiptName, setReceiptName] = useState(fullName)
+  const [lookingUp, setLookingUp] = useState(false)
   const [useWallet, setUseWallet] = useState(false)
   const [proofFile, setProofFile] = useState<File | null>(null)
   const [proofUrl, setProofUrl] = useState<string | null>(null)
@@ -124,6 +125,31 @@ export function CheckoutForm({ walletBalance, userId, fullName, dni, ruc }: Prop
       },
       { enableHighAccuracy: true, timeout: 10000 },
     )
+  }
+
+  // Autocompleta nombre/razón social desde RENIEC/SUNAT (apisperu) al tener el
+  // documento completo. Silencioso ante fallo: el usuario puede escribir a mano.
+  async function lookupDocument(t: ReceiptType, number: string) {
+    const apiType = t === 'boleta' ? 'dni' : 'ruc'
+    setLookingUp(true)
+    try {
+      const res = await fetch(`/api/lookup/document?type=${apiType}&number=${number}`)
+      if (res.ok) {
+        const { name } = (await res.json()) as { name: string }
+        if (name) setReceiptName(name)
+      }
+    } catch {
+      /* silencioso */
+    } finally {
+      setLookingUp(false)
+    }
+  }
+
+  function handleDocumentChange(value: string) {
+    const max = receiptType === 'boleta' ? 8 : 11
+    const v = value.replace(/\D/g, '').slice(0, max)
+    setReceiptDocument(v)
+    if (v.length === max) void lookupDocument(receiptType, v)
   }
 
   function handleReceiptTypeChange(type: ReceiptType) {
@@ -337,7 +363,7 @@ export function CheckoutForm({ walletBalance, userId, fullName, dni, ruc }: Prop
             type="text"
             inputMode="numeric"
             value={receiptDocument}
-            onChange={e => setReceiptDocument(e.target.value.replace(/\D/g, '').slice(0, receiptType === 'boleta' ? 8 : 11))}
+            onChange={e => handleDocumentChange(e.target.value)}
             placeholder={receiptType === 'boleta' ? '12345678' : '20123456789'}
             className="w-full border border-miski-border rounded-xl px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-miski-green/40 focus:border-miski-green transition-colors placeholder:text-miski-muted/60 text-miski-tinta"
           />
@@ -346,6 +372,7 @@ export function CheckoutForm({ walletBalance, userId, fullName, dni, ruc }: Prop
         <div>
           <label className="block text-xs font-medium text-miski-forest mb-1">
             {receiptType === 'boleta' ? 'Nombre completo' : 'Razón social'}
+            {lookingUp && <span className="ml-2 text-miski-muted font-normal">buscando…</span>}
           </label>
           <input
             type="text"
