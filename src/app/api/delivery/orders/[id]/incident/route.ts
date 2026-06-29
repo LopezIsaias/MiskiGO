@@ -114,19 +114,14 @@ export async function PATCH(
       new_value:    { reason, photo_url: photoUrl ?? null, delivery_attempts: 2 },
     })
   } else {
-    // First failed attempt → increment delivery_attempts to 1
+    // First failed attempt → increment delivery_attempts to 1. El pedido sigue
+    // 'in_transit' y la parada queda accionable: el repartidor puede reintentar
+    // una vez más (entregar o reportar el 2do intento). No se marca 'failed' la
+    // parada todavía — eso ocurre solo en el segundo intento (→ in_storage).
     await adminClient.from('orders').update({
       updated_at: now,
       delivery_attempts: 1 as never,
     }).eq('id', orderId)
-
-    if (routeId) {
-      await adminClient
-        .from('delivery_stops')
-        .update({ status: 'failed', failure_reason: reason, completed_at: now })
-        .eq('route_id', routeId)
-        .eq('order_id', orderId)
-    }
 
     // Notify operators/superadmin
     const { data: operators } = await adminClient

@@ -351,9 +351,10 @@ export function DeliveryRouteBoard({
             : s
         ))
       } else {
+        // 1er intento: la parada sigue accionable para reintentar una vez más.
         setStops(prev => prev.map(s =>
           s.orderId === incidentOrderId
-            ? { ...s, stopStatus: 'failed', failureReason: reason, deliveryAttempts: 1 }
+            ? { ...s, failureReason: reason, deliveryAttempts: 1 }
             : s
         ))
       }
