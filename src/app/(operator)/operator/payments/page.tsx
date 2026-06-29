@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { PaymentsTable } from '@/components/operator/payments-table'
-import type { PendingOrder, ConfirmedOrder } from '@/components/operator/payments-table'
+import type { PendingOrder, ConfirmedOrder, RejectedOrder } from '@/components/operator/payments-table'
 
 export default async function OperatorPaymentsPage() {
   const supabase = await createClient()
@@ -43,12 +43,25 @@ export default async function OperatorPaymentsPage() {
 
   const rawConfirmed: unknown[] = confirmedData ?? []
 
+  // Comprobantes rechazados (el pedido pasó a 'cancelled', por eso no está en las
+  // listas de arriba). Se muestran para que el operador conserve el historial.
+  const { data: rawRejected } = await adminClient
+    .from('payment_verifications')
+    .select(`
+      amount, rejection_reason, reviewed_at,
+      order:orders!order_id(id, total_amount, payment_method, customer:users!customer_id(full_name, phone))
+    `)
+    .eq('status', 'rejected')
+    .order('reviewed_at', { ascending: false })
+    .limit(30)
+
   return (
     <div>
       <h1 className="font-display text-2xl font-bold text-miski-forest mb-6">Aprobación de pagos</h1>
       <PaymentsTable
         pending={(rawPending ?? []) as unknown as PendingOrder[]}
         confirmed={rawConfirmed as unknown as ConfirmedOrder[]}
+        rejected={(rawRejected ?? []) as unknown as RejectedOrder[]}
       />
     </div>
   )

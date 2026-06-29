@@ -47,6 +47,8 @@ type RawOrder = {
   created_at:               string
   delivery_confirmation_code: string | null
   cancellation_requested_at: string | null
+  cancellation_reason:      string | null
+  payment_verifications: { status: string; rejection_reason: string | null }[] | null
   dispatch_cycle: { dispatch_date: string } | { dispatch_date: string }[] | null
   receipt: { number: string; type: string } | { number: string; type: string }[] | null
   items: {
@@ -67,7 +69,8 @@ export default async function OrdersPage() {
     .select(`
       id, status, total_amount, delivery_address,
       delivered_at, claim_window_expires_at, created_at,
-      delivery_confirmation_code, cancellation_requested_at,
+      delivery_confirmation_code, cancellation_requested_at, cancellation_reason,
+      payment_verifications:payment_verifications!order_id(status, rejection_reason),
       dispatch_cycle:dispatch_cycles!dispatch_cycle_id(dispatch_date),
       receipt:receipts!order_id(number, type),
       items:order_items!order_id(
@@ -159,6 +162,21 @@ export default async function OrdersPage() {
 
               {/* Barra de estado del pedido */}
               <OrderStatusBar status={order.status} />
+
+              {/* Motivo de cancelación / rechazo de pago */}
+              {order.status === 'cancelled' && (() => {
+                const rejected = order.payment_verifications?.find(pv => pv.status === 'rejected')
+                const reason = rejected?.rejection_reason ?? order.cancellation_reason
+                if (!reason) return null
+                return (
+                  <div className="mt-3 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+                    <p className="text-xs font-semibold text-red-700 mb-0.5">
+                      {rejected ? 'Pago rechazado' : 'Pedido cancelado'}
+                    </p>
+                    <p className="text-sm text-red-700">{reason}</p>
+                  </div>
+                )
+              })()}
 
               {/* Propuestas de sustitución pendientes */}
               {(proposalsByOrder[order.id] ?? []).map(p => (

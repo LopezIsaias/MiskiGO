@@ -21,9 +21,22 @@ export interface ConfirmedOrder {
   customer: { full_name: string; phone: string | null } | null
 }
 
+export interface RejectedOrder {
+  amount: number
+  rejection_reason: string | null
+  reviewed_at: string | null
+  order: {
+    id: string
+    total_amount: number
+    payment_method: string | null
+    customer: { full_name: string; phone: string | null } | null
+  } | null
+}
+
 interface Props {
   pending: PendingOrder[]
   confirmed: ConfirmedOrder[]
+  rejected: RejectedOrder[]
 }
 
 const METHOD_LABEL: Record<string, string> = {
@@ -50,7 +63,7 @@ function timeAgo(iso: string): string {
   return `hace ${Math.floor(secs / 86400)} días`
 }
 
-export function PaymentsTable({ pending, confirmed }: Props) {
+export function PaymentsTable({ pending, confirmed, rejected }: Props) {
   return (
     <div className="space-y-8">
       {/* Pending validation */}
@@ -176,6 +189,46 @@ export function PaymentsTable({ pending, confirmed }: Props) {
           </div>
         )}
       </section>
+
+      {/* Rejected payments history */}
+      {rejected.length > 0 && (
+        <section>
+          <h2 className="text-sm font-semibold text-miski-forest mb-3">Comprobantes rechazados</h2>
+          <div className="overflow-hidden rounded-xl border border-miski-border bg-white shadow-sm">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-miski-border bg-miski-forest/5">
+                  <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider text-miski-forest/60">Cliente</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider text-miski-forest/60">Monto</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider text-miski-forest/60">Motivo</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider text-miski-forest/60">Rechazado</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-miski-border">
+                {rejected.map((r, i) => (
+                  <tr key={r.order?.id ?? i} className="hover:bg-miski-cream/30 transition-colors">
+                    <td className="px-4 py-3 border-b border-miski-border">
+                      <p className="font-medium text-gray-700">{r.order?.customer?.full_name ?? '—'}</p>
+                      {r.order?.customer?.phone && (
+                        <p className="text-xs text-miski-muted">{r.order.customer.phone}</p>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-gray-700 border-b border-miski-border">
+                      {formatCurrency(r.amount)}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-red-700 border-b border-miski-border">
+                      {r.rejection_reason ?? '—'}
+                    </td>
+                    <td className="px-4 py-3 text-gray-700 text-sm border-b border-miski-border">
+                      {r.reviewed_at ? timeAgo(r.reviewed_at) : '—'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
     </div>
   )
 }
