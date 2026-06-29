@@ -96,6 +96,11 @@ export const systemParamsSchema = z.object({
     .int('Debe ser un número entero')
     .min(1, 'Mínimo 1 hora')
     .max(72, 'Máximo 72 horas'),
+  yape_number: z.string().regex(/^\d{9}$/, 'El número de Yape debe tener 9 dígitos'),
+  yape_name: z.string().min(2, 'Ingresa el titular del Yape').max(80),
+  transfer_bank: z.string().min(2, 'Ingresa el banco').max(60),
+  transfer_account: z.string().regex(/^\d{6,20}$/, 'Número de cuenta inválido (6 a 20 dígitos)'),
+  transfer_cci: z.string().regex(/^\d{20}$/, 'El CCI debe tener 20 dígitos'),
   categories: z.array(categoryParamSchema),
 })
 

@@ -1,5 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
+import { getPaymentAccounts } from '@/lib/supabase/payment-accounts'
 import { CheckoutForm } from '@/components/customer/checkout-form'
 
 export default async function CheckoutPage() {
@@ -14,6 +16,7 @@ export default async function CheckoutPage() {
     .maybeSingle()
 
   const walletBalance = profile?.wallet_balance ?? 0
+  const paymentAccounts = await getPaymentAccounts(createAdminClient())
 
   return (
     <div>
@@ -24,6 +27,7 @@ export default async function CheckoutPage() {
         fullName={profile?.full_name ?? ''}
         dni={profile?.dni ?? ''}
         ruc={profile?.ruc ?? ''}
+        paymentAccounts={paymentAccounts}
       />
     </div>
   )

@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import { useCartStore } from '@/stores/cart'
 import { createClient } from '@/lib/supabase/client'
 import { formatCurrency } from '@/lib/utils'
+import type { PaymentAccounts } from '@/lib/supabase/payment-accounts'
+import { PaymentAccountInfo } from '@/components/customer/payment-account-info'
 
 const UNIT_LABEL: Record<string, string> = {
   kg: 'kg', unit: 'und.', liter: 'lt', bunch: 'atado',
@@ -16,6 +18,7 @@ interface Props {
   fullName: string
   dni: string
   ruc: string
+  paymentAccounts: PaymentAccounts
 }
 
 type PaymentMethod = 'yape' | 'transfer' | 'wallet'
@@ -28,7 +31,7 @@ interface OrderResult {
   remainder: number
 }
 
-export function CheckoutForm({ walletBalance, userId, fullName, dni, ruc }: Props) {
+export function CheckoutForm({ walletBalance, userId, fullName, dni, ruc, paymentAccounts }: Props) {
   const router = useRouter()
   const { items, clearCart } = useCartStore()
 
@@ -420,6 +423,11 @@ export function CheckoutForm({ walletBalance, userId, fullName, dni, ruc }: Prop
             )
           })}
         </div>
+
+        {/* A quién pagar (Yape / transferencia) */}
+        {paymentMethod !== 'wallet' && remainder > 0 && (
+          <PaymentAccountInfo method={paymentMethod} accounts={paymentAccounts} />
+        )}
 
         {/* Wallet toggle for mixed payment */}
         {paymentMethod !== 'wallet' && walletBalance > 0 && (

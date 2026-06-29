@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { getPaymentAccounts } from '@/lib/supabase/payment-accounts'
 import { formatCurrency, formatDateTime } from '@/lib/utils'
 import { WalletRechargeForm } from '@/components/customer/wallet-recharge-form'
 
@@ -66,6 +67,7 @@ export default async function WalletPage() {
 
   const transactions = (rawTxs ?? []) as unknown as TxRow[]
   const walletBalance = Number(profile?.wallet_balance ?? 0)
+  const paymentAccounts = await getPaymentAccounts(adminClient)
 
   const pendingRecharges = transactions.filter(t => t.type === 'recharge' && t.status === 'pending').length
 
@@ -89,7 +91,7 @@ export default async function WalletPage() {
         )}
       </div>
 
-      <WalletRechargeForm />
+      <WalletRechargeForm paymentAccounts={paymentAccounts} />
 
       {/* Transaction history */}
       {transactions.length > 0 && (

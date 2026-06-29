@@ -46,14 +46,23 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: parsed.error.flatten().fieldErrors }, { status: 422 })
   }
 
-  const { cutoff_hour, claim_window_hours, categories } = parsed.data
+  const {
+    cutoff_hour, claim_window_hours,
+    yape_number, yape_name, transfer_bank, transfer_account, transfer_cci,
+    categories,
+  } = parsed.data
   const adminClient = createAdminClient()
+
+  const paramKeys = [
+    'cutoff_hour', 'claim_window_hours',
+    'yape_number', 'yape_name', 'transfer_bank', 'transfer_account', 'transfer_cci',
+  ]
 
   // Load previous values for audit
   const { data: prevParams } = await auth.supabase
     .from('system_params')
     .select('key, value')
-    .in('key', ['cutoff_hour', 'claim_window_hours'])
+    .in('key', paramKeys)
 
   const prevMap: Record<string, string> = {}
   for (const p of prevParams ?? []) prevMap[p.key] = p.value
@@ -62,6 +71,11 @@ export async function PATCH(request: NextRequest) {
   const paramUpdates = [
     { key: 'cutoff_hour', value: String(cutoff_hour) },
     { key: 'claim_window_hours', value: String(claim_window_hours) },
+    { key: 'yape_number', value: yape_number },
+    { key: 'yape_name', value: yape_name },
+    { key: 'transfer_bank', value: transfer_bank },
+    { key: 'transfer_account', value: transfer_account },
+    { key: 'transfer_cci', value: transfer_cci },
   ]
 
   for (const p of paramUpdates) {
@@ -97,10 +111,20 @@ export async function PATCH(request: NextRequest) {
     previous_value: {
       cutoff_hour: prevMap['cutoff_hour'],
       claim_window_hours: prevMap['claim_window_hours'],
+      yape_number: prevMap['yape_number'],
+      yape_name: prevMap['yape_name'],
+      transfer_bank: prevMap['transfer_bank'],
+      transfer_account: prevMap['transfer_account'],
+      transfer_cci: prevMap['transfer_cci'],
     },
     new_value: {
       cutoff_hour,
       claim_window_hours,
+      yape_number,
+      yape_name,
+      transfer_bank,
+      transfer_account,
+      transfer_cci,
       categories_updated: categories.length,
     },
   })

@@ -50,6 +50,11 @@ export function SettingsForm({ params, categories }: SettingsFormProps) {
     defaultValues: {
       cutoff_hour:        parseInt(paramMap['cutoff_hour'] ?? '12', 10),
       claim_window_hours: parseInt(paramMap['claim_window_hours'] ?? '2', 10),
+      yape_number:        paramMap['yape_number'] ?? '',
+      yape_name:          paramMap['yape_name'] ?? '',
+      transfer_bank:      paramMap['transfer_bank'] ?? '',
+      transfer_account:   paramMap['transfer_account'] ?? '',
+      transfer_cci:       paramMap['transfer_cci'] ?? '',
       categories: categories.map(c => ({
         id:                   c.id,
         operational_cost_pct: pct(c.operational_cost_pct),
@@ -139,6 +144,49 @@ export function SettingsForm({ params, categories }: SettingsFormProps) {
             <p className="text-xs text-miski-muted/70 mt-1">
               Tiempo que tiene el cliente para reportar un problema tras recibir su pedido.
             </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Payment accounts */}
+      <section className="bg-white border border-miski-border rounded-xl p-6 space-y-5 shadow-sm">
+        <div>
+          <h2 className="text-lg font-semibold text-miski-forest">Cuentas de pago</h2>
+          <p className="text-sm text-miski-muted mt-0.5">
+            Se muestran al cliente en el checkout y en la recarga de billetera.
+          </p>
+        </div>
+
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-6">
+            <div>
+              <label className={labelCls}>Número de Yape</label>
+              <input type="text" inputMode="numeric" maxLength={9} {...register('yape_number')} className={inputCls} placeholder="993623373" />
+              {errors.yape_number && <p className="text-red-500 text-xs mt-1">{errors.yape_number.message}</p>}
+            </div>
+            <div>
+              <label className={labelCls}>Titular del Yape</label>
+              <input type="text" {...register('yape_name')} className={inputCls} placeholder="Isaías" />
+              {errors.yape_name && <p className="text-red-500 text-xs mt-1">{errors.yape_name.message}</p>}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-3 gap-6">
+            <div>
+              <label className={labelCls}>Banco (transferencia)</label>
+              <input type="text" {...register('transfer_bank')} className={inputCls} placeholder="BCP" />
+              {errors.transfer_bank && <p className="text-red-500 text-xs mt-1">{errors.transfer_bank.message}</p>}
+            </div>
+            <div>
+              <label className={labelCls}>Número de cuenta</label>
+              <input type="text" inputMode="numeric" {...register('transfer_account')} className={inputCls} placeholder="55077484986095" />
+              {errors.transfer_account && <p className="text-red-500 text-xs mt-1">{errors.transfer_account.message}</p>}
+            </div>
+            <div>
+              <label className={labelCls}>CCI</label>
+              <input type="text" inputMode="numeric" maxLength={20} {...register('transfer_cci')} className={inputCls} placeholder="00255017748498609521" />
+              {errors.transfer_cci && <p className="text-red-500 text-xs mt-1">{errors.transfer_cci.message}</p>}
+            </div>
           </div>
         </div>
       </section>

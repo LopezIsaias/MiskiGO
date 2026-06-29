@@ -6,10 +6,12 @@ import { createClient } from '@/lib/supabase/client'
 import { formatCurrency } from '@/lib/utils'
 import { extractExif } from '@/lib/utils/exif-client'
 import type { ExifData } from '@/lib/utils/exif-client'
+import type { PaymentAccounts } from '@/lib/supabase/payment-accounts'
+import { PaymentAccountInfo } from '@/components/customer/payment-account-info'
 
 const PRESET_AMOUNTS = [20, 50, 100, 200]
 
-export function WalletRechargeForm() {
+export function WalletRechargeForm({ paymentAccounts }: { paymentAccounts: PaymentAccounts }) {
   const router = useRouter()
   const [amount,        setAmount]        = useState('')
   const [method,        setMethod]        = useState<'yape' | 'transfer' | ''>('')
@@ -154,6 +156,11 @@ export function WalletRechargeForm() {
             </button>
           ))}
         </div>
+        {method !== '' && (
+          <div className="mt-3">
+            <PaymentAccountInfo method={method} accounts={paymentAccounts} />
+          </div>
+        )}
       </div>
 
       {/* Proof upload */}
